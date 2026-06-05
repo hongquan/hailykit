@@ -49,17 +49,20 @@ const SAFE_PATTERNS = [
 
 // NOTE: Hard block — no bypass mechanism. These should never be read by AI agents.
 // NOTE: Patterns use (\.|$) instead of $ to catch double-extension renaming (e.g. private.key.json).
+// NOTE: All patterns are case-insensitive (/i). On case-insensitive filesystems (Windows,
+//   default macOS) the OS opens `Id_Rsa` as the real `id_rsa`, so a case-sensitive regex would
+//   miss the exact file it guards. Keep /i on every entry — do not drop it for "exact" names.
 const HARD_BLOCK_PATTERNS = [
   /\.pem(\.|$)/i,                                         // TLS certificates
   /\.key(\.|$)/i,                                         // Private keys
   /\.p12(\.|$)/i, /\.pfx(\.|$)/i,                        // PKCS12 key bundles
-  /^id_rsa/, /^id_dsa/, /^id_ecdsa/, /^id_ed25519/,     // SSH private keys
-  /^authorized_keys$/,                                    // SSH authorized keys — allows SSH login
-  /\.netrc(\.|$)/,                                        // curl/git credentials
+  /^id_rsa/i, /^id_dsa/i, /^id_ecdsa/i, /^id_ed25519/i, // SSH private keys
+  /^authorized_keys$/i,                                   // SSH authorized keys — allows SSH login
+  /\.netrc(\.|$)/i,                                       // curl/git credentials
   /wallet\.dat(\.|$)/i,                                   // crypto wallets
   /keystore\.json(\.|$)/i,                                // Ethereum keystores
   /htpasswd/i,                                            // Apache password files
-  /^vault-token$/,                                        // HashiCorp Vault token
+  /^vault-token$/i,                                       // HashiCorp Vault token
 ];
 
 // NOTE: Warn only — agent may have legitimate need (debug, .env.example generation).

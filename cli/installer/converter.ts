@@ -106,10 +106,26 @@ export function parseFrontmatter(content: string): ParsedSkill {
 }
 
 /**
+ * Strip everything but kebab-case characters from a command slug.
+ *
+ * The returned name is used directly as a filename component (`${name}.toml`,
+ * `${name}.md`), so any `/`, `\`, `..`, or null byte in a frontmatter `name:`
+ * could write outside the commands directory. Registered skill names are all
+ * `[a-z0-9-]`, so this never alters a legitimate name — it only neutralizes a
+ * hand-crafted/tampered SKILL.md.
+ */
+function sanitizeSlug(s: string): string {
+  return s.replace(/[^A-Za-z0-9-]/g, '');
+}
+
+/**
  * Derive the command slug from SKILL.md frontmatter `name:` field.
  * `name: hc-cook`      → `hc-cook`   (current hyphen format)
  * `name: hc:cook`      → `hc-cook`   (legacy colon format)
  * `name: plan`         → `hl-plan`   (legacy no-prefix — assumes hl domain)
+ *
+ * Output is sanitized to kebab-case — it is used as a filename, so path
+ * separators and traversal sequences must never survive.
  *
  * @param frontmatter - Parsed frontmatter from parseFrontmatter().
  * @param fallback    - Directory name used when frontmatter has no `name` field.
@@ -120,11 +136,11 @@ export function toCommandName(
 ): string {
   const raw = frontmatter.name || fallback || '';
   // Current format: already hyphenated — hc-cook, hl-brainstorm, hd-ui-ux
-  if (/^(hc|hd|hl)-/.test(raw)) return raw;
+  if (/^(hc|hd|hl)-/.test(raw)) return sanitizeSlug(raw);
   // Legacy colon format: hc:cook → hc-cook
-  if (/^(hc|hd|hl):/.test(raw)) return raw.replace(':', '-');
+  if (/^(hc|hd|hl):/.test(raw)) return sanitizeSlug(raw.replace(':', '-'));
   // Legacy bare name: no prefix → assume hl domain
-  return `hl-${raw.replace(/^hl[:-]/, '')}`;
+  return `hl-${sanitizeSlug(raw.replace(/^hl[:-]/, ''))}`;
 }
 
 /**

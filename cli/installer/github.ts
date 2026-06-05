@@ -52,6 +52,29 @@ export async function fetchRelease(tag = 'latest'): Promise<GithubRelease> {
 }
 
 /**
+ * Assert a download URL is HTTPS and points at a GitHub-controlled host.
+ * `browser_download_url` is supplied by the API response; constraining it here
+ * stops a tampered/unexpected API payload from redirecting the download to an
+ * attacker host before a single byte is fetched. Only the initial URL can be
+ * checked — fetch() follows subsequent redirects transparently.
+ *
+ * @param raw - The candidate download URL.
+ * @throws When the URL is not HTTPS or its host is not github.com/githubusercontent.com.
+ */
+export function assertTrustedDownloadUrl(raw: string): void {
+  let u: URL;
+  try { u = new URL(raw); } catch { throw new Error(`Invalid download URL: ${JSON.stringify(raw)}`); }
+  const host = u.hostname.toLowerCase();
+  const trusted =
+    host === 'github.com' ||
+    host.endsWith('.github.com') ||
+    host.endsWith('.githubusercontent.com');
+  if (u.protocol !== 'https:' || !trusted) {
+    throw new Error(`Refusing download from untrusted URL host: ${u.protocol}//${u.hostname}`);
+  }
+}
+
+/**
  * Download the release zip into `destDir`.
  * Each call writes to a fresh `hailykit.zip` inside the caller-provided temp dir —
  * no shared, predictable path so concurrent installs and multi-user systems are safe.
@@ -59,13 +82,15 @@ export async function fetchRelease(tag = 'latest'): Promise<GithubRelease> {
  * @param release - A validated GithubRelease from fetchRelease().
  * @param destDir - Directory to write the zip into (typically from makeTempDir()).
  * @returns Absolute path to the downloaded zip file.
- * @throws When the download HTTP request fails.
+ * @throws When the URL is untrusted or the download HTTP request fails.
  */
 export async function downloadZip(release: GithubRelease, destDir: string): Promise<string> {
   const asset = (release.assets || []).find(a => a.name === 'hailykit.zip');
   const downloadUrl = asset
     ? asset.browser_download_url
     : `https://github.com/${REPO}/archive/refs/tags/${release.tag_name}.zip`;
+
+  assertTrustedDownloadUrl(downloadUrl);
 
   const dest = path.join(destDir, 'hailykit.zip');
 

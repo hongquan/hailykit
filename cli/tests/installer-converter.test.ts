@@ -83,6 +83,18 @@ test('toCommandName applies hl- prefix to bare names', () => {
   assert.equal(toCommandName({}, 'scout'), 'hl-scout');
 });
 
+test('toCommandName strips path-traversal chars from the slug', () => {
+  // The slug becomes a filename; separators and `..` must never survive.
+  assert.equal(toCommandName({ name: 'hc-../../../etc/cron.d/x' }), 'hc-etccrondx');
+  assert.equal(toCommandName({ name: 'hc:..\\..\\evil' }), 'hc-evil');
+  assert.equal(toCommandName({ name: '../../escape' }), 'hl-escape');
+  // No output may contain a path separator or dot-dot.
+  for (const n of ['hc-../x', 'hl:../../y', 'a/b/c']) {
+    const out = toCommandName({ name: n });
+    assert.ok(!/[/\\]/.test(out) && !out.includes('..'), `unsafe slug: ${out}`);
+  }
+});
+
 // ---------------------------------------------------------------------------
 // isProviderAllowed
 // ---------------------------------------------------------------------------
