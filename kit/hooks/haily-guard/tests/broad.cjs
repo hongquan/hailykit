@@ -64,10 +64,16 @@ const integrationTests = [
     expected: true,
     desc: 'all files at current dir'
   },
+  // Named-file globs (**/index.ts) are intentionally ALLOWED, not broad.
+  // isBroadPattern only flags wildcard-extension globs (**/*.ts), which return
+  // EVERY file of a type. A literal filename like index.ts narrows the result
+  // set enough that it won't flood context — so it passes regardless of path.
+  // Do NOT add **/literal.ext to BROAD_PATTERN_REGEXES: it would block a useful,
+  // targeted search.
   {
     input: { pattern: '**/index.ts', path: 'myproject' },
-    expected: true,
-    desc: 'all index.ts at shallow path'
+    expected: false,
+    desc: 'named-file glob is specific enough — allowed'
   },
 
   // Should ALLOW

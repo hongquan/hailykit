@@ -46,12 +46,15 @@ const commandTests = [
   { cmd: 'rm -rf node_modules', hasPath: 'node_modules', desc: 'rm with flags' },
   { cmd: 'cp -r dist/ backup/', hasPath: 'dist', desc: 'cp with flags' },
 
-  // Note: Build commands may extract 'build' as a blocked dir name, but this is handled
-  // at the dispatcher level (build commands bypass path checking entirely).
-  // The path extractor correctly identifies blocked dir names like 'build'.
-  { cmd: 'npm run build', hasPath: 'build', desc: 'npm run build (extracts build)' },
-  { cmd: 'pnpm build', hasPath: 'build', desc: 'pnpm build (extracts build)' },
-  { cmd: 'cd build', hasPath: 'build', desc: 'cd build (extracts build)' },
+  // Bare blocked-dir names (build, dist, …) are extracted ONLY after a filesystem
+  // command (cd/ls/cat/rm/…). After a package manager (npm/pnpm/yarn) the same word
+  // is a subcommand, not a path — extracting it would false-block every build script.
+  // So 'npm run build' / 'pnpm build' must extract NOTHING, while 'cd build' extracts
+  // 'build'. The distinction lives in FILESYSTEM_COMMANDS + isBlockedDirName (path.cjs).
+  // Do NOT "fix" this to extract 'build' from npm/pnpm — that reintroduces the false-block.
+  { cmd: 'npm run build', hasPath: null, desc: 'npm run build — build is a subcommand, not a path' },
+  { cmd: 'pnpm build', hasPath: null, desc: 'pnpm build — build is a subcommand, not a path' },
+  { cmd: 'cd build', hasPath: 'build', desc: 'cd build — fs command, build is a real dir' },
   { cmd: 'yarn test', hasPath: null, desc: 'yarn test (no blocked paths)' },
   { cmd: 'npm install', hasPath: null, desc: 'npm install (no blocked paths)' },
 ];
@@ -62,7 +65,13 @@ const looksLikePathTests = [
   { str: './src/index.js', expected: true, desc: 'dot-relative path' },
   { str: '../parent/file.js', expected: true, desc: 'parent-relative path' },
   { str: 'file.txt', expected: true, desc: 'file with extension' },
-  { str: 'node_modules', expected: true, desc: 'blocked dir name' },
+  // looksLikePath does STRUCTURAL detection only (slash, ./, ../, or extension).
+  // A bare blocked-dir name like 'node_modules' has none of those, so it is NOT a
+  // path here — that is intentional. Blocked dir names are caught separately by
+  // isBlockedDirName() in filesystem-command context (e.g. 'ls node_modules').
+  // Do NOT make looksLikePath return true for blocked names: it would also fire on
+  // 'echo node_modules' / 'grep node_modules foo', false-blocking harmless commands.
+  { str: 'node_modules', expected: false, desc: 'bare blocked name is not structurally a path' },
   { str: 'ls', expected: false, desc: 'command word' },
   { str: 'npm', expected: false, desc: 'package manager' },
   { str: '-rf', expected: false, desc: 'flag' },

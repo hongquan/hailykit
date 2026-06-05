@@ -137,10 +137,15 @@ const scenarios = [
     expected: 'ALLOWED',
     desc: 'Grep in src'
   },
+  // A wildcard-extension glob with NO path runs from the project root and returns
+  // EVERY .ts file in the repo — the exact context-flooding case the broad-pattern
+  // guard blocks on purpose (see broad.cjs: isBroadPattern + isHighLevelPath).
+  // Scope it (e.g. 'src/**/*.ts' or pass a path) to allow. This is NOT the
+  // node_modules path-blocking feature — it's deliberate broad-glob prevention.
   {
     input: { tool_name: 'Glob', tool_input: { pattern: '**/*.ts' } },
-    expected: 'ALLOWED',
-    desc: 'Glob all .ts files'
+    expected: 'BLOCKED',
+    desc: 'unscoped **/*.ts at root is broad — blocked on purpose'
   },
   {
     input: { tool_name: 'Bash', tool_input: { command: 'find packages -name "*.json" | head' } },
