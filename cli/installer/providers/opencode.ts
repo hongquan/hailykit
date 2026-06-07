@@ -5,25 +5,36 @@ import { BaseProvider, type ConvertedSkill } from './base.js';
 import { toOpenCodeMd, resolveSkillRefs, resolveAgentRefs, resolveModel } from '../converter.js';
 
 /**
- * OpenCode provider.
- * Skills  → ~/.config/opencode/commands/hl-<name>.md
- * Agents  → ~/.config/opencode/agents/<name>.md  (model tier resolved to anthropic/model-id)
- * Hooks   → not supported
- * Rules   → ~/.config/opencode/hailykit-rules.md
+ * OpenCode provider (https://opencode.ai — SST terminal TUI).
+ * Skills  → <configDir>/commands/hc-<name>.md
+ * Agents  → <configDir>/agents/<name>.md  (model tier stripped; user configures in opencode.json)
+ * Hooks   → not installed (OpenCode hooks require manual opencode.json editing)
+ * Rules   → <configDir>/hailykit-rules.md
+ *
+ * Config dir per OS (XDG spec):
+ *   Linux/Unix : ~/.config/opencode/
+ *   macOS      : ~/Library/Application Support/opencode/
+ *   Windows    : %APPDATA%\opencode\
  */
 export class OpenCodeProvider extends BaseProvider {
   get name(): string { return 'opencode'; }
   get label(): string { return 'OpenCode'; }
 
-  globalDir(): string { return path.join(os.homedir(), '.config', 'opencode'); }
+  globalDir(): string {
+    if (process.platform === 'darwin') {
+      return path.join(os.homedir(), 'Library', 'Application Support', 'opencode');
+    }
+    if (process.platform === 'win32') {
+      const appData = process.env['APPDATA'] ?? path.join(os.homedir(), 'AppData', 'Roaming');
+      return path.join(appData, 'opencode');
+    }
+    const xdgConfig = process.env['XDG_CONFIG_HOME'] ?? path.join(os.homedir(), '.config');
+    return path.join(xdgConfig, 'opencode');
+  }
+
   protected _projectDirName(): string { return '.opencode'; }
   commandsSubDir(): string { return 'commands'; }
   hooksSupported(): boolean { return false; }
-
-  // NOTE: OpenCode slash commands use the colon-prefixed format: /hc:cook
-  protected override skillRef(prefix: string, name: string): string {
-    return `/${prefix}:${name}`;
-  }
 
   convertSkill(content: string, internalName: string): ConvertedSkill {
     const { cmdName, description, body } = this._parseSkill(content, internalName);
@@ -38,7 +49,6 @@ export class OpenCodeProvider extends BaseProvider {
     for (const f of fs.readdirSync(agentsDir)) {
       if (!f.endsWith('.md')) continue;
       let content = fs.readFileSync(path.join(agentsDir, f), 'utf8');
-      // Resolves model: thinking → anthropic/claude-opus-4-5 (OpenCode provider/model format).
       content = resolveModel(content, this.name);
       content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
       content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));

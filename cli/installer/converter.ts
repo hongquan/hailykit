@@ -39,28 +39,36 @@ export const MODEL_MAP: Record<string, Record<ModelTier, string>> = {
   codex:       { thinking: 'gpt-5',                            medium: 'gpt-5',                              fast: 'gpt-5-mini' },
   gemini:      { thinking: 'gemini-2.5-pro',                   medium: 'gemini-2.5-flash',                   fast: 'gemini-3.1-flash-lite' },
   antigravity: { thinking: 'gemini-3.1-pro',                   medium: 'gemini-3.5-flash',                   fast: 'gemini-3.1-flash-lite' },
-  // Cursor uses Anthropic model IDs directly (no Cursor-specific aliases for API passthrough).
-  cursor:      { thinking: 'claude-opus-4-8',                  medium: 'claude-sonnet-4-6',                  fast: 'claude-haiku-4-5' },
   // OpenCode config format is "provider/model-id" (e.g. anthropic/claude-sonnet-4-5).
   opencode:    { thinking: 'anthropic/claude-opus-4-5',        medium: 'anthropic/claude-sonnet-4-5',        fast: 'anthropic/claude-haiku-4-5' },
-  // Windsurf uses proprietary SWE-* models; selection is GUI-only but IDs appear in settings schema.
-  windsurf:    { thinking: 'swe-1-6',                          medium: 'swe-1-5',                            fast: 'swe-1-6-fast' },
-  // Zed routes Claude via the zed.dev proxy; model IDs are standard Anthropic strings.
-  zed:         { thinking: 'claude-opus-4-8',                  medium: 'claude-sonnet-4-6',                  fast: 'claude-haiku-4-5' },
 };
 
-/** Matches a `model: <tier>` frontmatter line. */
+/**
+ * Providers where the active model is user-configured at runtime (not fixed per-install).
+ * For these providers, the `model:` tier line is stripped from agent files so the
+ * provider uses whatever model the developer has selected in their editor settings.
+ */
+const USER_CONFIGURED_MODEL_PROVIDERS = new Set(['cursor', 'zed', 'windsurf', 'crush', 'opencode', 'kimi']);
+
+/** Matches a `model: <tier>` frontmatter line (with optional trailing whitespace). */
 const MODEL_TIER_RE = /^(model:\s*)(thinking|medium|fast)\s*$/m;
+
+/** Matches a `model: <tier>` line to remove it entirely (including the trailing newline). */
+const MODEL_LINE_STRIP_RE = /^model:[ \t]*(thinking|medium|fast)[ \t]*\r?\n?/m;
 
 /**
  * Resolve a `model: <tier>` frontmatter line to the provider's real model name.
- * Falls back to the Claude map for providers without an explicit entry.
+ * For user-configured providers (cursor, zed), the line is stripped so the editor
+ * uses its own default. Falls back to the Claude map for unknown providers.
  * Content without a tier line (or already a concrete model) is returned unchanged.
  *
  * @param content  - File content containing a `model:` frontmatter line.
  * @param provider - Provider key (claude, codex, gemini, …).
  */
 export function resolveModel(content: string, provider: string): string {
+  if (USER_CONFIGURED_MODEL_PROVIDERS.has(provider)) {
+    return content.replace(MODEL_LINE_STRIP_RE, '');
+  }
   const map = MODEL_MAP[provider] ?? MODEL_MAP.claude;
   return content.replace(MODEL_TIER_RE, (_m, prefix, tier) => `${prefix}${map[tier as ModelTier]}`);
 }
@@ -249,4 +257,30 @@ export function toWindsurfMd(description: string, body: string): string {
 export function toOpenCodeMd(description: string, body: string): string {
   const desc = JSON.stringify(description || '');
   return `---\ndescription: ${desc}\n---\n\n${body}\n`;
+}
+
+/**
+ * Convert skill body to Crush markdown format (Agent Skills open standard).
+ * Crush discovers skills by the `name:` field and `user-invocable: true` flag.
+ *
+ * @param name        - Command slug used as the skill's invocation name.
+ * @param description - Skill description shown in the slash-command picker.
+ * @param body        - Skill body text (the instruction content).
+ */
+export function toCrushMd(name: string, description: string, body: string): string {
+  const desc = JSON.stringify(description || '');
+  return `---\nname: ${name}\ndescription: ${desc}\nuser-invocable: true\n---\n\n${body}\n`;
+}
+
+/**
+ * Convert skill body to Kimi Code markdown format (Agent Skills open standard).
+ * Kimi Code discovers skills by the `name:` and `description:` frontmatter fields.
+ *
+ * @param name        - Command slug used as the skill's invocation name.
+ * @param description - Skill description shown in the skill picker.
+ * @param body        - Skill body text (the instruction content).
+ */
+export function toKimiMd(name: string, description: string, body: string): string {
+  const desc = JSON.stringify(description || '');
+  return `---\nname: ${name}\ndescription: ${desc}\n---\n\n${body}\n`;
 }

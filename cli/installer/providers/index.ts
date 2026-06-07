@@ -6,6 +6,8 @@ import { OpenCodeProvider } from './opencode.js';
 import { AntigravityProvider } from './antigravity.js';
 import { ZedProvider } from './zed.js';
 import { CodexProvider } from './codex.js';
+import { CrushProvider } from './crush.js';
+import { KimiProvider } from './kimi.js';
 import type { Provider } from './base.js';
 
 const PROVIDERS: Record<string, Provider> = {
@@ -17,6 +19,8 @@ const PROVIDERS: Record<string, Provider> = {
   antigravity: new AntigravityProvider(),
   zed:         new ZedProvider(),
   codex:       new CodexProvider(),
+  crush:       new CrushProvider(),
+  kimi:        new KimiProvider(),
 };
 
 export const PROVIDER_NAMES: string[] = Object.keys(PROVIDERS);

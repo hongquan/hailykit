@@ -7,6 +7,7 @@ import {
   toCursorMd,
   isProviderAllowed,
   resolveAgentRefs,
+  resolveModel,
 } from '../installer/converter';
 
 // ---------------------------------------------------------------------------
@@ -171,6 +172,53 @@ test('resolveAgentRefs warns on unknown role without throwing', () => {
   } finally {
     console.warn = orig;
   }
+});
+
+// ---------------------------------------------------------------------------
+// resolveModel
+// ---------------------------------------------------------------------------
+
+test('resolveModel replaces tier with concrete model name for claude', () => {
+  const content = '---\nname: haily-planner\nmodel: thinking\n---\n\nBody.';
+  const result = resolveModel(content, 'claude');
+  assert.ok(result.includes('model: opus'), `expected "model: opus" in: ${result}`);
+});
+
+test('resolveModel replaces tier with concrete model name for gemini', () => {
+  const content = '---\nname: haily-planner\nmodel: medium\n---\n\nBody.';
+  const result = resolveModel(content, 'gemini');
+  assert.ok(result.includes('model: gemini-2.5-flash'), `expected gemini flash model in: ${result}`);
+});
+
+test('resolveModel strips model line entirely for cursor', () => {
+  const content = '---\nname: haily-planner\nmodel: thinking\n---\n\nBody.';
+  const result = resolveModel(content, 'cursor');
+  assert.ok(!result.includes('model:'), `expected no model: line for cursor, got: ${result}`);
+  assert.ok(result.includes('name: haily-planner'), 'other frontmatter fields must be preserved');
+  assert.ok(result.includes('Body.'), 'body must be preserved');
+});
+
+test('resolveModel strips model line entirely for zed', () => {
+  const content = '---\nname: haily-researcher\nmodel: fast\n---\n\nBody.';
+  const result = resolveModel(content, 'zed');
+  assert.ok(!result.includes('model:'), `expected no model: line for zed, got: ${result}`);
+});
+
+test('resolveModel strips model line entirely for windsurf', () => {
+  const content = '---\nname: haily-planner\nmodel: medium\n---\n\nBody.';
+  const result = resolveModel(content, 'windsurf');
+  assert.ok(!result.includes('model:'), `expected no model: line for windsurf, got: ${result}`);
+});
+
+test('resolveModel is a no-op when content has no tier line', () => {
+  const content = '---\nname: haily-planner\n---\n\nBody.';
+  assert.equal(resolveModel(content, 'claude'), content);
+  assert.equal(resolveModel(content, 'cursor'), content);
+});
+
+test('resolveModel leaves a concrete model name untouched', () => {
+  const content = '---\nname: haily-planner\nmodel: claude-opus-4-8\n---\n\nBody.';
+  assert.equal(resolveModel(content, 'cursor'), content);
 });
 
 // ---------------------------------------------------------------------------
