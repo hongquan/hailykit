@@ -5,7 +5,7 @@
   Bootstraps the compiled hailykit CLI, then (best-effort) installs the skill
   catalog for the chosen provider via the CLI.
 .EXAMPLE
-  irm https://github.com/dxsl-org/hailykit/raw/refs/heads/main/install.ps1 | iex
+  irm https://raw.githubusercontent.com/dxsl-org/hailykit/refs/heads/main/install.ps1 | iex
 .EXAMPLE
   ./install.ps1 -Provider cursor -Version v0.1.0
 #>
