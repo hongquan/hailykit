@@ -37,8 +37,9 @@ export async function cmdInstall(options: InstallOptions): Promise<void> {
 
   try {
     console.log('  Extracting...');
-    extract(zipPath, tmpDir);
-    const root = resolveRoot(tmpDir);
+    const extractDir = path.join(tmpDir, 'extracted');
+    extract(zipPath, extractDir);
+    const root = resolveRoot(extractDir);
 
     const extractedKitDir = path.join(root, 'kit');
 
