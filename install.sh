@@ -5,7 +5,7 @@
 # installs the skill catalog for the chosen provider via the CLI.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/dxsl-org/hailykit/main/install.sh | sh
+#   curl -fsSL https://github.com/dxsl-org/hailykit/raw/refs/heads/main/install.sh | sh
 #   curl -fsSL ... | sh -s -- --provider cursor
 #   sh install.sh --version v0.1.0
 #

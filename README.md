@@ -15,10 +15,10 @@ A **zero-dependency** TypeScript framework for AI coding agents — a tool-execu
 
 ```bash
 # Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/dxsl-org/hailykit/main/install.sh | sh
+curl -fsSL https://github.com/dxsl-org/hailykit/raw/refs/heads/main/install.sh | sh
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/dxsl-org/hailykit/main/install.ps1 | iex
+irm https://github.com/dxsl-org/hailykit/raw/refs/heads/main/install.ps1 | iex
 ```
 
 Installs the `hailykit` CLI to `~/.local/bin/` and runs the default Claude Code install.
