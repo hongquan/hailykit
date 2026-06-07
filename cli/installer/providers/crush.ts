@@ -6,8 +6,8 @@ import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel } from '../
 
 /**
  * Crush provider (https://github.com/charmbracelet/crush).
- * Skills → ~/.config/crush/skills/hc-<name>.md  (Agent Skills open standard)
- *          %LOCALAPPDATA%\crush\skills\hc-<name>.md  (Windows)
+ * Skills → ~/.config/crush/skills/hc-<name>/SKILL.md  (Agent Skills open standard)
+ *          %LOCALAPPDATA%\crush\skills\hc-<name>\SKILL.md  (Windows)
  * Rules  → ~/.config/crush/CRUSH.md  (always-applied context file)
  * Agents → ~/.config/crush/agents/<name>.md
  * Hooks  → not installed (Crush hook support is preliminary)
@@ -32,7 +32,7 @@ export class CrushProvider extends BaseProvider {
 
   convertSkill(content: string, internalName: string): ConvertedSkill {
     const { cmdName, description, body } = this._parseSkill(content, internalName);
-    return { filename: `${cmdName}.md`, content: toCrushMd(cmdName, description, body) };
+    return { filename: `${cmdName}/SKILL.md`, content: toCrushMd(cmdName, description, body) };
   }
 
   installRules(extractedClaudeDir: string, targetProviderDir: string): void {

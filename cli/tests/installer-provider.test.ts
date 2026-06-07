@@ -176,12 +176,12 @@ test('GeminiProvider.installAgents no-ops when agents dir is absent', () => {
 // CrushProvider
 // ---------------------------------------------------------------------------
 
-test('toCrushMd produces Agent Skills frontmatter with user-invocable: true', () => {
+test('toCrushMd produces Agent Skills frontmatter without user-invocable', () => {
   const md = toCrushMd('hc-plan', 'Plan things', 'Do planning.');
   assert.match(md, /^---\n/);
   assert.match(md, /name: hc-plan/);
   assert.match(md, /description: "Plan things"/);
-  assert.match(md, /user-invocable: true/);
+  assert.ok(!md.includes('user-invocable'), 'user-invocable is not part of the Agent Skills spec');
   assert.match(md, /Do planning\./);
 });
 
@@ -199,9 +199,9 @@ test('CrushProvider.installSkills converts SKILL.md to Agent Skills format', () 
   const count = new CrushProvider().installSkills(kit, target);
   assert.equal(count, 1);
 
-  const md = fs.readFileSync(path.join(target, 'skills', 'hc-plan.md'), 'utf8');
+  const md = fs.readFileSync(path.join(target, 'skills', 'hc-plan', 'SKILL.md'), 'utf8');
   assert.match(md, /name: hc-plan/);
-  assert.match(md, /user-invocable: true/);
+  assert.ok(!md.includes('user-invocable'), 'user-invocable must not appear in Agent Skills output');
   assert.match(md, /Do planning\./);
 });
 
