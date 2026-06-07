@@ -5,6 +5,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.1.1] (2026-06-07)
+
+### 🐛 Fixes
+
+- **Crush** skills install as `hc-name/SKILL.md` per Agent Skills spec
+- Remove `user-invocable` field not in agentskills.io spec
+
+---
+
 ## [1.1.0] (2026-06-07)
 
 ### 🚀 Improvements
@@ -37,5 +46,6 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+[1.1.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/dxsl-org/hailykit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/dxsl-org/hailykit/releases/tag/v1.0.0
