@@ -79,6 +79,7 @@ Open Claude Code after installing — skills are ready immediately.
 | Task | Command |
 |---|---|
 | Start a new project | `/hc-new` |
+| Autonomously build a feature (no manual steps) | `/hc-goal "<description>"` |
 | Plan a feature | `/hc-plan <task>` |
 | Implement from a plan | `/hc-cook <plan>` |
 | Fix a bug | `/hc-fix <description>` |
@@ -92,7 +93,10 @@ Open Claude Code after installing — skills are ready immediately.
 ### Common workflow chains
 
 ```bash
-# Feature development
+# Autonomous feature development (hands-off)
+/hc-goal "Add OAuth login with GitHub and Google" --auto
+
+# Feature development (step-by-step with control)
 /hl-brainstorm → /hc-plan → /hc-cook → /hc-test → /hc-review → /hc-ship
 
 # Bug fix
@@ -109,12 +113,13 @@ Open Claude Code after installing — skills are ready immediately.
 
 ## Skills
 
-30 skills across two domain prefixes, installed together and activated on demand.
+31 skills across two domain prefixes, installed together and activated on demand.
 
 ### Coding — `hc-*`
 
 | Command | What it does |
 |---|---|
+| `/hc-goal` | Autonomous development loop: goal → plan → cook → review → commit until done. Only stops on genuine blockers |
 | `/hc-plan` | Turn a task into a phased plan via research + codebase analysis + adversarial review |
 | `/hc-cook` | Implement from a plan: Recon → Draft → Build → Verify → Ship |
 | `/hc-new` | Bootstrap a project end-to-end: research → stack → design → plan → implement → ship |

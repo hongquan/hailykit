@@ -9,6 +9,8 @@ Flow: `plan → cook → test → review → ship → log`
 | User Intent | Start |
 |-------------|-------|
 | "implement X", "build X", "add X" | `{skill:hc-plan}` then `{skill:hc-cook}` |
+| "autonomously build X until done, no manual steps" | `{skill:hc-goal} "description"` |
+| "autonomously build, no prompts" | `{skill:hc-goal} "description" --auto` |
 | "execute this plan" | `{skill:hc-cook} <plan-path>` |
 | "quick implementation, I know the codebase" | `{skill:hc-cook} --quick` |
 | "implement with tests first" | `{skill:hc-cook} --tdd` |

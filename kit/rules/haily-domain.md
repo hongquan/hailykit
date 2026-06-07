@@ -43,7 +43,9 @@ Disambiguate: want a persistent graph you can extend → `{skill:hl-mindmap}` ·
 ```
 Init docs/ + CLAUDE.md in existing project  → {skill:hc-docs} init  (scouts → real docs + CLAUDE.md)
 Bootstrap new project from scratch          → {skill:hc-new}  (Route → Recon → Draft → Build → Verify → Ship; auto-detects project type)
+Autonomous feature development (goal → committed code, no manual steps)  → {skill:hc-goal} "description" [--auto]
 ```
+Disambiguate: new project from scratch → `{skill:hc-new}` · add a feature to existing project without manual orchestration → `{skill:hc-goal}` · step-by-step with control at each stage → `{skill:hc-plan}` then `{skill:hc-cook}`.
 
 ## Backend / Database
 

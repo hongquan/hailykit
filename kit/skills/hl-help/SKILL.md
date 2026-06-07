@@ -60,6 +60,7 @@ Print goal-first skill listing so users can immediately find what they need.
 HailyKit — What do you want to do?
 
 BUILD
+  {skill:hc-goal}         Autonomous loop: goal → plan → cook → review → commit until done [--auto]
   {skill:hc-new}          Bootstrap new project end-to-end
   {skill:hc-plan}         Plan a feature or architecture
   {skill:hc-cook}         Implement from a plan
@@ -132,7 +133,8 @@ Canonical chain: brainstorm → plan → cook → test → review → ship → l
 Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
 
 ```
-## Core Workflow (11)
+## Core Workflow (12)
+  {skill:hc-goal}          Autonomous development loop — goal to committed code without manual steps
   {skill:hc-plan}          Plan implementations and architectures
   {skill:hc-cook}          Implement features end-to-end
   {skill:hc-fix}           Scout, debug, implement fix
@@ -297,7 +299,15 @@ Expert consultation through a specific lens. One persona flag = skip full brains
 
 Skills compose into chains. Each `→` means "after that step completes, invoke the next skill".
 
-### Feature Development (canonical chain)
+### Feature Development (autonomous — hands-off)
+
+```
+{skill:hc-goal} "feature description" --auto
+```
+
+Single command: plan → cook → review → commit per phase, retry on failure, stop only on genuine blockers.
+
+### Feature Development (step-by-step — full control)
 
 ```
 {skill:hl-brainstorm} "feature idea"

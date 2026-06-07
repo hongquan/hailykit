@@ -5,7 +5,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.1.1] (2026-06-07)
+## [1.2.0] (2026-06-08)
+
+### 🚀 Improvements
+
+- **`hc-goal`** — autonomous development loop: give it a goal, it runs plan → cook → review → commit for each phase until done.
 
 ### 🐛 Fixes
 
