@@ -3,7 +3,7 @@
 A **zero-dependency** TypeScript framework for AI coding agents — a tool-execution **engine** and a multi-provider skill **installer**.
 
 - **Engine** (`cli/`) — register, route, and execute tools: native TypeScript (in-process) or polyglot executables (Python/Rust/Go/…) over NDJSON stdio.
-- **Installer** (`kit/`) — distribute 30 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed).
+- **Installer** (`kit/`) — distribute 30 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed, Crush, Kimi Code).
 
 > No npm account required. Zero runtime dependencies. Distributed via GitHub release — never `npm publish`.
 
@@ -34,6 +34,8 @@ hailykit install --provider opencode      # OpenCode
 hailykit install --provider codex         # Codex CLI
 hailykit install --provider antigravity   # Antigravity
 hailykit install --provider zed           # Zed
+hailykit install --provider crush         # Crush
+hailykit install --provider kimi          # Kimi Code
 hailykit install --provider all           # all providers at once
 ```
 
@@ -59,6 +61,8 @@ hailykit status                           # show installed vs latest versions
 | **OpenCode** | ✅ Markdown | ❌ | `/hc-plan`, `/hl-brainstorm` … |
 | **Codex CLI** | ⚠️ Catalog in AGENTS.md | ✅ Partial | Natural language |
 | **Zed** | ⚠️ Rules + overview | ❌ | Natural language |
+| **Crush** | ✅ Agent Skills format | ❌ | `/hc-plan`, `/hl-brainstorm` … |
+| **Kimi Code** | ✅ Agent Skills format | ✅ TOML hooks | `/skill:hc-plan` … |
 
 ---
 
