@@ -87,6 +87,62 @@ User explicitly says "breaking" or "major feature" → AskUserQuestion for minor
 2. File types changed (test files → test improvements, docs → documentation)
 3. Diff content (new functions = Added, modified functions = Changed)
 
+## Release Command Detection
+
+Detect a release build command to run before creating the GitHub release. Check in order (first match wins):
+
+| Check | Release Command |
+|-------|----------------|
+| `package.json` → `scripts["release:pack"]` exists | `npm run release:pack` |
+| `package.json` → `scripts["release"]` exists | `npm run release` |
+| `Makefile` → has `release:` target | `make release` |
+| `Cargo.toml` exists | `cargo build --release` |
+
+**Detection script:**
+```bash
+if [ -f package.json ]; then
+  for script in "release:pack" "release"; do
+    if node -e "const s=require('./package.json').scripts||{}; process.exit(s['$script']?0:1)" 2>/dev/null; then
+      echo "npm run $script"
+      break
+    fi
+  done
+elif [ -f Makefile ] && grep -q '^release:' Makefile 2>/dev/null; then
+  echo "make release"
+elif [ -f Cargo.toml ]; then
+  echo "cargo build --release"
+else
+  echo "NONE"
+fi
+```
+
+**If NONE:** Create GitHub release without artifacts — source-level release only.
+
+## Artifact Detection
+
+After the release build runs, detect files to attach to the GitHub release:
+
+| Pattern | Description |
+|---------|-------------|
+| `dist/*.zip` | Distribution zip archives |
+| `dist/*.tar.gz` | Distribution tarballs |
+| `build/*.zip` | Build output archives |
+| `build/*.tar.gz` | Build output tarballs |
+| `target/release/<name>` (no extension, executable) | Rust compiled binaries |
+| `*.zip` (repo root) | Root-level archives |
+
+**Detection script:**
+```bash
+ARTIFACTS=""
+for pattern in "dist/*.zip" "dist/*.tar.gz" "build/*.zip" "build/*.tar.gz" "*.zip"; do
+  matches=$(ls $pattern 2>/dev/null)
+  [ -n "$matches" ] && ARTIFACTS="$ARTIFACTS $matches"
+done
+echo $ARTIFACTS
+```
+
+**If no artifacts found:** Call `gh release create` without `--attach` flags.
+
 ## Main Branch Detection
 
 ```bash

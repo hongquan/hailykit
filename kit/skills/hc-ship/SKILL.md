@@ -1,7 +1,7 @@
 ---
 name: hc-ship
-description: "Full release pipeline: pre-flight, tests, code review, version bump, changelog, commit, push, PR creation, CI wait, and merge. Auto-detects mode from branch name. Stops only on test failures, merge conflicts, or rejected reviews."
-when_to_use: "Invoke when releasing a feature — runs pre-flight, tests, review, version bump, and creates a PR."
+description: "Full release pipeline: pre-flight, tests, code review, version bump, changelog, commit, push, PR creation, CI wait, merge, and GitHub release. Auto-detects mode from branch name. Stops only on test failures, merge conflicts, or rejected reviews."
+when_to_use: "Invoke when releasing a feature — runs pre-flight, tests, review, version bump, creates a PR, and optionally publishes a GitHub release."
 user-invocable: true
 argument-hint: "[--quick|--full|--dry-run] | rollout [flag-name]"
 metadata:
@@ -12,7 +12,7 @@ metadata:
 
 # hc:ship — Release Pipeline
 
-Runs the full path from a working branch to a merged PR: pre-flight, tests, review, version bump, changelog, commit, push, PR, CI, and merge. Auto-detects branch mode; stops only when the pipeline cannot safely continue.
+Runs the full path from a working branch to a published release: pre-flight, tests, review, version bump, changelog, commit, push, PR, CI, merge, and GitHub release creation. Auto-detects branch mode; stops only when the pipeline cannot safely continue.
 
 ## Usage
 
@@ -28,7 +28,7 @@ Runs the full path from a working branch to a merged PR: pre-flight, tests, revi
 |---|---|
 | *(none)* | Infer from branch: `feature/*` `hotfix/*` `bugfix/*` → standard (→ main); `dev/*` `beta/*` `experiment/*` → fast (→ dev/beta); unclear → ask once |
 | `--quick` | Skip review (step 5) and changelog (step 7) |
-| `--full` | Enforce all 12 steps regardless of branch pattern |
+| `--full` | Enforce all 13 steps regardless of branch pattern |
 | `--dry-run` | Print what would happen at each step; stop after pre-flight |
 | `--no-ci-wait` | Push + create PR; skip CI wait and auto-merge — user monitors CI manually |
 | `rollout [flag]` | Feature flag gradual rollout: design → deploy with flag off → staged enable (1% → 10% → 50% → 100%) → cleanup. See `references/workflow-feature-rollout.md`. |
@@ -55,11 +55,12 @@ Runs the full path from a working branch to a merged PR: pre-flight, tests, revi
 5. **Build** — compile or bundle; stop if exit code is non-zero. Log `✓ Build: exit 0`. *[skipped: `--quick`]*
 6. **Code review** — delegate to `haily-reviewer` subagent when diff ≥ 50 lines changed or `--full`; skip silently for smaller diffs in standard mode. When run: two passes (critical then informational); pause on each critical finding: fix / acknowledge / mark false positive. *[skipped: `--quick`; skipped: diff < 50 lines in standard mode]*
 7. **Version bump** — auto-detect version file (package.json, pyproject.toml, Cargo.toml, VERSION); bump patch by default; ask user for minor/major on breaking changes. Beta mode appends `-beta.N`. *[skipped: no version file found]*
-8. **Changelog** — generate entry from `git log <target>..HEAD` and diff; prepend to CHANGELOG.md if present. *[skipped: `--quick`, no changelog file]*
+8. **Changelog** — generate entry from `git log <target>..HEAD` and diff; create CHANGELOG.md if not present; prepend entry. *[skipped: `--quick`]*
 9. **Journal + docs** — invoke `{skill:hl-log}` (session log → `.agents/logs/`) as a background task; run `{skill:hc-docs} update` only when `--full` or diff touches `docs/` files. If the pipeline hit a notable failure, also spawn `haily-reporter` subagent (incident report → `.agents/incidents/`). Do not wait for completion.
 10. **Commit** — scan staged diff for secrets; compose `type(scope): description`; include version + changelog in same commit.
 11. **Push** — `git push -u origin <branch>`. Log `✓ Pushed: origin/<branch>`.
 12. **PR + CI** — `gh pr create --base <target>` with structured body; link issues with `Closes #N`. Unless `--no-ci-wait`: wait up to 10 min for required checks; merge when green. With `--no-ci-wait`: output PR URL and exit — user monitors CI manually.
+13. **GitHub release** — after merge, if version was bumped: pull target branch, create and push tag `vX.Y.Z`, run release build command if detected (e.g. `npm run release:pack`), then `gh release create vX.Y.Z` with changelog entry as notes and any build artifacts attached. Output release URL. *[skipped: `--quick`; no version bump; no `gh` CLI]*
 
 Checkpoint behavior:
 
@@ -71,7 +72,10 @@ Checkpoint behavior:
 | Minor/major version bump needed | Pause — confirm with user |
 | On target branch at start | Stop — wrong branch, clarify intent |
 | Linting warnings / minor type issues | Continue |
-| Changelog or version file missing | Continue — skip step silently |
+| Version file missing | Continue — skip version bump and release silently |
+| Changelog file missing | Create CHANGELOG.md (unless `--quick`) |
+| Release build command not found | Create GitHub release without artifact attachments |
+| Tag already exists for version | Stop — warn user; suggest bumping version again |
 
 ## Output
 
@@ -88,6 +92,7 @@ Checkpoint behavior:
 ✓ Pushed:      origin/feature/foo
 ✓ PR:          https://github.com/org/repo/pull/123 (linked: #42, #43)
 ✓ CI:          all checks passed — merged
+✓ Release:     https://github.com/org/repo/releases/tag/v1.2.5
 ```
 
 ## Workflow Position
@@ -101,4 +106,4 @@ Checkpoint behavior:
 |------|---------|
 | `references/tech-auto-detect.md` | Test runner, version file, and changelog format detection logic |
 | `references/tech-pr-template.md` | PR body template, title format, and `gh pr create` invocation |
-| `references/process-ship-steps.md` | Detailed implementation for each of the 12 pipeline stages |
+| `references/process-ship-steps.md` | Detailed implementation for each of the 13 pipeline stages |

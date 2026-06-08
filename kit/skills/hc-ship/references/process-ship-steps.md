@@ -142,10 +142,17 @@ git fetch origin <target> && git merge origin/<target> --no-edit
 4. For beta mode: use prerelease suffix (e.g., `1.2.4-beta.1`)
 5. Write new version to detected file
 
-## Step 7: Changelog (conditional)
+## Step 7: Changelog
+
+**Skip if:** `--quick` flag.
 
 1. Check for CHANGELOG.md or CHANGES.md
-2. If not found: **skip silently**
+2. If not found: **create CHANGELOG.md** with standard header:
+   ```
+   # Changelog
+
+   All notable changes to this project will be documented in this file.
+   ```
 3. Auto-generate entry from ALL commits on branch:
    - `git log <target>..HEAD --oneline` for commit list
    - `git diff <target>...HEAD` for full diff context
@@ -248,3 +255,52 @@ gh pr edit --title "<type>: <summary>" --body "$(cat <<'EOF'
 EOF
 )"
 ```
+
+## Step 13: GitHub Release (conditional)
+
+**Skip if:** `--quick` flag, version was not bumped in Step 6, or `gh` CLI is not available.
+
+After CI passes and the branch is merged, publish an official GitHub release.
+
+1. **Switch to target branch and pull:**
+   ```bash
+   git checkout <target>
+   git pull origin <target>
+   ```
+
+2. **Check for existing tag** — stop if tag already exists:
+   ```bash
+   git tag | grep "^v$(cat VERSION 2>/dev/null || node -p "require('./package.json').version" 2>/dev/null)$"
+   ```
+   If tag exists: **STOP** — "Tag vX.Y.Z already exists. Bump version and retry."
+
+3. **Create and push tag:**
+   ```bash
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+4. **Run release build** (if release command detected — see `tech-auto-detect.md` § Release Command Detection):
+   ```bash
+   npm run release:pack   # or detected equivalent
+   ```
+   If command fails: warn user but continue — release will be created without artifacts.
+
+5. **Detect artifacts** (see `tech-auto-detect.md` § Artifact Detection):
+   ```bash
+   # Collect files matching known patterns
+   ARTIFACTS=$(ls dist/*.zip dist/*.tar.gz build/*.zip 2>/dev/null | head -10)
+   ```
+
+6. **Create GitHub release:**
+   ```bash
+   gh release create vX.Y.Z \
+     --title "vX.Y.Z" \
+     --notes "$(cat <<'EOF'
+   <changelog entry generated in Step 7>
+   EOF
+   )" \
+     $(for f in $ARTIFACTS; do echo "--attach $f"; done)
+   ```
+   - If no artifacts found: omit `--attach` flags
+   - Output the release URL — this is the final line of pipeline output
