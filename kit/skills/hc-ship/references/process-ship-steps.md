@@ -294,13 +294,14 @@ After CI passes and the branch is merged, publish an official GitHub release.
 
 6. **Create GitHub release:**
    ```bash
-   gh release create vX.Y.Z \
+   gh release create vX.Y.Z $ARTIFACTS \
      --title "vX.Y.Z" \
      --notes "$(cat <<'EOF'
    <changelog entry generated in Step 7>
    EOF
-   )" \
-     $(for f in $ARTIFACTS; do echo "--attach $f"; done)
+   )"
    ```
-   - If no artifacts found: omit `--attach` flags
+   - Artifacts are positional args — pass them before flags, not via `--attach` (flag does not exist)
+   - If no artifacts: omit `$ARTIFACTS`
+   - If release already exists for this tag: use `gh release edit vX.Y.Z` + `gh release upload vX.Y.Z <file> --clobber`
    - Output the release URL — this is the final line of pipeline output
