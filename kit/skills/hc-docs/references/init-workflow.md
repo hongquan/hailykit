@@ -31,9 +31,9 @@ After haily-docs-writer completes:
    - haily-docs-writer should have already split proactively
    - If still oversized, ask user: split now or accept as-is?
 
-## Phase 4: CLAUDE.md Creation/Update
+## Phase 4: Project Rules File Creation/Update
 
-After docs are written, handle `CLAUDE.md` in the project root:
+After docs are written, handle the project rules file at the project root.
 
 ### 4a — Assistant Profile (optional)
 
@@ -63,13 +63,43 @@ If Vietnamese or English preset chosen, write `.claude/haily.json` (create or me
 Adjust `addressStyle`/`language` per choice. Skip → do not write `haily.json`.
 The profile is auto-injected by the session bootstrap — no CLAUDE.md section needed.
 
-### 4b — CLAUDE.md write
+### 4b — Project rules files write
 
-- **CLAUDE.md does NOT exist** → create it with:
-  - Role & Responsibilities section (reference the project's purpose from codebase scan)
-  - Project Docs section (list the 7 docs files just created with relative paths)
-  - Development Workflow section (core HailyKit skill chain: `{skill:hc-plan} → {skill:hc-cook} → {skill:hc-test} → {skill:hc-review} → {skill:hc-ship}`)
-  - Code Quality Rules (YAGNI/KISS/DRY, 200-line file limit, comment-the-why)
-- **CLAUDE.md EXISTS** → ask user:
-  - (a) Append a `## Project Docs` section to the existing file
-  - (b) Skip — leave CLAUDE.md untouched
+Always create all three files. `AGENTS.md` is the canonical source — `CLAUDE.md` and `GEMINI.md` import it with one line each. This is the [officially recommended pattern](https://code.claude.com/docs/en/memory#agents-md) by Anthropic for multi-provider repos.
+
+Detect tooling commands from project files (`package.json`, `pyproject.toml`, `Makefile`, `Cargo.toml`, etc.) using the scout reports from Phase 1. Directory structure belongs in `docs/system-architecture.md`, not here.
+
+**If `AGENTS.md` does NOT exist** → create it:
+
+```markdown
+## Project
+[name from codebase scan] — [1-sentence: purpose + primary tech stack]
+
+## Tooling
+- Build: [detected command]
+- Test:  [detected command]
+- Lint:  [detected command, omit if none]
+
+## Safety Rules
+- NEVER commit secrets (.env, API keys, credentials)
+- NEVER force-push to main/master without explicit user confirmation
+- NEVER drop tables or run destructive migrations without user approval
+- NEVER ignore failing tests to make CI green
+
+## Docs
+- [code-standards.md](docs/code-standards.md) — structure, standards, patterns
+- [system-architecture.md](docs/system-architecture.md) — architecture + directory map
+- [project-roadmap.md](docs/project-roadmap.md) — current phase and priorities
+```
+
+**Do NOT add** directory structure, workflow chains, YAGNI/KISS/DRY, file-size rules, or comment style — they live in `docs/` and are loaded on demand.
+
+**If `AGENTS.md` EXISTS** → ask user:
+- (a) Append a `## Docs` section listing the newly created docs files
+- (b) Skip — leave `AGENTS.md` untouched
+
+**Always create (or update) `CLAUDE.md` and `GEMINI.md`** as thin importers — skip if they already import `AGENTS.md`:
+
+```markdown
+@AGENTS.md
+```

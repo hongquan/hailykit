@@ -165,26 +165,46 @@ If Vietnamese or English preset chosen, write `.claude/haily.json` (create or me
 Adjust `addressStyle`/`language` per choice. Skip → do not write `haily.json`.
 The profile is auto-injected by the session bootstrap — no CLAUDE.md section needed.
 
-**CLAUDE.md:** Generate `./CLAUDE.md` — project context only (no assistant profile section):
+**Project rules files:** Always create all three files. `AGENTS.md` is the canonical source — `CLAUDE.md` and `GEMINI.md` import it with one line each (official Claude Code recommendation).
+
+Detect tooling commands from project files (`package.json`, `pyproject.toml`, `Makefile`, `Cargo.toml`, etc.) during the Recon stage. Directory structure belongs in `docs/system-architecture.md`, not here.
+
+**`AGENTS.md`** — canonical content (read by Codex, OpenCode, Kimi):
 
 ```markdown
-# CLAUDE.md
-
 ## Project
 [Name] — [1-sentence: purpose + primary tech stack]
 
-## Structure
-| Dir | Purpose |
-|-----|---------|
-| `src/` | [actual source dir] |
-[Add only dirs that are non-obvious]
+## Tooling
+- Build: [detected command]
+- Test:  [detected command]
+- Lint:  [detected command, omit if none]
 
-## Rules
-[Only project-specific constraints. Delete if none.]
+## Safety Rules
+- NEVER commit secrets (.env, API keys, credentials)
+- NEVER force-push to main/master without explicit user confirmation
+- NEVER drop tables or run destructive migrations without user approval
+- NEVER ignore failing tests to make CI green
+
+## Docs
+- [code-standards.md](docs/code-standards.md) — structure, standards, patterns
+- [system-architecture.md](docs/system-architecture.md) — architecture + directory map
+- [project-roadmap.md](docs/project-roadmap.md) — current phase and priorities
 ```
 
-**Include:** project name, 1-line description, non-obvious directory purposes, project-specific constraints.  
-**Exclude:** assistant profile (in `haily.json`), modularization rules, workflow descriptions, coding standards — all auto-injected by hooks.
+**`CLAUDE.md`** — imports AGENTS.md (Claude Code):
+
+```markdown
+@AGENTS.md
+```
+
+**`GEMINI.md`** — imports AGENTS.md (Gemini CLI):
+
+```markdown
+@AGENTS.md
+```
+
+**Exclude from AGENTS.md:** directory structure (→ `docs/system-architecture.md`), workflow chains, YAGNI/KISS/DRY, file-size rules, comment style (→ `docs/code-standards.md`).
 
 **Final:**
 1. Summary of all changes with brief explanations
