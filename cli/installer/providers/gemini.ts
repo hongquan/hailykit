@@ -15,6 +15,11 @@ const GEMINI_MD_END = '<!-- hailykit-managed-end -->';
  *
  * Output: TOML slash commands in commands/, native SKILL.md in skills/,
  * rule files copied directly, GEMINI.md with a managed file-ref block, agents in agents/.
+ *
+ * Spec: v0.26.0+ (skills added in v0.26.0) — researched 2026-06-08
+ * Docs: https://geminicli.com/docs/cli/skills/
+ *       https://geminicli.com/docs/hooks/reference/
+ *       https://geminicli.com/docs/cli/gemini-md/
  */
 export class GeminiProvider extends BaseProvider {
   get name(): string { return 'gemini'; }

@@ -27,6 +27,10 @@ interface WindsurfHookEntry {
  *   pre_run_command, post_run_command, pre_mcp_tool_use, post_mcp_tool_use,
  *   pre_user_prompt, post_cascade_response, post_cascade_response_with_transcript,
  *   post_setup_worktree
+ *
+ * Spec: unknown — researched 2026-06-08
+ * Docs: https://docs.windsurf.com/windsurf/cascade/memories-and-rules
+ *       https://docs.windsurf.com/windsurf/cascade/hooks
  */
 export class WindsurfProvider extends BaseProvider {
   get name(): string { return 'windsurf'; }

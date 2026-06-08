@@ -8,6 +8,9 @@ import type { Provider } from './base.js';
  * Uses the full merge strategy (SKILL.md format, hooks, everything).
  * Does NOT extend BaseProvider — it has a different install contract
  * and satisfies the Provider interface directly.
+ *
+ * Spec: unknown — researched 2026-06-08
+ * Docs: https://code.claude.com/docs/en/memory
  */
 export class ClaudeProvider implements Provider {
   get name(): string { return 'claude'; }

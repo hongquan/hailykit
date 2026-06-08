@@ -17,10 +17,14 @@ const CLAUDE_TO_KIMI: Record<string, string> = {
  * Skills  → ~/.kimi/skills/hc-<name>.md  (Agent Skills open standard)
  * Rules   → ~/.kimi/AGENTS.md
  * Agents  → ~/.kimi/agents/<name>.md  (model tier stripped; user configures at runtime)
- * Hooks   → ~/.kimi/config.toml  (appended as [[hooks]] entries)
+ * Hooks   → ~/.kimi/config.toml  ([[hooks]] TOML entries; hooks are Beta as of research date)
  * Model   → user-configured at runtime; model: tier line is stripped
  *
  * Override global dir via $KIMI_SHARE_DIR env var.
+ *
+ * Spec: unknown, hooks Beta — researched 2026-06-08
+ * Docs: https://moonshotai.github.io/kimi-cli/en/customization/skills.html
+ *       https://www.kimi-cli.com/en/customization/hooks.html
  */
 export class KimiProvider extends BaseProvider {
   get name(): string { return 'kimi'; }

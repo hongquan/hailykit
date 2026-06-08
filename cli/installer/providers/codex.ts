@@ -48,6 +48,11 @@ function _agentsMdScaffold(rulesBlock: string): string {
  *           wrapper shims. hooks.json regenerated; [features] hooks = true written.
  *           Hooks skipped on Windows (not supported by Codex CLI there).
  *
+ * Spec: 2025+ (no semver) — researched 2026-06-08
+ * Docs: https://developers.openai.com/codex/skills
+ *       https://developers.openai.com/codex/hooks
+ *       https://developers.openai.com/codex/guides/agents-md
+ *
  * Directory layout after install:
  *   ~/.agents/skills/<name>/             ← full skill dirs (SKILL.md + refs + assets)
  *   ~/.codex/

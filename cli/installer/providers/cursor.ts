@@ -26,6 +26,10 @@ interface CursorHookEntry {
  *
  * Cursor hook events: beforeShellExecution, beforeMCPExecution,
  *                     beforeReadFile, afterFileEdit, stop
+ *
+ * Spec: unknown — researched 2026-06-08
+ * Docs: https://docs.cursor.com/context/rules
+ *       https://docs.cursor.com/advanced/background-agent
  */
 export class CursorProvider extends BaseProvider {
   get name(): string { return 'cursor'; }

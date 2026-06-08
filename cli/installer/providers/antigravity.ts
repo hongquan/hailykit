@@ -11,6 +11,9 @@ import { resolveSkillRefs } from '../converter.js';
  * Skills are copied directly to the skills/ directory without conversion.
  * Hooks are not supported.
  *
+ * Spec: unknown — researched 2026-06-08; limited public docs available at research time
+ * Docs: https://antigravity.dev/docs (check for updates — docs were sparse at research date)
+ *
  * Directory layout:
  *   Global:  ~/.antigravity/skills/   (SKILL.md files, same format)
  *   Project: .antigravity/skills/

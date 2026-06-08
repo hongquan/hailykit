@@ -8,8 +8,12 @@ import { toOpenCodeMd, resolveSkillRefs, resolveAgentRefs, resolveModel } from '
  * OpenCode provider (https://opencode.ai — SST terminal TUI).
  * Skills  → <configDir>/commands/hc-<name>.md
  * Agents  → <configDir>/agents/<name>.md  (model tier stripped; user configures in opencode.json)
- * Hooks   → not installed (OpenCode hooks require manual opencode.json editing)
+ * Hooks   → not installed (OpenCode hooks require JS/TS plugin modules, not shell commands)
  * Rules   → <configDir>/hailykit-rules.md
+ *
+ * Spec: unknown — researched 2026-06-08
+ * Docs: https://opencode.ai/docs/skills/
+ *       https://opencode.ai/docs/plugins/
  *
  * Config dir per OS (XDG spec):
  *   Linux/Unix : ~/.config/opencode/

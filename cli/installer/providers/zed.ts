@@ -11,6 +11,10 @@ import { resolveSkillRefs, resolveAgentRefs, resolveModel } from '../converter.j
  * We install HailyKit as rules files that Zed's AI assistant reads as context.
  * Zed reads rules from .zed/ in the project or ~/.zed/ globally.
  *
+ * Spec: unknown — researched 2026-06-08
+ * Docs: https://zed.dev/docs/ai
+ *       https://zed.dev/docs/assistant/configuration
+ *
  * Skills are summarized into a single rules document so the AI assistant
  * knows which workflows are available and can guide the user to use them
  * via natural language.

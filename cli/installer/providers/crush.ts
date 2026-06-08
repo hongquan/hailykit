@@ -10,8 +10,11 @@ import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel } from '../
  *          %LOCALAPPDATA%\crush\skills\hc-<name>\SKILL.md  (Windows)
  * Rules  → ~/.config/crush/CRUSH.md  (always-applied context file)
  * Agents → ~/.config/crush/agents/<name>.md
- * Hooks  → not installed (Crush hook support is preliminary)
+ * Hooks  → not installed (Crush hook support is preliminary as of research date)
  * Model  → user-configured at runtime; model: tier line is stripped
+ *
+ * Spec: unknown, hooks preliminary — researched 2026-06-08
+ * Docs: https://github.com/charmbracelet/crush
  */
 export class CrushProvider extends BaseProvider {
   get name(): string { return 'crush'; }
