@@ -9,20 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hc-ship`** — Step 13: GitHub release creation after CI merge (tag, build artifacts, `gh release create`)
-- **`hc-ship`** — Step 8: create CHANGELOG.md automatically if not present (previously skipped silently)
-- **`AGENTS.md`** — adopted as canonical project context file; `CLAUDE.md` and `GEMINI.md` import it
-- **`hc-docs` / `hc-new`** — project rules files now create `AGENTS.md` + thin `CLAUDE.md` + `GEMINI.md` importers
-- **Workflow cross-references** — added missing links between skills (`hc-test→hc-optimize`, `hl-research→hl-mindmap`, etc.)
-- **Provider support matrix** — new `docs/provider-support-matrix.md` with ✅/⚠️/❌ per feature per provider
-- **Provider specs** — all 10 provider files annotated with verified version, hook events, and official docs URLs
-
----
-
-## [1.2.0] (2026-06-08)
-
-### 🚀 Improvements
-
+- **`hc-ship` / `hc-docs` / `hc-new`** upgrade
+- **`AGENTS.md`** — adopted as canonical project context file
+- Workflow cross-references — added missing links between skills
+- Provider specs
 - **`hc-goal`** — autonomous development loop: give it a goal, it runs plan → cook → review → commit for each phase until done.
 
 ### 🐛 Fixes
