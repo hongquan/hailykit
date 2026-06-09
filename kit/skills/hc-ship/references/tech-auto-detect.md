@@ -87,6 +87,33 @@ User explicitly says "breaking" or "major feature" → AskUserQuestion for minor
 2. File types changed (test files → test improvements, docs → documentation)
 3. Diff content (new functions = Added, modified functions = Changed)
 
+## Release Automation Detection
+
+**Run this FIRST in Step 13** — before building artifacts or creating a release. If CI already publishes the release on tag push, a manual `gh release create` collides (`HTTP 422: Release.tag_name already exists`).
+
+A workflow automates releases when it **both** triggers on tag push **and** publishes a release:
+
+| Signal | Pattern in `.github/workflows/*.{yml,yaml}` |
+|--------|---------------------------------------------|
+| Triggers on tag push | `tags:` key under `on: push:` (e.g. `tags: ['v*']`) |
+| Publishes a release | `gh release create` · `softprops/action-gh-release` · `actions/create-release` · `ncipollo/release-action` · `releases/create` (API) |
+
+**Detection script:**
+```bash
+RELEASE_AUTOMATION="NONE"
+for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+  [ -f "$wf" ] || continue
+  if grep -qE '^\s*tags:' "$wf" \
+     && grep -qiE 'gh release create|action-gh-release|create-release|release-action|releases/create' "$wf"; then
+    RELEASE_AUTOMATION="AUTOMATED"; echo "  Release automation: $wf"; break
+  fi
+done
+echo "$RELEASE_AUTOMATION"
+```
+
+- **AUTOMATED:** do NOT run `gh release create`. Push the tag (CI builds + publishes), then optionally enrich notes with `gh release edit` (auto-generated notes are often just the tag name). Skip the local build + artifact steps — CI owns them.
+- **NONE:** proceed with local build → artifact detection → manual `gh release create`.
+
 ## Release Command Detection
 
 Detect a release build command to run before creating the GitHub release. Check in order (first match wins):

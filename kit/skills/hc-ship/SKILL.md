@@ -62,7 +62,7 @@ Runs the full path from a working branch to a merged PR: pre-flight, tests, revi
 10. **Commit** — scan staged diff for secrets; compose `type(scope): description`; include version + changelog in same commit.
 11. **Push** — `git push -u origin <branch>`. Log `✓ Pushed: origin/<branch>`.
 12. **PR + CI** — `gh pr create --base <target>` with structured body; link issues with `Closes #N`. Unless `--no-ci-wait`: wait up to 10 min for required checks; merge when green. With `--no-ci-wait`: output PR URL and exit — user monitors CI manually.
-13. **GitHub release** — after merge: pull target branch, create and push tag `vX.Y.Z`, run release build if detected (e.g. `npm run release:pack`), then `gh release create vX.Y.Z` with promoted changelog section as notes and any build artifacts attached. Output release URL. *[skipped: no `--release` flag; no version bump; no `gh` CLI; `--quick`]*
+13. **GitHub release** — after merge: pull target branch, create and push tag `vX.Y.Z`. Then detect release automation (see `tech-auto-detect.md` § Release Automation Detection): if a tag-triggered workflow already publishes the release, let CI build + publish and only enrich notes via `gh release edit` — never `gh release create` (it collides with `422 already exists`). Otherwise build artifacts and `gh release create` with the changelog as notes. Output release URL. *[skipped: no `--release` flag; no version bump; no `gh` CLI; `--quick`]*
 
 Checkpoint behavior:
 
@@ -78,6 +78,8 @@ Checkpoint behavior:
 | `--release` not passed | Skip Steps 7 (version bump) and 13 (GitHub release); changelog writes to `[Unreleased]` |
 | No `[Unreleased]` section when `--release` | Generate versioned entry from commits directly |
 | Release build command not found | Create GitHub release without artifact attachments |
+| Tag-triggered release workflow detected | Skip manual `gh release create`; push tag, let CI publish, enrich notes via `gh release edit` |
+| `gh release create` returns 422 (already exists) | An undetected workflow published it — fall back to `gh release edit` + `upload --clobber` |
 | Tag already exists for version | Stop — warn user; suggest bumping version again |
 
 ## Output

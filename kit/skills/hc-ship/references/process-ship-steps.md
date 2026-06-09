@@ -321,19 +321,23 @@ After CI passes and the branch is merged, publish an official GitHub release.
    git push origin vX.Y.Z
    ```
 
-4. **Run release build** (if release command detected — see `tech-auto-detect.md` § Release Command Detection):
+4. **Detect release automation** (see `tech-auto-detect.md` § Release Automation Detection). Pushing the tag may have already triggered a workflow that builds and publishes the release. **Run this before any manual release step** — a manual `gh release create` over a CI-created release fails with `HTTP 422: Release.tag_name already exists`.
+
+   - **If AUTOMATED** → skip steps 5–7 (CI owns build + publish). Go to step 8 (enrich notes).
+   - **If NONE** → continue to step 5.
+
+5. **Run release build** (NONE path only; if release command detected — see `tech-auto-detect.md` § Release Command Detection):
    ```bash
    npm run release:pack   # or detected equivalent
    ```
    If command fails: warn user but continue — release will be created without artifacts.
 
-5. **Detect artifacts** (see `tech-auto-detect.md` § Artifact Detection):
+6. **Detect artifacts** (NONE path only — see `tech-auto-detect.md` § Artifact Detection):
    ```bash
-   # Collect files matching known patterns
    ARTIFACTS=$(ls dist/*.zip dist/*.tar.gz build/*.zip 2>/dev/null | head -10)
    ```
 
-6. **Create GitHub release:**
+7. **Create GitHub release** (NONE path only):
    ```bash
    gh release create vX.Y.Z $ARTIFACTS \
      --title "vX.Y.Z" \
@@ -344,5 +348,15 @@ After CI passes and the branch is merged, publish an official GitHub release.
    ```
    - Artifacts are positional args — pass them before flags, not via `--attach` (flag does not exist)
    - If no artifacts: omit `$ARTIFACTS`
-   - If release already exists for this tag: use `gh release edit vX.Y.Z` + `gh release upload vX.Y.Z <file> --clobber`
+   - Defensive fallback: if this returns `422 ... already exists` (an undetected workflow published it), switch to the AUTOMATED path — `gh release edit` + `gh release upload vX.Y.Z <file> --clobber`
+
+8. **Enrich notes** (AUTOMATED path, or after manual create): CI-generated notes are often just the tag name. Wait for the release to exist, then replace its notes with the Step 7 changelog entry:
+   ```bash
+   # Poll briefly — CI publish typically lands in 30–90s
+   for i in $(seq 1 12); do gh release view vX.Y.Z >/dev/null 2>&1 && break; sleep 10; done
+   gh release edit vX.Y.Z --notes "$(cat <<'EOF'
+   <changelog entry generated in Step 7>
+   EOF
+   )"
+   ```
    - Output the release URL — this is the final line of pipeline output
