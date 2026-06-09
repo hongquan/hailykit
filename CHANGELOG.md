@@ -5,14 +5,6 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
-
-### 🐛 Fixes
-
-- **`hc-ship`** Step 13 detects tag-triggered release workflows — skips manual `gh release create` (avoids `422 already exists`); enriches CI-published notes instead
-
----
-
 ## [1.3.0] (2026-06-09)
 
 ### 🚀 Improvements
