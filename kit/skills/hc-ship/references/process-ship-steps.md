@@ -25,7 +25,8 @@
    ```
 4. Run `git status` (never use `-uall`). Uncommitted changes are always included.
 5. Run `git diff <target>...HEAD --stat` and `git log <target>..HEAD --oneline` to understand what's being shipped.
-6. If `--dry-run`: output what would happen at each step and stop here.
+6. **Detect the release regime** (see `git-automation-compat.md` § 1) — semantic-release / release-please / changesets / standard-version / GoReleaser / tag-workflow / manual. This gates who owns version + changelog + tag + release (Steps 6, 7, 13). Log e.g. `✓ Release regime: changesets (version/changelog delegated)`.
+7. If `--dry-run`: output what would happen at each step and stop here.
 
 ## Step 2: Link Issues
 
@@ -133,7 +134,9 @@ git fetch origin <target> && git merge origin/<target> --no-edit
 
 ## Step 6: Version Bump (conditional)
 
-**Skip if:** no `--release` flag OR no version file found. Without `--release`, the version stays unchanged — changelog accumulates in `[Unreleased]` instead.
+**Skip if:** no `--release` flag OR no version file found OR the release regime owns versioning (semantic-release, release-please, GoReleaser, tag-workflow — see `git-automation-compat.md` § 1). Without `--release`, the version stays unchanged — changelog accumulates in `[Unreleased]` instead.
+
+**Regime delegation:** if regime is **changesets**, do NOT bump — instead write `.changeset/<slug>.md` with the bump level + summary. If **standard-version**, run `npm run release` (it bumps + changelogs + tags) and skip Steps 7/13's manual edits.
 
 1. Auto-detect version source (see `tech-auto-detect.md`)
 2. If no version file found: **skip silently**
@@ -146,7 +149,7 @@ git fetch origin <target> && git merge origin/<target> --no-edit
 
 ## Step 7: Changelog
 
-**Skip if:** `--quick` flag.
+**Skip if:** `--quick` flag OR the release regime owns the changelog (semantic-release, release-please, changesets, standard-version — see `git-automation-compat.md` § 1). Those tools generate CHANGELOG from commits / changeset files; a manual edit here collides with the bot's release PR or the generated output.
 
 1. Check for CHANGELOG.md or CHANGES.md. If not found, create CHANGELOG.md:
    ```markdown
@@ -255,14 +258,21 @@ EOF
 )"
 ```
 
+**Commit-hook compatibility** (see `git-automation-compat.md` § 2): never `--no-verify`.
+- If a pre-commit hook (husky/lefthook/pre-commit/lint-staged) **reformats** files and leaves the tree dirty, re-stage and `git commit --amend --no-edit`.
+- If a hook **rejects** (lint/type/secret), fix the real cause and retry — don't bypass.
+- If `commitlint` is configured, conform `type`/`scope` to its enums (read `commitlint.config.*`).
+- If `commit.gpgsign=true`, let it sign — never `-c commit.gpgsign=false`. If DCO is required, add `-s`.
+
 ## Step 11: Push
 
 ```bash
 git push -u origin $(git branch --show-current)
 ```
 
-- **Never force push.**
-- If push rejected: suggest `git pull --rebase` and retry once.
+- **Never force push. Never `--no-verify`** — let any pre-push hook run; if it fails, fix the cause.
+- If push rejected (non-fast-forward): suggest `git pull --rebase` and retry once.
+- **Branch protection** (see `git-automation-compat.md` § 3): never push directly to a protected target. If the target is protected (`gh api .../branches/<target>/protection` ≠ 404), always go feature-branch → PR (Step 12), even if mode inferred direct-to-target.
 
 ## Step 12: Create PR
 
@@ -297,9 +307,15 @@ EOF
 )"
 ```
 
+**Merge compatibility** (see `git-automation-compat.md` § 4) — before auto-merging:
+- **Required reviews / CODEOWNERS** (`required_pull_request_reviews`, or `.github/CODEOWNERS`): **STOP after creating the PR** — do not self-merge. Output "PR open, awaiting required review." and hand off.
+- **Merge method**: use only an allowed method (`gh api repos/{o}/{r}` → `allow_squash_merge`/`allow_merge_commit`/`allow_rebase_merge`) → `gh pr merge --squash|--merge|--rebase`. With `required_linear_history`, prefer `--squash`/`--rebase`.
+- **Merge queue / auto-merge**: enqueue with `gh pr merge --auto`; don't expect an immediate merge.
+- **Semantic PR title lint** (`action-semantic-pull-request`): ensure the PR title is conventional (`type(scope): summary`).
+
 ## Step 13: GitHub Release (conditional)
 
-**Skip if:** no `--release` flag, `--quick` flag, version was not bumped in Step 6, or `gh` CLI is not available.
+**Skip if:** no `--release` flag, `--quick` flag, version was not bumped in Step 6, `gh` CLI is not available, OR the release regime owns publishing (semantic-release, release-please, GoReleaser — see `git-automation-compat.md` § 1; those publish from CI and must not be duplicated). For a tag-triggered workflow, the regime still wants the tag pushed — push it, then only enrich notes (steps 4 + 8 below).
 
 After CI passes and the branch is merged, publish an official GitHub release.
 

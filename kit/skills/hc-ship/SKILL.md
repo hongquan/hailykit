@@ -48,9 +48,11 @@ Runs the full path from a working branch to a merged PR: pre-flight, tests, revi
 
 > **Required — auto-detect everything:** Test runner, version file, changelog format, and target branch are inferred from the repo — never hardcoded.
 
+> **Required — respect, never fight, automation:** Detect the release regime first (`references/git-automation-compat.md`). If a tool owns versioning/changelog/tagging/release (semantic-release, release-please, changesets, standard-version, GoReleaser, tag-triggered workflow), hc-ship contributes its input and delegates — it does not duplicate. Never bypass hooks, signing, branch protection, or required reviews (`--no-verify`, `--force`, self-merge are forbidden).
+
 ## Process
 
-1. **Pre-flight** — verify current branch is not the target; collect diff stats; if `--dry-run`, print plan and stop. Log `✓ Pre-flight: branch <name>, <N> commits, +X/-Y lines (mode: <standard|fast|full> → <target>)`.
+1. **Pre-flight** — verify current branch is not the target; collect diff stats; **detect the release regime** (`references/git-automation-compat.md` § 1 — gates Steps 7/8/13); if `--dry-run`, print plan and stop. Log `✓ Pre-flight: branch <name>, <N> commits, +X/-Y lines (mode: <standard|fast|full> → <target>)` and `✓ Release regime: <regime>`.
 2. **Link issues** — search open GitHub issues by branch name and commit keywords (`gh issue list --search`). Link if found; skip silently if none — do not auto-create issues. Store numbers for PR linking.
 3. **Merge target** — `git fetch` + `git merge origin/<target> --no-edit`; auto-resolve lockfile conflicts; stop on unresolvable conflicts.
 4. **Run tests** — auto-detect runner (npm/pytest/cargo/go test/…); delegate to `haily-tester` subagent. Stop on any failure. Log `✓ Tests: <N> passed, 0 failed`.
@@ -78,8 +80,12 @@ Checkpoint behavior:
 | `--release` not passed | Skip Steps 7 (version bump) and 13 (GitHub release); changelog writes to `[Unreleased]` |
 | No `[Unreleased]` section when `--release` | Generate versioned entry from commits directly |
 | Release build command not found | Create GitHub release without artifact attachments |
+| Automated release regime detected (semantic-release / release-please / changesets / GoReleaser) | Delegate version + changelog + release; hc-ship only ensures conventional commits / writes a changeset, then merges |
 | Tag-triggered release workflow detected | Skip manual `gh release create`; push tag, let CI publish, enrich notes via `gh release edit` |
 | `gh release create` returns 422 (already exists) | An undetected workflow published it — fall back to `gh release edit` + `upload --clobber` |
+| Pre-commit/pre-push hook reformats or rejects | Never `--no-verify`; re-stage reformatted files (`commit --amend`) or fix the rejected cause |
+| Target branch protected / requires reviews | Never push direct or self-merge; open PR and hand off for required review |
+| Merge method restricted / merge queue | Use the allowed `gh pr merge --squash\|--merge\|--rebase`; enqueue with `--auto` |
 | Tag already exists for version | Stop — warn user; suggest bumping version again |
 
 ## Output
@@ -118,6 +124,7 @@ With `--release`:
 
 | File | Content |
 |------|---------|
+| `references/git-automation-compat.md` | Release-regime detection + cooperating with hooks, signing, branch protection, required reviews, merge methods, and merge queues |
 | `references/tech-auto-detect.md` | Test runner, version file, and changelog format detection logic |
 | `references/tech-pr-template.md` | PR body template, title format, and `gh pr create` invocation |
 | `references/process-ship-steps.md` | Detailed implementation for each of the 13 pipeline stages |
