@@ -10,7 +10,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### 🚀 Improvements
 
 - `hailykit [uninstall] [--help]`
-- `hc-ship` upgrade
+- `hc-ship` upgrade, auto detect git/release automation
 
 ### 🐛 Fixes
 
