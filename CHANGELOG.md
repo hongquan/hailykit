@@ -5,13 +5,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [1.3.0] (2026-06-09)
 
 ### 🚀 Improvements
 
-- **`hailykit uninstall`** — new CLI command removes HailyKit from any provider; supports `--provider` and `--project`
-- **Per-command `--help`** — `hailykit install --help`, `hailykit uninstall --help`, `hailykit status --help` each show focused help
-- **`hc-ship --release`** — changelog accumulates in `[Unreleased]` by default; `--release` promotes to versioned entry, bumps version, and publishes GitHub release
+- `hailykit` [uninstall] [--help]
+- `hc-ship` update
+
+### 🐛 Fixes
+
+- `hc-cop` skill now reachable from routing files
+- CI now enforces the skill cross-reference check
 
 ---
 
@@ -64,6 +68,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+[1.3.0]: https://github.com/dxsl-org/hailykit/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.1...v1.2.1
 [1.1.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/dxsl-org/hailykit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/dxsl-org/hailykit/releases/tag/v1.0.0

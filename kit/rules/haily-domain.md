@@ -134,6 +134,7 @@ Design test strategy before coding      → Task(subagent_type="haily-test-archi
 Optimize code clarity/efficiency        → Task(subagent_type="haily-optimizer")
 Feature flag gradual rollout            → {skill:hc-ship} rollout <flag-name>
 Large-scale library/pattern migration   → {skill:hc-cook} migrate "description"
+Port/extract a feature from another repo → {skill:hc-cop} <source> [feature]
 Sprint retrospective from git metrics   → {skill:hc-git} retro [timeframe]
 Impact analysis of recent changes       → {skill:hc-git} analyze [ref]
 ```

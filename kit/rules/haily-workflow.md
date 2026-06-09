@@ -15,6 +15,7 @@ Flow: `plan → cook → test → review → ship → log`
 | "quick implementation, I know the codebase" | `{skill:hc-cook} --quick` |
 | "implement with tests first" | `{skill:hc-cook} --tdd` |
 | "migrate library/framework/pattern X → Y" | `{skill:hc-cook} migrate "description"` |
+| "port/extract feature X from <repo>" | `{skill:hc-cop} <source> [feature]` |
 
 ## Bugfix
 
