@@ -306,6 +306,80 @@ export function copyDir(src: string, dest: string, options: CopyDirOptions = {})
   return n;
 }
 
+// Marker present in every HailyKit hook command (the wrapper invocation).
+// User-authored hooks never reference this — making it a safe surgical filter.
+const HAILYKIT_HOOK_MARKER = 'haily-node.sh';
+
+/**
+ * Surgically remove HailyKit-managed hook entries from settings.json on uninstall.
+ *
+ * Removes only hook commands referencing the HailyKit wrapper (`haily-node.sh`) and
+ * drops the `_hailykit` tracking key. Leaves everything else untouched — crucially,
+ * `permissions.deny` (the security rules) and any user-authored hooks. This avoids
+ * dangling references to the deleted `hooks/` dir without weakening the user's
+ * security posture or risking removal of rules the user may rely on.
+ *
+ * Empty hook groups and empty event arrays are pruned; a fully-empty `hooks` object
+ * is removed. Malformed or non-object settings.json is left intact (returns 0).
+ * Atomic write via `.tmp` + rename.
+ *
+ * @param claudeDir - Absolute path to the .claude/ (or project .claude/) directory.
+ * @returns Number of HailyKit hook commands removed.
+ */
+export function removeManagedHookEntries(claudeDir: string): number {
+  const settingsPath = path.join(claudeDir, 'settings.json');
+  if (!fs.existsSync(settingsPath)) return 0;
+
+  let settings: unknown;
+  try {
+    settings = JSON.parse(stripJsonComments(fs.readFileSync(settingsPath, 'utf8')));
+  } catch {
+    return 0; // malformed — never rewrite a file we can't safely parse
+  }
+  if (typeof settings !== 'object' || settings === null || Array.isArray(settings)) return 0;
+
+  const s = settings as Record<string, unknown>;
+  let removed = 0;
+
+  const hooks = s.hooks;
+  if (hooks && typeof hooks === 'object' && !Array.isArray(hooks)) {
+    const hooksObj = hooks as Record<string, unknown>;
+    for (const event of Object.keys(hooksObj)) {
+      const groups = hooksObj[event];
+      if (!Array.isArray(groups)) continue;
+
+      const keptGroups: unknown[] = [];
+      for (const group of groups) {
+        if (!group || typeof group !== 'object' || !Array.isArray((group as Record<string, unknown>).hooks)) {
+          keptGroups.push(group);
+          continue;
+        }
+        const g = group as Record<string, unknown>;
+        const keptHooks = (g.hooks as unknown[]).filter((h) => {
+          const cmd = h && typeof h === 'object' ? (h as Record<string, unknown>).command : undefined;
+          const isHaily = typeof cmd === 'string' && cmd.includes(HAILYKIT_HOOK_MARKER);
+          if (isHaily) removed++;
+          return !isHaily;
+        });
+        if (keptHooks.length > 0) keptGroups.push({ ...g, hooks: keptHooks });
+        // else: group had only HailyKit hooks — drop the whole group
+      }
+
+      if (keptGroups.length > 0) hooksObj[event] = keptGroups;
+      else delete hooksObj[event]; // event had only HailyKit hooks — drop the event
+    }
+    if (Object.keys(hooksObj).length === 0) delete s.hooks;
+  }
+
+  // `_hailykit` is HailyKit-owned tracking metadata — unambiguously safe to drop.
+  if ('_hailykit' in s) delete s._hailykit;
+
+  const tmp = settingsPath + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(s, null, 2) + '\n', 'utf8');
+  fs.renameSync(tmp, settingsPath);
+  return removed;
+}
+
 /**
  * Merge HailyKit-managed deny rules into settings.json without touching user rules.
  * Never removes existing rules — only union-adds. Rules are written verbatim (no

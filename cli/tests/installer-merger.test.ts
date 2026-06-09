@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { mergeClaudeDir, applyDeletions, copyDir, mergePermissionDeny, HAILYKIT_DENY_RULES, migrateSettings } from '../installer/merger';
+import { mergeClaudeDir, applyDeletions, copyDir, mergePermissionDeny, HAILYKIT_DENY_RULES, migrateSettings, removeManagedHookEntries } from '../installer/merger';
 
 function tmp(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'haily-merge-'));
@@ -332,4 +332,79 @@ test('copyDir with skipProtected preserves an existing settings.json', () => {
   copyDir(src, dest, { skipProtected: true });
   assert.equal(fs.readFileSync(path.join(dest, 'settings.json'), 'utf8'), 'USER');
   assert.equal(fs.readFileSync(path.join(dest, 'other.md'), 'utf8'), 'OTHER');
+});
+
+// ── removeManagedHookEntries: uninstall surgical hook cleanup ──────────────────
+
+test('removeManagedHookEntries: removes HailyKit hooks, keeps user hooks + deny rules', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  const userHook = { type: 'command', command: 'node ~/.config/my-own-hook.js' };
+  fs.writeFileSync(p, JSON.stringify({
+    permissions: { deny: [...HAILYKIT_DENY_RULES, 'Bash(rm -rf /)'] },
+    hooks: {
+      PreToolUse: [{
+        matcher: 'Bash',
+        hooks: [
+          { type: 'command', command: makeOldHookCommand('haily-access.cjs') },
+          userHook,
+        ],
+      }],
+      SessionStart: [{
+        matcher: 'startup',
+        hooks: [{ type: 'command', command: makeOldHookCommand('haily-session.cjs') }],
+      }],
+    },
+    _hailykit: { denyVersion: '1.0.0', deny: [...HAILYKIT_DENY_RULES] },
+  }, null, 2));
+
+  const removed = removeManagedHookEntries(dir);
+  assert.equal(removed, 2, 'both HailyKit hook commands removed');
+
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  // Security deny rules untouched
+  assert.deepEqual(s.permissions.deny, [...HAILYKIT_DENY_RULES, 'Bash(rm -rf /)']);
+  // User hook preserved; its group survives
+  assert.equal(s.hooks.PreToolUse[0].hooks.length, 1);
+  assert.deepEqual(s.hooks.PreToolUse[0].hooks[0], userHook);
+  // Event that had only HailyKit hooks is pruned entirely
+  assert.equal(s.hooks.SessionStart, undefined);
+  // Tracking key dropped
+  assert.equal(s._hailykit, undefined);
+});
+
+test('removeManagedHookEntries: drops empty hooks object when all were HailyKit', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify({
+    hooks: {
+      Stop: [{ hooks: [{ type: 'command', command: makeOldHookCommand('haily-state.cjs') }] }],
+    },
+  }));
+  removeManagedHookEntries(dir);
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  assert.equal(s.hooks, undefined, 'fully-empty hooks object removed');
+});
+
+test('removeManagedHookEntries: no settings.json is a no-op (returns 0)', () => {
+  const dir = tmp();
+  assert.equal(removeManagedHookEntries(dir), 0);
+});
+
+test('removeManagedHookEntries: malformed settings.json is left intact', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, '{ not valid json');
+  assert.equal(removeManagedHookEntries(dir), 0);
+  assert.equal(fs.readFileSync(p, 'utf8'), '{ not valid json', 'unparseable file never rewritten');
+});
+
+test('removeManagedHookEntries: atomic write — no .tmp left behind', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify({
+    hooks: { Stop: [{ hooks: [{ type: 'command', command: makeOldHookCommand('haily-state.cjs') }] }] },
+  }));
+  removeManagedHookEntries(dir);
+  assert.equal(fs.existsSync(p + '.tmp'), false);
 });

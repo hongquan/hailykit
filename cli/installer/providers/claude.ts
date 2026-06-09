@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { mergeClaudeDir, readMetadata } from '../merger.js';
+import { mergeClaudeDir, readMetadata, removeManagedHookEntries } from '../merger.js';
 import type { Provider } from './base.js';
 
 /**
@@ -53,7 +53,13 @@ export class ClaudeProvider implements Provider {
     }
     const meta = path.join(dir, '.hailykit-meta.json');
     if (fs.existsSync(meta)) fs.rmSync(meta);
-    console.log('    Note: hooks in settings.json not removed (edit manually if needed)');
+
+    // Remove dangling hook references (the hooks/ dir is gone) + the _hailykit key.
+    // Security deny-rules in permissions.deny are intentionally KEPT — removing them
+    // would silently weaken the user's guardrails and risk deleting rules they rely on.
+    const removed = removeManagedHookEntries(dir);
+    if (removed > 0) console.log(`    Removed ${removed} HailyKit hook entr${removed === 1 ? 'y' : 'ies'} from settings.json`);
+    console.log('    Note: security deny-rules in settings.json kept (remove manually if desired)');
     console.log('    ✓ Uninstalled');
   }
 
