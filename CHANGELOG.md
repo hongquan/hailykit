@@ -5,6 +5,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.0] (2026-06-10)
+
+### 🚀 Improvements
+
+- **Block auto deep-research / dynamic workflows** — installer force-sets `workflowKeywordTriggerEnabled=false` on install + upgrade; explicit `/deep-research`, `/workflows`, `/effort ultracode` still work
+- **`hl-research` upgrade** — token-bounded cost discipline (snippet-first, sufficiency gate), active claim refutation, reverse/inversion fallback when forward search is dry, positioning vs native `/deep-research`
+- **`hailykit uninstall`** now strips dangling hook refs from `settings.json` (keeps security deny-rules)
+
+---
+
 ## [1.3.0] (2026-06-09)
 
 ### 🚀 Improvements
@@ -68,6 +78,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+[1.4.0]: https://github.com/dxsl-org/hailykit/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/dxsl-org/hailykit/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.1...v1.2.1
 [1.1.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.0...v1.1.1
