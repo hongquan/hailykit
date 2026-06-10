@@ -1,9 +1,9 @@
 ---
 name: hl-help
-description: "Discover skills across 3 prefixes. List, search, filter, or show workflow combos."
+description: "Discover skills across 2 prefixes. List, search, filter, or show workflow combos."
 when_to_use: "Invoke when discovering available skills or getting help with HailyKit."
 user-invocable: true
-argument-hint: "[--list] [--search <keyword>] [--domain <area>] [--prefix <hc|hd|hl>] [--all] [--combos]"
+argument-hint: "[--list] [--search <keyword>] [--domain <area>] [--prefix <hc|hl>] [--all] [--combos]"
 metadata:
   category: utilities
   keywords: [help, discover, search, list, skills, catalog, prefix, domain, workflow, combo]
@@ -13,12 +13,12 @@ metadata:
 
 Browse and search all available skills across all domain prefixes.
 
-## Domain Prefix System (3 prefixes)
+## Domain Prefix System (2 prefixes)
 
 | Prefix | Domain |
 |--------|--------|
-| `hl:*` | Universal — thinking, research, planning, **+ design** (hl:design) |
-| `hc:*` | Coding — backend, frontend, infra, testing, dev-tools, AI app frameworks, MCP, docs+extraction |
+| `hl-*` | Universal — thinking, research, planning, **+ design** (`hl-design`) |
+| `hc-*` | Coding — backend, frontend, infra, testing, dev-tools, AI app frameworks, MCP, docs+extraction |
 
 ## Built-in vs HailyKit Skills (Common Confusions)
 
@@ -93,6 +93,8 @@ THINK & DECIDE
   {skill:hl-brainstorm}   Explore options + trade-offs [--persona] [--debate: all personas + edge analysis]
   {skill:hl-reasoning}    Step-by-step structured analysis
   {skill:hl-research}     Deep technical research with sources
+  {skill:hl-mindmap}      Build and navigate knowledge graphs from topics, URLs, or documents
+  {skill:hl-ultra}        Run an eligible skill on the deep-tier model (explicit opt-in, token-heavy)
 
 GIT & ENVIRONMENT
   {skill:hc-git}                 Commit, push, PR, merge, impact analysis, sprint retro
@@ -124,7 +126,7 @@ SPECIALIZED
 Canonical chain: brainstorm → plan → cook → test → review → ship → log
 
   {skill:hl-help} --combos          All workflow chains
-  {skill:hl-help} --list            All 30 skills by category
+  {skill:hl-help} --list            All 32 skills by category
   {skill:hl-help} --search <kw>     Find by topic
 ```
 
@@ -147,10 +149,11 @@ Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
   {skill:hc-optimize}          Autonomous iterative task runner
   {skill:hc-worktree}      Parallel branches in isolated folders — no stash/switch. Supports standalone, monorepo (turbo/pnpm/nx), and submodule repos
 
-## Thinking & Analysis (4)
+## Thinking & Analysis (5)
   {skill:hl-brainstorm}          Trade-off analysis, 2–3 approaches, expert personas, edge analysis via --debate
   {skill:hl-research}            Deep technical research with sources
   {skill:hl-reasoning}           Step-by-step structured analysis + problem-solving
+  {skill:hl-mindmap}             Build and navigate knowledge graphs from topics, URLs, or documents
   {skill:hl-context-engineering} Optimize context and agent architecture
 
 ## Security (1)
@@ -185,7 +188,7 @@ Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
 ## Senior Dev Specialists (via Task tool)
   Task(subagent_type="haily-adr-writer")          Architecture Decision Records
   Task(subagent_type="haily-tech-analyst")   Systematic tech debt inventory + priority matrix
-  Task(subagent_type="api-haily-designer")        REST/GraphQL API contract design
+  Task(subagent_type="haily-api-designer")         REST/GraphQL API contract design
   Task(subagent_type="haily-test-architect")      Test strategy design before implementation
   Task(subagent_type="haily-optimizer")      Simplify + efficiency + dead code removal
 
@@ -196,6 +199,7 @@ Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
 
 ## Utilities
   {skill:hl-help}                This skill — discover all skills
+  {skill:hl-ultra}               Deep-model escalation for reasoning-heavy skills (explicit opt-in)
   {skill:hl-visualize}           Visual explanations, diagrams, slide decks
   {skill:hc-browser}             AI-driven browser automation (long sessions)
 ```
@@ -237,7 +241,7 @@ Filter by domain prefix — shows only skills from that prefix group.
 
 | Prefix arg | Shows |
 |---|---|
-| `hl` | Universal skills (thinking, planning, Office automation) |
+| `hl` | Universal skills (thinking, planning, research, design) |
 | `hc` | Coding skills |
 
 ### --domain \<area\>
@@ -337,7 +341,7 @@ Single command: plan → cook → review → commit per phase, retry on failure,
 ```
 {skill:hl-research} "topic"
   → {skill:hl-brainstorm}
-  → {skill:hl-brainstorm} --debate        (all 8 personas + 12-dimension edge sweep → GO/CAUTION/STOP)
+  → {skill:hl-brainstorm} --debate        (all 9 personas + 12-dimension edge sweep → GO/CAUTION/STOP)
   → {skill:hc-plan}
   → {skill:hc-cook}
   → {skill:hc-review}
@@ -481,23 +485,16 @@ Language- and framework-specific guidance is **auto-loaded** at session start ba
 
 | Detected | Rule file loaded |
 |---|---|
-| 	sconfig.json / package.json w/ TS | lang-typescript.md |
+| tsconfig.json / package.json w/ TS | lang-typescript.md |
 | package.json w/o TS | lang-javascript.md |
-| pyproject.toml / 
-equirements.txt | lang-python.md |
+| pyproject.toml / requirements.txt | lang-python.md |
 | Go / Rust / Java / Kotlin / Swift / PHP / Ruby / Elixir / C / C++ / Zig / etc. | matching lang-*-standards.md (25 languages) |
-| 
-ext / 
-eact / ue / 
-uxt / stro / svelte / 
-emix in deps | matching ramework-*-standards.md |
-| @nestjs/core / astapi / django / xpress / astify / hono / lysia | matching ramework-*-standards.md |
-| lutter / 
-eact-native / xpo | matching ramework-*-standards.md |
-| etter-auth / stripe / polar / paddle / creem / sepay | extra framework rules (stack on primary) |
-| 	urbo.json / 
-x.json / pnpm-workspace.yaml | ramework-monorepo.md |
-| shopify.app.toml | ramework-shopify.md |
+| next / react / vue / nuxt / astro / svelte / remix in deps | matching framework-*-standards.md |
+| @nestjs/core / fastapi / django / express / fastify / hono / elysia | matching framework-*-standards.md |
+| Flutter / react-native / expo | matching framework-*-standards.md |
+| better-auth / stripe / polar / paddle / creem / sepay | extra framework rules (stack on primary) |
+| turbo.json / nx.json / pnpm-workspace.yaml | framework-monorepo.md |
+| shopify.app.toml | framework-shopify.md |
 | Phoenix / Nerves / LiveView / Ecto / Oban / Broadway / Absinthe | matching Elixir framework rules |
 
 **Why no skill?** The hook detects and injects automatically — you get the right rules without doing anything.
@@ -508,5 +505,5 @@ x.json / pnpm-workspace.yaml | ramework-monorepo.md |
 - Always print skill names with their full prefix (e.g., `{skill:hc-plan}`, `{skill:hl-design}`, `{skill:hl-brainstorm}`)
 - Truncate descriptions to 60 chars in `--list` mode; full description in `--all` mode
 - Sort alphabetically within each category group
-- `--prefix` filter: match skills where `name` starts with `<prefix>:` (e.g., `hl:` or `hc:`)
-- Highlight the core workflow skills (`hc:plan`, `hc:cook`, `hc:fix`, `hc:test`, `hc:ship`) at the top of `--list` output
+- `--prefix` filter: match skills where `name` starts with `<prefix>-` (e.g., `hl-` or `hc-`)
+- Highlight the core workflow skills (`hc-plan`, `hc-cook`, `hc-fix`, `hc-test`, `hc-ship`) at the top of `--list` output

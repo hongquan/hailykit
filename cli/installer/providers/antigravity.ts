@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { resolveSkillRefs } from '../converter.js';
+import { resolveSkillRefs, resolveModel, resolveModelRefs } from '../converter.js';
 
 /**
  * Antigravity provider.
@@ -74,11 +74,13 @@ export class AntigravityProvider extends BaseProvider {
       if (entry.isDirectory()) {
         this._copyDir(srcPath, destPath);
       } else if (entry.name.endsWith('.md')) {
-        // Resolve {skill:x:y} → /hc:cook in all markdown files.
-        const content = resolveSkillRefs(
+        // Resolve {skill:x:y} → /hc:cook plus model tiers/placeholders in all markdown files.
+        let content = resolveSkillRefs(
           fs.readFileSync(srcPath, 'utf8'),
           (p, n) => this.skillRef(p, n),
         );
+        content = resolveModel(content, this.name);
+        content = resolveModelRefs(content, this.name);
         fs.writeFileSync(destPath, content, 'utf8');
       } else {
         fs.copyFileSync(srcPath, destPath);

@@ -246,6 +246,19 @@ No majority vote. A single evidenced critical finding blocks.
 | `.hl.json` | `lean.enabled` | true | Enable/disable Lean Pass |
 | env var | `HL_LEAN_DISABLED` | — | Set to `1` to bypass Lean Pass |
 
+### Ultra Mode (deep-model escalation)
+
+Ultra mode runs a reasoning-heavy skill on the deep-tier model. The ONLY user-facing entry point is `{skill:hl-ultra} <skill> [args]` — it escalates the main loop (via its `model: deep` frontmatter) AND core agents. The `--ultra` marker it passes downstream is internal plumbing: never document it as a user flag, because a bare flag escalates subagents only and would mislead users into believing the whole session escalated. Strictly user-initiated — a skill must never self-activate it.
+
+Rules every eligible skill's `## --ultra Mode` section follows:
+
+- **Turn-scoped state** — once active, every skill in the chain sees it; there is no flag forwarding between skills.
+- **Agent whitelist, not skill scope** — only Task calls to deep-eligible agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-brainstormer`, `haily-debugger`) pass `model: {model:deep}`. Mechanical agents (git, tester, docs, project-manager, reporter, researcher) always keep their pins. Escalate judgment, not mechanics.
+- **Fallback** — if the deep model is rejected, retry once on the thinking tier and report which model ran.
+- **`{model:<tier>}` placeholders** — resolved to concrete model names per provider at install time; never ship verbatim.
+
+Eligible skills (also listed in `kit/skills/hl-ultra/SKILL.md` — keep both in sync): hl-brainstorm, hc-plan, hc-cook, hc-review, hc-fix, hc-optimize, hc-cop, hl-reasoning, hc-goal, hc-security, hl-research.
+
 ---
 
 ## Part V — Writing Conventions for Skill Files

@@ -29,11 +29,14 @@
 │                        default from dist/tools/ at runtime    │
 │  utils/               logger · errors · strip-json-comments   │
 └───────────────────────────────────────────────────────────────┘
-kit/   ← sub "kit": distributable skill catalog (v0.1.0)
-├── skills/            58 skill dirs (42 Tier 1 + 15 Tier 2 + template)
+kit/   ← sub "kit": distributable skill catalog (versioned in metadata.json)
+├── skills/            31 skill dirs (hX-name/SKILL.md, where X ∈ {c,d,l})
+├── agents/            19 agent .md files (provider-neutral model tiers)
+├── templates/         4 task templates (bug, feature, refactor, usage)
+├── standards/         ~106 language/framework standards (auto-injected)
 ├── rules/             6 markdown rules files (dev standards, workflows, routing)
-├── hooks/             9 production hooks (.cjs) + 9 lib helpers
-├── metadata.json      version + deletions[] for upgrade path
+├── hooks/             9 production hooks (.cjs) + subdirs with helpers
+├── metadata.json      catalog version + deletions[] for upgrade path
 └── [other catalog assets as added]
 ```
 
@@ -56,32 +59,42 @@ CLI `run <tool> --input '{...}'`
 
 The `kit/` directory is a distributable snapshot of the skill catalog, versioned independently. It contains:
 
-- **`skills/`** — 58 skill directories (format: `hX-skill-name/SKILL.md` where X ∈ {c,d,l})
+- **`skills/`** — 31 skill directories (format: `hX-skill-name/SKILL.md` where X ∈ {c,d,l})
   - Each skill is a self-contained unit with `SKILL.md` (frontmatter + content) and optional `references/` subdirs
-  - Tier 1 (42 skills): core workflow (hc-cook, hc-plan, etc.), thinking tools (hl-brainstorm, hl-ask, etc.), design utilities
-  - Tier 2 (15 skills): require refactoring (deprecated refs fixed, path updates)
-  - Template: `template-skill/SKILL.md` for scaffolding new skills
-  - All versions pinned to `0.1.0`; zero npm dependencies
+  - All skills are production-ready; zero npm dependencies
 
 - **`rules/`** — 6 markdown configuration files
-  - `coding.md` — language/framework standards, code quality thresholds
-  - `quality.md` — step-by-step development workflow with skill routing
-  - `domain.md` — decision trees: when to invoke which skill by user intent
-  - `workflow.md` — multi-skill sequences (planning → implementation → testing → review → ship)
+  - `haily-coding.md` — language/framework standards, code quality thresholds
+  - `haily-quality.md` — step-by-step development workflow with skill routing
+  - `haily-domain.md` — decision trees: when to invoke which skill by user intent
+  - `haily-workflow.md` — multi-skill sequences (planning → implementation → testing → review → ship)
   - `hailykit.md` — CI patterns, metadata deletion protocol, cross-reference integrity rules
-  - `documentation.md` — roadmap/changelog maintenance triggers
+  - `haily-documentation.md` — roadmap/changelog maintenance triggers
 
-- **`hooks/`** — 9 production hooks (.cjs, Node CommonJS) + lib helpers (`lib/` subdir)
-  - Hooks: `session-bootstrap.cjs` (project detection), `rules-injector.cjs`, `plan-done-cook-prompt.cjs`, `subagent-context-injector.cjs`, `task-completion-reporter.cjs`, `session-snapshot.cjs`, `artifact-verifier.cjs`, `sensitive-file-blocker.cjs`, `directory-access-guard.cjs`
-  - Lib helpers: configuration utils, logger, session state manager, project detector, statusline cache manager, metadata merger, provider converter, venv manager, zip handler, sensitive-path-matcher (credential + directory-escape detection)
+- **`agents/`** — 19 agent .md files (provider-neutral model assignment)
+  - Each agent has frontmatter with `model: <tier>` where tier ∈ {thinking, medium, fast}
+  - Tiers are resolved to provider-specific model names at install time (claude: thinking→opus, medium→sonnet, fast→haiku)
+  - User-configured-model providers (cursor, zed, windsurf, opencode, kimi) have the `model:` line stripped at install
+
+- **`templates/`** — 4 task templates for common workflows
+  - `haily-bug.md`, `haily-feature.md`, `haily-refactor.md`, `haily-usage.md`
+  - Used by `Task(...)` references in agent/skill bodies
+
+- **`standards/`** — ~106 language and framework standards files
+  - Auto-injected by the session-init hook when the project stack is detected
+  - Covers: languages (TypeScript, Python, Go, Rust, etc.), frameworks (Next.js, FastAPI, Django, NestJS, etc.), and integrations (Stripe, Prisma, etc.)
+
+- **`hooks/`** — 9 production hooks (.cjs, Node CommonJS) + helper subdirs
+  - `haily-session.cjs` (project detection + session bootstrap), `haily-rules.cjs` (rules injector), `haily-subagent.cjs` (subagent context), `haily-state.cjs` (session state), `haily-usage.cjs` (usage limits), `haily-artifact.cjs` (artifact verification), `haily-pii.cjs` (sensitive file blocker), `haily-access.cjs` (directory access guard), `haily-optimize.cjs` (optimization gate)
+  - Helper subdirs: `haily-artifact/`, `haily-guard/`, `haily-lib/` with modular component files
   - All hooks have canonical header with event type, exit codes, crash wrapper (never block Claude Code on error)
-  - All lib files: zero npm dependencies (only Node built-ins and relative requires)
+  - All hook and lib files: zero npm dependencies (only Node built-ins and relative requires)
 
 - **`metadata.json`** — catalog version + upgrade path
-  - Fields: `version` (`"0.1.0"`), `name`, `description`, `buildDate`, `repository`, `deletions[]` (stale file cleanup on upgrade), `download` (installer telemetry)
+  - Fields: `version`, `name`, `description`, `buildDate`, `repository`, `deletions[]` (stale file cleanup on upgrade), `download` (installer telemetry)
   - `deletions[]` contains all skill/rule/hook files removed in prior versions — tells CLI to delete them from user machines during upgrade
 
-**Installation flow:** CLI downloads release zip (cli + kit bundled), then `mergeClaudeDir(kit/)` → syncs `kit/skills/` → `~/.claude/skills/`, fixes stale files via `metadata.deletions[]`, converts rules + hooks per provider.
+**Installation flow:** CLI downloads release zip (cli + kit bundled), then `mergeClaudeDir(kit/)` → syncs `kit/skills/` → `~/.claude/skills/`, fixes stale files via `metadata.deletions[]`, resolves agent `model: <tier>` frontmatter via MODEL_MAP (in cli/installer/converter.ts; built-in defaults with fallback), strips model tier for user-configured-model providers, converts rules + hooks per provider.
 
 ## Installer data flow (unchanged from old hailykit, ported to TS)
 

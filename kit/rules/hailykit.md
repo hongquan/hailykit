@@ -31,8 +31,8 @@ Before committing reference changes: `node scripts/check-skill-cross-refs.js`. W
 
 ## Model Tiers (agents)
 
-Agent frontmatter `model:` uses provider-neutral tiers — `thinking` / `medium` / `fast` — resolved per provider by the installer (`MODEL_MAP` in `cli/installer/converter.ts`). Never hard-code `opus`/`gpt-5`/etc. in agent source.
+Agent frontmatter `model:` uses provider-neutral tiers — `thinking` / `medium` / `fast` — resolved per provider by the installer. Never hard-code `opus`/`gpt-5`/etc. in agent source. The authoritative tier→model map ships as `kit/model-map.json` (built-in fallback: `MODEL_MAP` in `cli/installer/converter.ts`; user pin: `~/.hailykit/model-map.json`). When vendor model IDs change, update `kit/model-map.json` — no code change needed. CI validates agent tiers and the map shape via `scripts/check-skill-cross-refs.js`.
 
-## Statusline Changes
+## Deep Tier / Ultra Mode
 
-Changes to `statusline*.cjs` MUST update snapshot tests across all config variants: minimal, full, custom lines, no quota, 1M context window. ANSI escapes and NBSP must be explicitly tested.
+`deep` is a fourth map tier reserved for runtime escalation via the `hl-ultra` skill — never pin it on an agent (CI rejects it). In skill body text, `{model:deep}` placeholders resolve to the provider's deep model at install time. Ultra escalation is whitelist-based: only `haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-brainstormer`, `haily-debugger` escalate; mechanical agents keep their pins. When adding a skill to the ultra-eligible list, update BOTH the skill's `## --ultra Mode` section and the eligible list in `kit/skills/hl-ultra/SKILL.md`.

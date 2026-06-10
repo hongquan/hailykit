@@ -170,6 +170,83 @@ function collectCkReferences() {
   return refs;
 }
 
+// Valid provider-neutral model tiers for kit/agents/*.md frontmatter.
+// A typo here passes silently through the installer (the resolve regex only
+// matches valid tiers), so the bad value would ship verbatim to user machines.
+// `deep` is deliberately EXCLUDED: it is the runtime-escalation tier
+// (hl-ultra) and must never be pinned on an agent.
+const VALID_MODEL_TIERS = new Set(['thinking', 'medium', 'fast']);
+
+// Tiers allowed in kit/model-map.json — agent tiers plus the `deep`
+// escalation tier resolved into hl-ultra and {model:deep} placeholders.
+const VALID_MAP_TIERS = new Set([...VALID_MODEL_TIERS, 'deep']);
+
+/**
+ * Validates that every kit/agents/*.md declares `model:` with a valid tier.
+ * Returns Array<{ file, problem }>.
+ */
+function checkAgentModelTiers() {
+  const agentsDir = path.join(claudeDir, 'agents');
+  const problems = [];
+
+  for (const filePath of findFiles(agentsDir, (entry) => entry.endsWith('.md'))) {
+    let content;
+    try {
+      content = readFileSync(filePath, 'utf8');
+    } catch (err) {
+      problems.push({ file: path.relative(repoRoot, filePath), problem: `unreadable: ${err.message}` });
+      continue;
+    }
+
+    const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+    const modelMatch = fmMatch && fmMatch[1].match(/^model:\s*['"]?([^\s'"]+)['"]?\s*$/m);
+    if (!modelMatch) {
+      problems.push({ file: path.relative(repoRoot, filePath), problem: 'missing `model:` tier in frontmatter' });
+    } else if (!VALID_MODEL_TIERS.has(modelMatch[1])) {
+      problems.push({
+        file: path.relative(repoRoot, filePath),
+        problem: `invalid model tier "${modelMatch[1]}" (expected: ${[...VALID_MODEL_TIERS].join(' | ')})`,
+      });
+    }
+  }
+  return problems;
+}
+
+/**
+ * Validates kit/model-map.json shape: { provider: { tier: non-empty string } }.
+ * The installer tolerates a malformed file at runtime (falls back to built-ins),
+ * so CI is the only place a broken catalog map gets caught before release.
+ */
+function checkModelMapJson() {
+  const mapPath = path.join(claudeDir, 'model-map.json');
+  const rel = path.relative(repoRoot, mapPath);
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync(mapPath, 'utf8'));
+  } catch (err) {
+    return [{ file: rel, problem: `missing or invalid JSON: ${err.message}` }];
+  }
+
+  const problems = [];
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return [{ file: rel, problem: 'top level must be an object of providers' }];
+  }
+  for (const [provider, tiers] of Object.entries(raw)) {
+    if (typeof tiers !== 'object' || tiers === null || Array.isArray(tiers)) {
+      problems.push({ file: rel, problem: `provider "${provider}" must map to an object of tiers` });
+      continue;
+    }
+    for (const [tier, model] of Object.entries(tiers)) {
+      if (!VALID_MAP_TIERS.has(tier)) {
+        problems.push({ file: rel, problem: `provider "${provider}" has unknown tier "${tier}"` });
+      } else if (typeof model !== 'string' || !model.trim()) {
+        problems.push({ file: rel, problem: `provider "${provider}" tier "${tier}" must be a non-empty string` });
+      }
+    }
+  }
+  return problems;
+}
+
 function main() {
   const { registry, collisions } = buildSkillRegistry();
   const allRefs = collectCkReferences();
@@ -199,10 +276,30 @@ function main() {
     console.error('Registered skills:', [...registry].sort().join(', ') || '(none)');
   }
 
+  const tierProblems = checkAgentModelTiers();
+  if (tierProblems.length > 0) {
+    hasErrors = true;
+    console.error('[X] Agent model tier problem(s):');
+    for (const { file, problem } of tierProblems) {
+      console.error(`  - ${file}: ${problem}`);
+    }
+    console.error('');
+  }
+
+  const mapProblems = checkModelMapJson();
+  if (mapProblems.length > 0) {
+    hasErrors = true;
+    console.error('[X] kit/model-map.json problem(s):');
+    for (const { file, problem } of mapProblems) {
+      console.error(`  - ${file}: ${problem}`);
+    }
+    console.error('');
+  }
+
   if (!hasErrors) {
     const refCount = allRefs.length;
     const skillCount = registry.size;
-    console.log(`[OK] skill-cross-refs: ${skillCount} skill(s) registered, ${refCount} reference(s) checked (prefixes: hl/hc) — all valid.`);
+    console.log(`[OK] skill-cross-refs: ${skillCount} skill(s) registered, ${refCount} reference(s) checked (prefixes: hl/hc) — all valid. Agent model tiers + model-map.json valid.`);
     process.exit(0);
   }
 

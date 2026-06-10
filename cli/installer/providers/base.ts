@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { parseFrontmatter, toCommandName, resolveSkillRefs, resolveAgentRefs, resolveModel, isProviderAllowed, type AgentRefType } from '../converter.js';
+import { parseFrontmatter, toCommandName, resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs, isProviderAllowed, type AgentRefType } from '../converter.js';
 
 /** Result of convertSkill(); null means skip this skill. */
 export interface ConvertedSkill {
@@ -228,9 +228,12 @@ export abstract class BaseProvider implements Provider {
     const { frontmatter, body } = parseFrontmatter(content);
     const cmdName = toCommandName(frontmatter, internalName);
     const description = frontmatter.description || '';
-    const resolvedBody = resolveSkillRefs(
-      resolveAgentRefs(body, (t, r) => this.agentRef(t, r)),
-      (p, n) => this.skillRef(p, n),
+    const resolvedBody = resolveModelRefs(
+      resolveSkillRefs(
+        resolveAgentRefs(body, (t, r) => this.agentRef(t, r)),
+        (p, n) => this.skillRef(p, n),
+      ),
+      this.name,
     );
     return { cmdName, description, body: resolvedBody };
   }

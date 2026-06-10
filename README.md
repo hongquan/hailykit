@@ -3,7 +3,7 @@
 A **zero-dependency** TypeScript framework for AI coding agents — a tool-execution **engine** and a multi-provider skill **installer**.
 
 - **Engine** (`cli/`) — register, route, and execute tools: native TypeScript (in-process) or polyglot executables (Python/Rust/Go/…) over NDJSON stdio.
-- **Installer** (`kit/`) — distribute 30 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed, Crush, Kimi Code).
+- **Installer** (`kit/`) — distribute 32 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed, Crush, Kimi Code).
 
 > No npm account required. Zero runtime dependencies. Distributed via GitHub release — never `npm publish`.
 
@@ -60,7 +60,7 @@ hailykit status                           # show installed vs latest versions
 | **Windsurf** | ✅ Markdown | ✅ Partial | `/hc-plan`, `/hl-brainstorm` … |
 | **OpenCode** | ✅ Markdown | ❌ | `/hc-plan`, `/hl-brainstorm` … |
 | **Codex CLI** | ⚠️ Catalog in AGENTS.md | ✅ Partial | Natural language |
-| **Zed** | ⚠️ Rules + overview | ❌ | Natural language |
+| **Zed** | ✅ SKILL.md native | ❌ | `/hc-plan`, `/hl-brainstorm` … |
 | **Crush** | ✅ Agent Skills format | ❌ | `/hc-plan`, `/hl-brainstorm` … |
 | **Kimi Code** | ✅ Agent Skills format | ✅ TOML hooks | `/skill:hc-plan` … |
 
@@ -88,6 +88,7 @@ Open Claude Code after installing — skills are ready immediately.
 | Debug an issue | `/hc-debug` |
 | Brainstorm options | `/hl-brainstorm` |
 | Explore the codebase | `/hc-scout` |
+| Run a skill on the strongest model | `/hl-ultra hc-plan "<task>"` |
 | Discover all skills | `/hl-help` |
 
 ### Common workflow chains
@@ -113,7 +114,7 @@ Open Claude Code after installing — skills are ready immediately.
 
 ## Skills
 
-31 skills across two domain prefixes, installed together and activated on demand.
+32 skills across two domain prefixes, installed together and activated on demand.
 
 ### Coding — `hc-*`
 
@@ -147,12 +148,14 @@ Open Claude Code after installing — skills are ready immediately.
 | Command | What it does |
 |---|---|
 | `/hl-help` | Discover all skills: `--list`, `--search <keyword>`, `--combos` |
+| `/hl-ultra` | Run a reasoning-heavy skill on the deep-tier model — explicit opt-in, escalates main loop + core agents |
 | `/hl-brainstorm` | Trade-off analysis with personas. `--debate` for adversarial review |
 | `/hl-research` | Deep technical research. `--quick` (5 min), `--deep` (20 min) + typed output templates |
 | `/hl-reasoning` | Sequential structured analysis with hypothesis revision and branching |
 | `/hl-visualize` | Generate diagrams, slides, HTML pages, Excel reports, PDFs |
 | `/hl-design` | Brand identity, logos, CIP mockups, AI images/video/TTS/music, slides |
 | `/hl-mindmap` | Build and visualize knowledge graphs from topics, URLs, or documents |
+| `/hl-mindmap` | Build and navigate knowledge graphs from topics, URLs, or documents |
 | `/hl-context-engineering` | Optimize token usage, debug context failures, design agent memory systems |
 | `/hl-log` | Write a session log to `.agents/logs/` — decisions, lessons, next steps |
 
@@ -277,7 +280,7 @@ Bundled examples in [`cli/tools/`](cli/tools/). Full protocol spec in [`docs/tec
 ```bash
 npm run build      # tsc → dist/ + copy cli/tools/ → dist/tools/
 npm run typecheck  # tsc --noEmit
-npm test           # compile → .test-build/ then run node:test (69 tests)
+npm test           # compile → .test-build/ then run node:test (114 tests)
 ```
 
 Before committing any skill cross-reference (`/hc-*`, `/hl-*`) in markdown:

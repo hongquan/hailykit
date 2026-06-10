@@ -1,5 +1,8 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import {
   parseFrontmatter,
   toCommandName,
@@ -8,6 +11,10 @@ import {
   isProviderAllowed,
   resolveAgentRefs,
   resolveModel,
+  resolveModelRefs,
+  getModelMap,
+  loadModelMapOverrides,
+  MODEL_MAP,
 } from '../installer/converter';
 
 // ---------------------------------------------------------------------------
@@ -187,7 +194,7 @@ test('resolveModel replaces tier with concrete model name for claude', () => {
 test('resolveModel replaces tier with concrete model name for gemini', () => {
   const content = '---\nname: haily-planner\nmodel: medium\n---\n\nBody.';
   const result = resolveModel(content, 'gemini');
-  assert.ok(result.includes('model: gemini-2.5-flash'), `expected gemini flash model in: ${result}`);
+  assert.ok(result.includes('model: gemini-3.5-flash'), `expected gemini flash model in: ${result}`);
 });
 
 test('resolveModel strips model line entirely for cursor', () => {
@@ -219,6 +226,130 @@ test('resolveModel is a no-op when content has no tier line', () => {
 test('resolveModel leaves a concrete model name untouched', () => {
   const content = '---\nname: haily-planner\nmodel: claude-opus-4-8\n---\n\nBody.';
   assert.equal(resolveModel(content, 'cursor'), content);
+});
+
+test('resolveModel resolves the deep tier (hl-ultra frontmatter)', () => {
+  const content = '---\nname: hl-ultra\nmodel: deep\n---\n\nBody.';
+  const result = resolveModel(content, 'claude');
+  assert.ok(result.includes('model: opus'), `expected deep→opus in: ${result}`);
+  // User-configured providers strip the deep line like any other tier.
+  assert.ok(!resolveModel(content, 'zed').includes('model:'));
+});
+
+// ---------------------------------------------------------------------------
+// resolveModelRefs
+// ---------------------------------------------------------------------------
+
+test('resolveModelRefs replaces {model:deep} with the provider model', () => {
+  const body = 'Pass `model: {model:deep}` to Task calls; fallback {model:thinking}.';
+  const result = resolveModelRefs(body, 'claude');
+  assert.equal(result, 'Pass `model: opus` to Task calls; fallback opus.');
+});
+
+test('resolveModelRefs honors a user deep-tier pin', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-deep-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'model-map.json'),
+      JSON.stringify({ claude: { deep: 'claude-fable-5' } }), 'utf8');
+    loadModelMapOverrides(tmp);
+    assert.equal(resolveModelRefs('{model:deep}', 'claude'), 'claude-fable-5');
+    // Non-deep tiers stay on built-ins.
+    assert.equal(resolveModelRefs('{model:fast}', 'claude'), 'haiku');
+  } finally {
+    loadModelMapOverrides();
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('resolveModelRefs falls back to the claude map for unknown providers', () => {
+  assert.equal(resolveModelRefs('{model:deep}', 'cursor'), MODEL_MAP.claude.deep);
+});
+
+// ---------------------------------------------------------------------------
+// getModelMap / loadModelMapOverrides
+// ---------------------------------------------------------------------------
+
+// Isolate tests from any real ~/.hailykit/model-map.json on the dev machine.
+// npm test runs ALL test files in one process — restore env + temp dir after.
+const emptyHome = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-home-'));
+const prevHailykitHome = process.env.HAILYKIT_HOME;
+before(() => { process.env.HAILYKIT_HOME = emptyHome; });
+after(() => {
+  if (prevHailykitHome === undefined) delete process.env.HAILYKIT_HOME;
+  else process.env.HAILYKIT_HOME = prevHailykitHome;
+  loadModelMapOverrides();
+  fs.rmSync(emptyHome, { recursive: true, force: true });
+});
+
+test('getModelMap returns built-in defaults when no overrides are loaded', () => {
+  loadModelMapOverrides(); // reset
+  assert.equal(getModelMap('claude').thinking, 'opus');
+  assert.equal(getModelMap('unknown-provider').medium, MODEL_MAP.claude.medium);
+});
+
+test('user model-map.json (HAILYKIT_HOME) takes precedence over the kit map', () => {
+  const kitTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-kit-'));
+  const homeTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-userhome-'));
+  const prevHome = process.env.HAILYKIT_HOME;
+  try {
+    fs.writeFileSync(path.join(kitTmp, 'model-map.json'),
+      JSON.stringify({ claude: { fast: 'kit-fast' } }), 'utf8');
+    fs.writeFileSync(path.join(homeTmp, 'model-map.json'),
+      JSON.stringify({ claude: { fast: 'user-fast' } }), 'utf8');
+    process.env.HAILYKIT_HOME = homeTmp;
+
+    loadModelMapOverrides(kitTmp);
+    assert.equal(getModelMap('claude').fast, 'user-fast');
+  } finally {
+    process.env.HAILYKIT_HOME = prevHome;
+    loadModelMapOverrides();
+    fs.rmSync(kitTmp, { recursive: true, force: true });
+    fs.rmSync(homeTmp, { recursive: true, force: true });
+  }
+});
+
+test('loadModelMapOverrides merges kit model-map.json over built-ins', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-modelmap-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'model-map.json'), JSON.stringify({
+      gemini: { thinking: 'gemini-9-pro' },
+      newprovider: { fast: 'np-mini' },
+    }), 'utf8');
+
+    loadModelMapOverrides(tmp);
+
+    // Overridden tier wins; untouched tiers keep built-in values.
+    assert.equal(getModelMap('gemini').thinking, 'gemini-9-pro');
+    assert.equal(getModelMap('gemini').fast, MODEL_MAP.gemini.fast);
+    // Unknown provider falls back to claude base, with its override applied.
+    assert.equal(getModelMap('newprovider').fast, 'np-mini');
+    assert.equal(getModelMap('newprovider').thinking, MODEL_MAP.claude.thinking);
+    // resolveModel consults the merged map.
+    const result = resolveModel('---\nmodel: thinking\n---\nBody.', 'gemini');
+    assert.ok(result.includes('model: gemini-9-pro'), `expected override in: ${result}`);
+  } finally {
+    loadModelMapOverrides(); // reset for other tests
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadModelMapOverrides ignores malformed map files and invalid tiers', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-modelmap-bad-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'model-map.json'), '{not json', 'utf8');
+    loadModelMapOverrides(tmp);
+    assert.equal(getModelMap('claude').thinking, 'opus');
+
+    fs.writeFileSync(path.join(tmp, 'model-map.json'), JSON.stringify({
+      claude: { bogusTier: 'x', medium: 42, fast: '  ' },
+    }), 'utf8');
+    loadModelMapOverrides(tmp);
+    // Invalid tier names, non-string and blank values are all dropped.
+    assert.deepEqual(getModelMap('claude'), MODEL_MAP.claude);
+  } finally {
+    loadModelMapOverrides();
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 // ---------------------------------------------------------------------------

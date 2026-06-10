@@ -2,7 +2,31 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { resolveSkillRefs, resolveAgentRefs, resolveModel } from '../converter.js';
+import { resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed } from '../converter.js';
+
+/** Manifest of natively installed skill dir names — read back on upgrade/uninstall. */
+const SKILLS_MANIFEST = 'hailykit-installed-skills.json';
+
+/**
+ * A manifest entry is only trusted as a deletable dir name if it is a plain
+ * lowercase path segment — no separators, dots, or leading dashes. Guards
+ * against a tampered manifest without hard-coding skill prefixes (future
+ * prefixes beyond hl-/hc- must still be cleaned up).
+ */
+const SAFE_SKILL_DIR_RE = /^[a-z][a-z0-9-]*$/;
+
+/** Read the manifest's skill-name list; [] when absent or malformed. */
+function readSkillsManifest(providerDir: string): string[] {
+  try {
+    const raw: unknown = JSON.parse(
+      fs.readFileSync(path.join(providerDir, SKILLS_MANIFEST), 'utf8'));
+    return Array.isArray(raw)
+      ? raw.filter((n): n is string => typeof n === 'string' && SAFE_SKILL_DIR_RE.test(n))
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Zed editor provider.
@@ -11,14 +35,12 @@ import { resolveSkillRefs, resolveAgentRefs, resolveModel } from '../converter.j
  * Docs: https://zed.dev/docs/ai/skills
  *       https://zed.dev/docs/ai
  *
- * As of Zed v1.4.0, native SKILL.md is supported at `.agents/skills/<name>/SKILL.md`
+ * Skills install natively (Zed v1.4.0+): SKILL.md at `.agents/skills/<name>/SKILL.md`
  * (project) and `~/.agents/skills/<name>/SKILL.md` (global) — invoked via `/skill-name`.
- * TODO: replace the rules-summary approach with native SKILL.md installation to `.agents/skills/`.
- * Currently installs a single hailykit-skills.md summary because Zed lacked skill support
- * at the time of initial implementation.
+ * The skills root lives BESIDE the .zed dir, so it is derived from the provider
+ * dir's parent. Installed names are recorded in a manifest for clean uninstall.
  *
  * Hooks: not implemented in Zed (open feature request #57943, no timeline).
- * Skills: install as rules summary for now; native `.agents/skills/` path is available.
  */
 export class ZedProvider extends BaseProvider {
   get name(): string { return 'zed'; }
@@ -28,46 +50,87 @@ export class ZedProvider extends BaseProvider {
   protected _projectDirName(): string { return '.zed'; }
   hooksSupported(): boolean { return false; }
 
-  /**
-   * Override: instead of generating per-skill command files,
-   * generate a single skills-overview rules file so Zed's AI assistant
-   * is aware of available HailyKit workflows.
-   */
+  /** Zed native skills are invoked via /skill-name. */
+  protected skillRef(prefix: string, name: string): string {
+    return `/${prefix}-${name}`;
+  }
+
   installSkills(extractedClaudeDir: string, targetProviderDir: string): number {
     const srcSkillsDir = path.join(extractedClaudeDir, 'skills');
     if (!fs.existsSync(srcSkillsDir)) return 0;
 
-    const lines: string[] = [
-      '# HailyKit Skills Reference',
-      '',
-      'The following HailyKit workflow skills are available in this project.',
-      'Invoke them by describing the task naturally — the assistant will apply the appropriate workflow.',
-      '',
-    ];
+    const skillsRoot = path.join(path.dirname(targetProviderDir), '.agents', 'skills');
+    const installed: string[] = [];
 
-    let count = 0;
     for (const skillName of fs.readdirSync(srcSkillsDir).sort()) {
-      const skillMd = path.join(srcSkillsDir, skillName, 'SKILL.md');
+      const srcDir = path.join(srcSkillsDir, skillName);
+      const skillMd = path.join(srcDir, 'SKILL.md');
       if (!fs.existsSync(skillMd)) continue;
 
-      const content = fs.readFileSync(skillMd, 'utf8');
-      const descMatch = content.match(/^description:\s*(.+)$/m);
-      const desc = descMatch ? descMatch[1].trim().replace(/^["']|["']$/g, '') : '';
-      if (desc) {
-        lines.push(`- **${skillName}**: ${desc}`);
-        count++;
+      const parsed = parseFrontmatter(fs.readFileSync(skillMd, 'utf8'));
+      if (!isProviderAllowed(parsed, this.name)) continue;
+
+      this._copySkillDir(srcDir, path.join(skillsRoot, skillName));
+      installed.push(skillName);
+    }
+
+    // Upgrade cleanup: skills dropped from the catalog since the last install
+    // would otherwise stay orphaned in .agents/skills/ forever. Runs even when
+    // this release installs nothing (e.g. every skill filtered out).
+    for (const stale of readSkillsManifest(targetProviderDir)) {
+      if (!installed.includes(stale)) {
+        fs.rmSync(path.join(skillsRoot, stale), { recursive: true, force: true });
       }
     }
 
-    if (count === 0) return 0;
+    if (installed.length === 0) {
+      fs.rmSync(path.join(targetProviderDir, SKILLS_MANIFEST), { force: true });
+      return 0;
+    }
 
     fs.mkdirSync(targetProviderDir, { recursive: true });
     fs.writeFileSync(
-      path.join(targetProviderDir, 'hailykit-skills.md'),
-      lines.join('\n') + '\n',
+      path.join(targetProviderDir, SKILLS_MANIFEST),
+      JSON.stringify(installed, null, 2) + '\n',
       'utf8',
     );
-    return count;
+    // Migration: drop the pre-native summary file from earlier installs.
+    fs.rmSync(path.join(targetProviderDir, 'hailykit-skills.md'), { force: true });
+    return installed.length;
+  }
+
+  /** Copy a skill dir recursively, resolving {skill:}/{agent:} refs in .md files. */
+  private _copySkillDir(src: string, dest: string): void {
+    fs.mkdirSync(dest, { recursive: true });
+    for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
+      const srcPath = path.join(src, ent.name);
+      const destPath = path.join(dest, ent.name);
+      if (ent.isDirectory()) {
+        this._copySkillDir(srcPath, destPath);
+      } else if (ent.name.endsWith('.md')) {
+        let content = fs.readFileSync(srcPath, 'utf8');
+        content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
+        content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));
+        content = resolveModel(content, this.name);
+        content = resolveModelRefs(content, this.name);
+        fs.writeFileSync(destPath, content, 'utf8');
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  }
+
+  /** Remove natively installed skills (via manifest) before standard cleanup. */
+  uninstall(providerDir: string): void {
+    const skillsRoot = path.join(path.dirname(providerDir), '.agents', 'skills');
+    let n = 0;
+    for (const name of readSkillsManifest(providerDir)) {
+      const dir = path.join(skillsRoot, name);
+      if (fs.existsSync(dir)) { fs.rmSync(dir, { recursive: true, force: true }); n++; }
+    }
+    if (n) console.log(`    Removed ${n} native skill(s) from .agents/skills/`);
+    fs.rmSync(path.join(providerDir, SKILLS_MANIFEST), { force: true });
+    super.uninstall(providerDir);
   }
 
   installRules(extractedClaudeDir: string, targetProviderDir: string): void {
@@ -99,6 +162,7 @@ export class ZedProvider extends BaseProvider {
       if (!f.endsWith('.md')) continue;
       let content = fs.readFileSync(path.join(agentsDir, f), 'utf8');
       content = resolveModel(content, this.name);
+      content = resolveModelRefs(content, this.name);
       content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
       content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));
       fs.writeFileSync(path.join(outDir, f), content, 'utf8');

@@ -104,7 +104,8 @@
     "hooks/haily-artifact/artifact-locator.cjs",
     "hooks/haily-artifact/artifact-schema.cjs",
     "hooks/haily-artifact/stage-detector.cjs",
-    "hooks/artifact-verifier/validator.cjs"
+    "hooks/artifact-verifier/validator.cjs",
+    "rules/.gitkeep"
   ],
   "download": {
     "lastDownloadedAt": null,

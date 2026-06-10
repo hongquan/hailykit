@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { fetchRelease, downloadZip } from '../github.js';
 import { extract, makeTempDir, resolveRoot } from '../extractor.js';
 import { mergeClaudeDir, readMetadata } from '../merger.js';
+import { loadModelMapOverrides } from '../converter.js';
 import { setupVenv } from '../venv.js';
 import { resolveProviders } from '../providers/index.js';
 import type { Provider } from '../providers/index.js';
@@ -139,6 +140,9 @@ export async function cmdUpgrade(options: UpgradeOptions): Promise<void> {
 
     const extractedKitDir = path.join(root, 'kit');
 
+    // Must run before any agent conversion — resolveModel reads the merged map.
+    loadModelMapOverrides(extractedKitDir);
+
     const manifest = readPortableManifest(root);
 
     for (const provider of providers) {
@@ -152,6 +156,7 @@ export async function cmdUpgrade(options: UpgradeOptions): Promise<void> {
         applyProviderPathMigrations(manifest, provider, targetDir);
         provider.installSkills(extractedKitDir, targetDir);
         provider.installRules(extractedKitDir, targetDir);
+        if (provider.installAgents) provider.installAgents(extractedKitDir, targetDir);
         if (provider.hooksSupported()) provider.installHooks(extractedKitDir, targetDir);
         provider.writeVersion(targetDir, latestVer);
       }

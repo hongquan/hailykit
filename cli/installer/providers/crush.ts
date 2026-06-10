@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel } from '../converter.js';
+import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs } from '../converter.js';
 
 /**
  * Crush provider (https://github.com/charmbracelet/crush).
@@ -67,6 +67,7 @@ export class CrushProvider extends BaseProvider {
       if (!f.endsWith('.md')) continue;
       let content = fs.readFileSync(path.join(agentsDir, f), 'utf8');
       content = resolveModel(content, this.name);
+      content = resolveModelRefs(content, this.name);
       content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
       content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));
       fs.writeFileSync(path.join(outDir, f), content, 'utf8');

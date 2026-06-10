@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
 import {
   parseFrontmatter, resolveSkillRefs, resolveAgentRefs, isProviderAllowed,
-  MODEL_MAP, type ModelTier, type AgentRefType,
+  getModelMap, resolveModel, resolveModelRefs, type ModelTier, type AgentRefType,
 } from '../converter.js';
 import {
   installHookWrappers,
@@ -145,8 +145,13 @@ export class CodexProvider extends BaseProvider {
         let content = fs.readFileSync(srcPath, 'utf8');
         content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));
         content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
+        content = resolveModel(content, this.name);
+        content = resolveModelRefs(content, this.name);
         content = content.replace(/^(name:\s*).*$/m, `$1${skillName}`);
-        content = content.replace(/<[^>]+>/g, '');
+        // Codex disallows angle brackets in `description:` only — body text keeps
+        // `<placeholder>` usage syntax (a whole-file strip mangles usage docs).
+        content = content.replace(/^(description:\s*)(.*)$/m,
+          (_m, prefix: string, desc: string) => prefix + desc.replace(/<[^>]+>/g, ''));
         fs.writeFileSync(destPath, content, 'utf8');
       } else {
         fs.copyFileSync(srcPath, destPath);
@@ -179,11 +184,14 @@ export class CodexProvider extends BaseProvider {
       const name = frontmatter.name || file.replace(/\.md$/, '');
       const description = frontmatter.description || '';
       const tier = (frontmatter.model ?? 'medium') as ModelTier;
-      const model = (MODEL_MAP.codex ?? MODEL_MAP.claude)[tier];
+      const model = getModelMap('codex')[tier];
 
-      const resolvedBody = resolveSkillRefs(
-        resolveAgentRefs(body, (t, r) => this.agentRef(t, r)),
-        (p, n) => this.skillRef(p, n),
+      const resolvedBody = resolveModelRefs(
+        resolveSkillRefs(
+          resolveAgentRefs(body, (t, r) => this.agentRef(t, r)),
+          (p, n) => this.skillRef(p, n),
+        ),
+        this.name,
       );
 
       const toml = [

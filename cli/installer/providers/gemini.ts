@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { BaseProvider, type ConvertedSkill } from './base.js';
 import {
   parseFrontmatter, isProviderAllowed, toGeminiToml,
-  resolveSkillRefs, resolveAgentRefs, resolveModel,
+  resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs,
 } from '../converter.js';
 
 const GEMINI_MD_START = '<!-- hailykit-managed-start -->';
@@ -87,13 +87,18 @@ export class GeminiProvider extends BaseProvider {
       if (!f.endsWith('.md')) continue;
       let content = fs.readFileSync(path.join(agentsDir, f), 'utf8');
       content = resolveModel(content, this.name);
+      content = resolveModelRefs(content, this.name);
       content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
       content = resolveAgentRefs(content, (t, r) => this.agentRef(t, r));
       fs.writeFileSync(path.join(outDir, f), content, 'utf8');
     }
   }
 
-  /** Copy SKILL.md files verbatim to skills/<name>/SKILL.md, applying the same providers gate. */
+  /**
+   * Copy SKILL.md files to skills/<name>/SKILL.md, applying the same providers gate.
+   * Model tier lines and {model:<tier>} placeholders are resolved — they must
+   * never ship verbatim; other refs are kept canonical for the native format.
+   */
   private _installNativeSkills(extractedClaudeDir: string, targetProviderDir: string): void {
     const skillsDir = path.join(extractedClaudeDir, 'skills');
     if (!fs.existsSync(skillsDir)) return;
@@ -101,8 +106,10 @@ export class GeminiProvider extends BaseProvider {
       if (!entry.isDirectory()) continue;
       const skillMd = path.join(skillsDir, entry.name, 'SKILL.md');
       if (!fs.existsSync(skillMd)) continue;
-      const content = fs.readFileSync(skillMd, 'utf8');
+      let content = fs.readFileSync(skillMd, 'utf8');
       if (!isProviderAllowed(parseFrontmatter(content), this.name)) continue;
+      content = resolveModel(content, this.name);
+      content = resolveModelRefs(content, this.name);
       const outDir = path.join(targetProviderDir, 'skills', entry.name);
       fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(path.join(outDir, 'SKILL.md'), content, 'utf8');

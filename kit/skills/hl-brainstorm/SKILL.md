@@ -174,6 +174,14 @@ Standalone 12-dimension edge case analysis. Can combine with `--debate`.
 
 Filter to relevant dimensions; skip irrelevant ones explicitly. Output: dimension table + severity classification (Critical/High/Medium/Low).
 
+## --ultra Mode
+
+Active only when the turn was started via `{skill:hl-ultra}` (it passes the internal `--ultra` marker) — never self-activated, never suggested. Turn-scoped: every skill in the chain sees it. If the user types `--ultra` directly, redirect to `{skill:hl-ultra}` — a bare flag escalates subagents only while the main loop stays on the session model.
+
+- Task calls to deep-eligible agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-brainstormer`, `haily-debugger`) pass `model: {model:deep}`.
+- All other agents keep their pinned tiers — escalate judgment, not mechanics.
+- If the deep model is unavailable, retry once with the thinking tier and tell the user which model ran.
+
 ## Workflow Position
 
 **Follows:** `{skill:hc-debug}`, `{skill:hc-scout}`

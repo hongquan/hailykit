@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { fetchRelease, downloadZip } from '../github.js';
 import { extract, makeTempDir, resolveRoot } from '../extractor.js';
 import { mergeClaudeDir } from '../merger.js';
+import { loadModelMapOverrides } from '../converter.js';
 import { setupVenv } from '../venv.js';
 import { resolveProviders } from '../providers/index.js';
 
@@ -42,6 +43,9 @@ export async function cmdInstall(options: InstallOptions): Promise<void> {
     const root = resolveRoot(extractDir);
 
     const extractedKitDir = path.join(root, 'kit');
+
+    // Must run before any agent conversion — resolveModel reads the merged map.
+    loadModelMapOverrides(extractedKitDir);
 
     for (const provider of providers) {
       const targetDir = isProject ? provider.projectDir() : provider.globalDir();

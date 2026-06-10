@@ -1,3 +1,7 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+
 /** Matches YAML frontmatter block at the start of a markdown file. */
 const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
 
@@ -24,24 +28,102 @@ export const AGENT_ROLES = new Set([
 /** Discriminates {agent:X} vs {agents:A,B} vs {agent-result:X} tags. */
 export type AgentRefType = 'agent' | 'agents' | 'agent-result';
 
-/** Canonical model tiers used in agent frontmatter (provider-neutral). */
-export type ModelTier = 'thinking' | 'medium' | 'fast';
+/**
+ * Canonical model tiers (provider-neutral).
+ * Agent frontmatter pins use `thinking | medium | fast` only.
+ * `deep` is the runtime-escalation tier: never pinned on an agent, it is the
+ * target model for ultra mode ({skill:hl-ultra}) — resolved into skill text at
+ * install time via `{model:deep}` placeholders and the hl-ultra frontmatter.
+ */
+export type ModelTier = 'thinking' | 'medium' | 'fast' | 'deep';
 
 /**
- * Per-provider model name for each canonical tier. Agent frontmatter uses the
- * tier; the installer resolves it to the provider's real model at install time.
+ * Built-in per-provider model name for each canonical tier. Agent frontmatter
+ * uses the tier; the installer resolves it to the provider's real model at
+ * install time.
  *
- * NOTE: non-Claude model names are best-effort defaults — adjust to the
- * provider's current model identifiers as they change.
+ * These are FALLBACK defaults only. The authoritative map ships as
+ * `kit/model-map.json` in each release (loaded via loadModelMapOverrides),
+ * so model-id churn is fixed by a catalog update — no code release needed.
+ * Users can pin their own values in `~/.hailykit/model-map.json`.
  */
 export const MODEL_MAP: Record<string, Record<ModelTier, string>> = {
-  claude:      { thinking: 'opus',                              medium: 'sonnet',                              fast: 'haiku' },
-  codex:       { thinking: 'gpt-5',                            medium: 'gpt-5',                              fast: 'gpt-5-mini' },
-  gemini:      { thinking: 'gemini-2.5-pro',                   medium: 'gemini-2.5-flash',                   fast: 'gemini-3.1-flash-lite' },
-  antigravity: { thinking: 'gemini-3.1-pro',                   medium: 'gemini-3.5-flash',                   fast: 'gemini-3.1-flash-lite' },
-  // OpenCode config format is "provider/model-id" (e.g. anthropic/claude-sonnet-4-5).
-  opencode:    { thinking: 'anthropic/claude-opus-4-5',        medium: 'anthropic/claude-sonnet-4-5',        fast: 'anthropic/claude-haiku-4-5' },
+  // `deep` defaults to each provider's strongest model. Users with access to a
+  // stronger model (e.g. Fable) pin it in ~/.hailykit/model-map.json.
+  claude:      { thinking: 'opus',                              medium: 'sonnet',                              fast: 'haiku',                          deep: 'opus' },
+  codex:       { thinking: 'gpt-5.5',                          medium: 'gpt-5.4',                            fast: 'gpt-5.4-mini',                   deep: 'gpt-5.5' },
+  gemini:      { thinking: 'gemini-3.1-pro-preview',           medium: 'gemini-3.5-flash',                   fast: 'gemini-3.1-flash-lite',          deep: 'gemini-3.1-pro-preview' },
+  antigravity: { thinking: 'gemini-3.1-pro',                   medium: 'gemini-3.5-flash',                   fast: 'gemini-3.1-flash-lite',          deep: 'gemini-3.1-pro' },
+  // OpenCode config format is "provider/model-id" (e.g. anthropic/claude-sonnet-4-6).
+  opencode:    { thinking: 'anthropic/claude-opus-4-8',        medium: 'anthropic/claude-sonnet-4-6',        fast: 'anthropic/claude-haiku-4-5',     deep: 'anthropic/claude-opus-4-8' },
 };
+
+const VALID_TIERS: ReadonlySet<string> = new Set(['thinking', 'medium', 'fast', 'deep']);
+
+/** Per-provider tier overrides merged over MODEL_MAP (kit release, then user). */
+let modelMapOverrides: Record<string, Partial<Record<ModelTier, string>>> = {};
+
+/**
+ * Read and sanitize a model-map JSON file: `{ provider: { tier: modelId } }`.
+ * Unknown tiers and non-string values are dropped; a missing or malformed
+ * file yields null so callers fall back silently — a bad override must never
+ * break an install.
+ */
+function readModelMapFile(filePath: string): Record<string, Partial<Record<ModelTier, string>>> | null {
+  try {
+    const raw: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+    const out: Record<string, Partial<Record<ModelTier, string>>> = {};
+    for (const [provider, tiers] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof tiers !== 'object' || tiers === null || Array.isArray(tiers)) continue;
+      const entry: Partial<Record<ModelTier, string>> = {};
+      for (const [tier, model] of Object.entries(tiers as Record<string, unknown>)) {
+        if (VALID_TIERS.has(tier) && typeof model === 'string' && model.trim()) {
+          entry[tier as ModelTier] = model.trim();
+        }
+      }
+      if (Object.keys(entry).length) out[provider] = entry;
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Load model-map overrides before any agent conversion. Precedence (low → high):
+ * built-in MODEL_MAP < `<kitDir>/model-map.json` (release catalog)
+ * < `~/.hailykit/model-map.json` (user pin; dir overridable via HAILYKIT_HOME).
+ * Resets prior state on each call.
+ *
+ * @param kitDir - Extracted release `kit/` directory; omit to load only the user file.
+ */
+export function loadModelMapOverrides(kitDir?: string): void {
+  modelMapOverrides = {};
+  const userDir = process.env.HAILYKIT_HOME || path.join(os.homedir(), '.hailykit');
+  const sources = [
+    kitDir ? path.join(kitDir, 'model-map.json') : null,
+    path.join(userDir, 'model-map.json'),
+  ];
+  for (const src of sources) {
+    if (!src) continue;
+    const parsed = readModelMapFile(src);
+    if (!parsed) continue;
+    for (const [provider, tiers] of Object.entries(parsed)) {
+      modelMapOverrides[provider] = { ...modelMapOverrides[provider], ...tiers };
+    }
+  }
+}
+
+/**
+ * Effective tier→model map for a provider: built-in defaults merged with any
+ * loaded overrides. Unknown providers fall back to the Claude map.
+ */
+export function getModelMap(provider: string): Record<ModelTier, string> {
+  const base = MODEL_MAP[provider] ?? MODEL_MAP.claude;
+  const over = modelMapOverrides[provider];
+  return over ? { ...base, ...over } : base;
+}
 
 /**
  * Providers where the active model is user-configured at runtime (not fixed per-install).
@@ -51,10 +133,13 @@ export const MODEL_MAP: Record<string, Record<ModelTier, string>> = {
 const USER_CONFIGURED_MODEL_PROVIDERS = new Set(['cursor', 'zed', 'windsurf', 'crush', 'opencode', 'kimi']);
 
 /** Matches a `model: <tier>` frontmatter line (with optional trailing whitespace). */
-const MODEL_TIER_RE = /^(model:\s*)(thinking|medium|fast)\s*$/m;
+const MODEL_TIER_RE = /^(model:\s*)(thinking|medium|fast|deep)\s*$/m;
 
 /** Matches a `model: <tier>` line to remove it entirely (including the trailing newline). */
-const MODEL_LINE_STRIP_RE = /^model:[ \t]*(thinking|medium|fast)[ \t]*\r?\n?/m;
+const MODEL_LINE_STRIP_RE = /^model:[ \t]*(thinking|medium|fast|deep)[ \t]*\r?\n?/m;
+
+/** Matches {model:<tier>} placeholders in skill body text. */
+const MODEL_REF_RE = /\{model:(thinking|medium|fast|deep)\}/g;
 
 /**
  * Resolve a `model: <tier>` frontmatter line to the provider's real model name.
@@ -69,8 +154,22 @@ export function resolveModel(content: string, provider: string): string {
   if (USER_CONFIGURED_MODEL_PROVIDERS.has(provider)) {
     return content.replace(MODEL_LINE_STRIP_RE, '');
   }
-  const map = MODEL_MAP[provider] ?? MODEL_MAP.claude;
+  const map = getModelMap(provider);
   return content.replace(MODEL_TIER_RE, (_m, prefix, tier) => `${prefix}${map[tier as ModelTier]}`);
+}
+
+/**
+ * Resolve `{model:<tier>}` placeholders in skill body text to the provider's
+ * real model name. Used by ultra-mode escalation sections so installed skill
+ * text names a concrete model (e.g. "pass model: opus to Task calls").
+ * Resolves for ALL providers — the placeholder must never ship verbatim.
+ *
+ * @param content  - Skill body text containing `{model:deep}` style refs.
+ * @param provider - Provider key (claude, codex, gemini, …).
+ */
+export function resolveModelRefs(content: string, provider: string): string {
+  const map = getModelMap(provider);
+  return content.replace(MODEL_REF_RE, (_m, tier) => map[tier as ModelTier]);
 }
 
 export interface ParsedSkill {

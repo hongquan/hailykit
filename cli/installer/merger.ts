@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { isProtected } from './paths.js';
 import { stripJsonComments } from '../utils/strip-json-comments.js';
-import { resolveSkillRefs, resolveAgentRefs, resolveModel, parseFrontmatter, isProviderAllowed } from './converter.js';
+import { resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed } from './converter.js';
 
 /**
  * Deny rules written into settings.json on every install/upgrade.
@@ -314,6 +314,7 @@ export function copyDir(src: string, dest: string, options: CopyDirOptions = {})
       });
       content = resolveSkillRefs(content, (p, name) => `/${p}-${name}`);
       content = resolveModel(content, 'claude');
+      content = resolveModelRefs(content, 'claude');
       fs.writeFileSync(destPath, content, 'utf8');
       n++;
     } else {

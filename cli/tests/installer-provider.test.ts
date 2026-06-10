@@ -8,6 +8,7 @@ import { CodexProvider } from '../installer/providers/codex';
 import { CrushProvider } from '../installer/providers/crush';
 import { KimiProvider } from '../installer/providers/kimi';
 import { OpenCodeProvider } from '../installer/providers/opencode';
+import { ZedProvider } from '../installer/providers/zed';
 import { toCrushMd, toKimiMd } from '../installer/converter';
 
 function tmp(): string {
@@ -48,6 +49,138 @@ test('GeminiProvider.installSkills installs TOML command AND native SKILL.md', (
   assert.ok(fs.existsSync(path.join(target, 'commands', 'hl-plan.toml')));
   const native = fs.readFileSync(path.join(target, 'skills', 'hl-plan', 'SKILL.md'), 'utf8');
   assert.equal(native, md);
+});
+
+test('GeminiProvider native SKILL.md resolves model tier and {model:deep} placeholders', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const skillDir = path.join(claude, 'skills', 'hl-ultra');
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    '---\nname: hl-ultra\ndescription: Ultra\nmodel: deep\n---\n\nPass `model: {model:deep}` to Task calls.',
+  );
+
+  new GeminiProvider().installSkills(claude, path.join(root, 'out'));
+
+  const native = fs.readFileSync(path.join(root, 'out', 'skills', 'hl-ultra', 'SKILL.md'), 'utf8');
+  assert.ok(!native.includes('{model:'), `placeholder leaked: ${native}`);
+  assert.ok(!native.includes('model: deep'), `tier line leaked: ${native}`);
+  assert.match(native, /model: gemini-3\.1-pro-preview/);
+});
+
+test('CodexProvider skill copy resolves {model:deep} placeholders', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  // Codex always installs to the real ~/.agents/skills/ — use a probe name no
+  // real catalog will ever contain, so the test can never touch a user install.
+  const probeName = 'hc-hktest-modelref-probe';
+  const skillDir = path.join(claude, 'skills', probeName);
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    `---\nname: ${probeName}\ndescription: Plan\n---\n\nUnder ultra pass model: {model:deep}.`,
+  );
+  const destProbe = path.join(os.homedir(), '.agents', 'skills', probeName);
+  try {
+    new CodexProvider().installSkills(claude, path.join(root, 'out'));
+    const installed = fs.readFileSync(path.join(destProbe, 'SKILL.md'), 'utf8');
+    assert.ok(!installed.includes('{model:'), `placeholder leaked: ${installed}`);
+    assert.match(installed, /model: gpt-5\.5/);
+  } finally {
+    fs.rmSync(destProbe, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// ZedProvider
+// ---------------------------------------------------------------------------
+
+test('ZedProvider.installSkills writes native SKILL.md beside .zed and records a manifest', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const skillDir = path.join(claude, 'skills', 'hc-plan');
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    '---\nname: hc-plan\ndescription: Plan stuff\n---\n\nUse {skill:hc-cook} next.',
+  );
+  fs.mkdirSync(path.join(skillDir, 'references'), { recursive: true });
+  fs.writeFileSync(path.join(skillDir, 'references', 'notes.txt'), 'raw asset');
+
+  const target = path.join(root, '.zed');
+  const count = new ZedProvider().installSkills(claude, target);
+  assert.equal(count, 1);
+
+  // Native skill lands at <parent-of-.zed>/.agents/skills/<name>/SKILL.md
+  const installedMd = fs.readFileSync(
+    path.join(root, '.agents', 'skills', 'hc-plan', 'SKILL.md'), 'utf8');
+  assert.match(installedMd, /\/hc-cook/);
+  assert.ok(!installedMd.includes('{skill:'), 'skill refs must be resolved');
+  assert.ok(fs.existsSync(path.join(root, '.agents', 'skills', 'hc-plan', 'references', 'notes.txt')));
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(target, 'hailykit-installed-skills.json'), 'utf8'));
+  assert.deepEqual(manifest, ['hc-plan']);
+});
+
+test('ZedProvider.installSkills skips skills whose providers frontmatter excludes zed', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const skillDir = path.join(claude, 'skills', 'hc-claude-only');
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    '---\nname: hc-claude-only\ndescription: X\nproviders: claude\n---\n\nBody.',
+  );
+
+  const count = new ZedProvider().installSkills(claude, path.join(root, '.zed'));
+  assert.equal(count, 0);
+  assert.ok(!fs.existsSync(path.join(root, '.agents', 'skills', 'hc-claude-only')));
+});
+
+test('ZedProvider.installSkills removes skills dropped from the catalog on upgrade', () => {
+  const root = tmp();
+  const mkCatalog = (names: string[]): string => {
+    const claude = path.join(root, 'claude-' + names.join('_'));
+    for (const n of names) {
+      const d = path.join(claude, 'skills', n);
+      fs.mkdirSync(d, { recursive: true });
+      fs.writeFileSync(path.join(d, 'SKILL.md'), `---\nname: ${n}\ndescription: X\n---\n\nBody.`);
+    }
+    return claude;
+  };
+
+  const target = path.join(root, '.zed');
+  const p = new ZedProvider();
+  p.installSkills(mkCatalog(['hc-plan', 'hc-old']), target);
+  assert.ok(fs.existsSync(path.join(root, '.agents', 'skills', 'hc-old')));
+
+  // New release no longer ships hc-old.
+  p.installSkills(mkCatalog(['hc-plan']), target);
+  assert.ok(!fs.existsSync(path.join(root, '.agents', 'skills', 'hc-old')), 'dropped skill must be cleaned up');
+  assert.ok(fs.existsSync(path.join(root, '.agents', 'skills', 'hc-plan')));
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(target, 'hailykit-installed-skills.json'), 'utf8'));
+  assert.deepEqual(manifest, ['hc-plan']);
+});
+
+test('ZedProvider.uninstall removes manifest-listed native skills', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const skillDir = path.join(claude, 'skills', 'hc-plan');
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '---\nname: hc-plan\ndescription: X\n---\n\nBody.');
+
+  const target = path.join(root, '.zed');
+  const p = new ZedProvider();
+  p.installSkills(claude, target);
+  // uninstall requires the provider meta marker
+  fs.writeFileSync(path.join(target, '.hailykit-meta.json'), '{"version":"1.0.0"}');
+
+  p.uninstall(target);
+  assert.ok(!fs.existsSync(path.join(root, '.agents', 'skills', 'hc-plan')));
+  assert.ok(!fs.existsSync(path.join(target, 'hailykit-installed-skills.json')));
 });
 
 // ---------------------------------------------------------------------------

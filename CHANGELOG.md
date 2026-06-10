@@ -5,6 +5,29 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.5.0] (2026-06-11)
+
+### 🚀 Features
+
+- **`hl-ultra` skill** — explicit opt-in deep-model escalation: main loop + five core reasoning agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-brainstormer`, `haily-debugger`) escalate to the `deep` tier; mechanical agents (git, tester, docs) keep their pins regardless. Single entry point prevents accidental half-escalation.
+- **`deep` model tier** — 4th model tier resolved at install time for all providers; user pin via `~/.hailykit/model-map.json` `{"claude": {"deep": "claude-fable-5"}}` + `hailykit upgrade`.
+- **`resolveModelRefs()`** — install-time resolver for `{model:<tier>}` body placeholders; eliminates verbatim tier strings shipping to any provider.
+
+### 🚀 Improvements
+
+- **11 eligible skills** (`hl-brainstorm`, `hc-plan`, `hc-cook`, `hc-review`, `hc-fix`, `hc-optimize`, `hc-cop`, `hl-reasoning`, `hc-goal`, `hc-security`, `hl-research`) — added `--ultra` mode section; bare `--ultra` flag redirects to `hl-ultra` with explanation.
+- **CI** — `check-skill-cross-refs.js` validates `deep` tier only in `model-map.json`; agent frontmatter using `deep` fails CI.
+- **`kit/model-map.json`** — ships as user-overridable tier→model map alongside the installer built-in.
+
+### 🐛 Fixes
+
+- **Gemini / Antigravity / Codex** — `{model:deep}` and `model: deep` no longer leak verbatim to any provider; `resolveModel` + `resolveModelRefs` now applied on all native skill install paths.
+- **Codex** — angle-bracket strip scoped to `description:` line only; usage docs (`<skill>`, `<eligible-skill>`, `<free text>`) no longer mangled.
+- **Zed** — orphan skill cleanup runs before the `installed.length === 0` early return; stale skills are now removed even when no new skills install.
+- **Test isolation** — `HAILYKIT_HOME` env mutation in converter tests now guarded with `before`/`after` hooks; no cross-test contamination.
+
+---
+
 ## [1.4.0] (2026-06-10)
 
 ### 🚀 Improvements
@@ -78,6 +101,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+[1.5.0]: https://github.com/dxsl-org/hailykit/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/dxsl-org/hailykit/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/dxsl-org/hailykit/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.1...v1.2.1
