@@ -1,30 +1,27 @@
-# Python Standards (3.11+)
+# Python Standards (Prefer 3.12+ for new projects)
 
 ## Comments
 
-### Docstrings (PEP 257 — Google style preferred)
+### Docstrings (PEP 257 — Sphinx/reST style preferred)
 ```python
 def get_user(user_id: str) -> User | None:
     """Look up a user by ID.
 
     Why this function exists + non-obvious contract.
 
-    Args:
-        user_id: Must be a valid UUID string.
-
-    Returns:
-        The user, or None when soft-deleted.
-
-    Raises:
-        NotFoundError: When user_id doesn't exist in the store.
-        ValueError: When user_id is not a valid UUID.
+    :param user_id: Must be a valid UUID string.
+    :returns: The user, or None when soft-deleted.
+    :raises NotFoundError: When user_id doesn't exist in the store.
+    :raises ValueError: When user_id is not a valid UUID.
     """
 ```
 
 - Docstring required on every public module, class, function, and method
-- Always document `Raises:` — Python has no checked exceptions; callers depend on docstrings
+- Always document `:raises:` — Python has no checked exceptions; callers depend on docstrings
 - Omit docstrings for private (`_prefixed`) functions when the signature + name are obvious
 - First line is a one-sentence summary, blank line, then full description
+- Fall back to Google style only when **both** are true: existing functions already use it **and** the project has no Sphinx setup (no `docs/conf.py`, no `sphinx` in `pyproject.toml`). If Sphinx is configured, always use reST.
+- Omit `:type` and `:rtype` directives when the function already has type annotations — Sphinx pulls them into the generated docs automatically
 
 ### Type Hints (MANDATORY for public API)
 Type hints are the contract — runtime can't enforce them, so be precise.
@@ -116,6 +113,20 @@ def timed(label: str):
         log.info("%s took %.3fs", label, time.monotonic() - start)
 ```
 
+Prefer `pathlib.Path` over `os.path` for file operations:
+
+```py
+# file_path is of `pathlib.Path` type
+
+with file_path.open() as f:
+    f.read()
+
+# Quicker ways
+content = file_path.read_text()
+file_path.write_text(new_content)
+```
+
+
 ### Async
 ```python
 import asyncio
@@ -124,6 +135,7 @@ async def fetch_user(id: str) -> User: ...
 
 # Run independent coroutines concurrently
 users = await asyncio.gather(fetch_user(a), fetch_user(b))
+# Avoid deeply nested asyncio.gather — hard to reason about cancellation
 
 # TaskGroup (3.11+) — cancels siblings on first failure
 async with asyncio.TaskGroup() as tg:
@@ -133,6 +145,8 @@ async with asyncio.TaskGroup() as tg:
 # Never mix sync blocking calls in async code — use asyncio.to_thread for blocking I/O
 ```
 
+Use `async with` for async resources — sync `with` won't await cleanup.
+
 ### Comprehensions & Iteration
 ```python
 # Comprehensions for transformation, not side effects
@@ -140,8 +154,8 @@ names = [u.name for u in users if u.active]
 by_id = {u.id: u for u in users}
 
 # Generators for streaming / large data
-def parse_lines(path: str):
-    with open(path) as f:
+def parse_lines(path: Path):
+    with path.open() as f:
         for line in f:
             yield parse(line.strip())
 ```
@@ -159,7 +173,8 @@ if x is True: ...                         # only when you mean exact identity
 
 # Don't use lambdas where def reads better
 key = lambda u: u.name                    # OK inline
-def by_name(u): return u.name             # better when reused
+def by_name(u):
+    return u.name                         # better when reused
 ```
 
 ## Naming (PEP 8)
@@ -168,14 +183,14 @@ def by_name(u): return u.name             # better when reused
 - Functions/variables: `snake_case`
 - Constants: `SCREAMING_SNAKE_CASE`
 - Private: `_leading_underscore`; name-mangled: `__double_leading` (rarely needed)
-- Boolean: `is_x`, `has_x`, `can_x`
+- Boolean: `is_x`, `has_x`, `can_x`, `should_`
 
 ## Tooling
 - Format: `ruff format` (Black-compatible) — line length 100 unless project differs
 - Lint: `ruff check` — covers flake8, isort, pyupgrade, bugbear
-- Types: `mypy --strict` or `pyright` for new code
-- Tests: `pytest`, fixtures over setUp/tearDown
-- Manage deps with `uv` or `poetry`; lock files committed
+- Types: `mypy --strict`; use `zuban` for greenfield projects (not Django/Pydantic)
+- Tests: `pytest`, fixtures over setUp/tearDown, function-based test cases over class-based
+- Manage deps with `uv` or `pdm`; lock files committed
 
 ## Imports
 ```python
