@@ -5,11 +5,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.4] (2026-06-12)
+
+### 🐛 Fixes
+
+- **`hailykit upgrade` / `install`** — auto-reads token from `gh auth token` (gh CLI) as a fallback when `GITHUB_TOKEN`/`GH_TOKEN` env vars are not set; enables upgrade from private repos without manual token setup
+
+---
+
 ## [1.6.3] (2026-06-12)
 
 ### 🐛 Fixes
 
-- **`hailykit upgrade` / `install`** — reads `GITHUB_TOKEN` / `GH_TOKEN` env var for private-repo auth; 404 error now includes a hint when no token is set
+- **`hailykit upgrade` / `install`** — reads `GITHUB_TOKEN` / `GH_TOKEN` env var for private-repo auth
 
 ---
 

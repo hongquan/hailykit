@@ -1,8 +1,19 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const REPO = 'dxsl-org/hailykit';
 const API_BASE = 'https://api.github.com';
+
+/** Try `gh auth token` as a fallback when no env token is set. */
+function ghCliToken(): string | null {
+  try {
+    const out = execFileSync('gh', ['auth', 'token'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return out.trim() || null;
+  } catch {
+    return null;
+  }
+}
 
 function buildHeaders(): Record<string, string> {
   const h: Record<string, string> = {
@@ -10,7 +21,7 @@ function buildHeaders(): Record<string, string> {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || ghCliToken();
   if (token) h['Authorization'] = `Bearer ${token}`;
   return h;
 }
@@ -36,12 +47,7 @@ export async function fetchRelease(tag = 'latest'): Promise<GithubRelease> {
     : `${API_BASE}/repos/${REPO}/releases/tags/${tag}`;
 
   const res = await fetch(url, { headers: buildHeaders() });
-  if (res.status === 404) {
-    const hint = !(process.env.GITHUB_TOKEN || process.env.GH_TOKEN)
-      ? ' (private repo? set GITHUB_TOKEN or GH_TOKEN)'
-      : '';
-    throw new Error(`Release not found: ${tag}${hint}`);
-  }
+  if (res.status === 404) throw new Error(`Release not found: ${tag}`);
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
 
   const release = await res.json() as unknown;
