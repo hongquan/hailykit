@@ -9,20 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🐛 Fixes
 
-- **`haily-state` hook** — was dead on load: required the non-existent `haily-lib/haily-state-store.cjs` (renamed to `state.cjs` in the hooks cleanup) and exited silently; session summary + state persistence never ran
-- **Session summary** — now actually visible: emitted via the `systemMessage` hook field (raw Stop-hook stdout only renders in transcript mode), duration no longer NaN (ISO `sessionStart` parsed before subtraction), fires on `Stop` only instead of spamming every `SubagentStop`, quota shown only when the usage cache is ≤30 min old
-
-### 🚀 Improvements
-
-- **Model tracer** — always-visible model display: session startup prints `🤖 Model: <name>` (from the SessionStart `model` field, persisted as `HL_SESSION_MODEL`), and agent traces now show the model even when the agent inherits the session model instead of skipping silently; per-call `model` overrides on the Agent tool are honored
-
----
-
-## [1.6.5] (2026-06-12)
-
-### 🐛 Fixes
-
 - **`hailykit upgrade` / `install`** — upgrade logic
+- Usage and Model tracer fixed
 
 ### 🚀 Improvements
 
