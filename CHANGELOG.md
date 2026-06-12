@@ -5,6 +5,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.7.0] (2026-06-12)
+
+### 🚀 Improvements
+
+- **`hailykit stats` + `hl-stats`** — dev/manager metrics: COCOMO effort/cost estimate (`--salary`), git risk hotspots (churn × complexity, `--since`), bus factor + code ownership, stale-file detection, test ratio, TODO/FIXME/HACK debt markers, oversized-file list, comment density, 12-week commit velocity sparkline, contributor activity, release cadence; `--no-git` opt-out; JSON schema v2
+
+---
+
 ## [1.6.7] (2026-06-12)
 
 ### 🐛 Fixes
