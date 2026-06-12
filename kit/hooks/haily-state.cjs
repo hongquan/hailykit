@@ -58,9 +58,10 @@ try {
       await persistState(sessionId, data, transcriptPath, hookEvent);
 
       // Best-effort session summary on Stop only (SubagentStop fires per agent
-      // and would spam). Emitted via the `systemMessage` JSON field — the only
-      // Stop-hook output Claude Code renders to the user; raw stdout shows in
-      // transcript mode only.
+      // and would spam). NOTE: Claude Code currently does NOT render Stop-hook
+      // `systemMessage` (anthropics/claude-code#50542) — the user-visible summary
+      // lives in haily-statusline.cjs instead. Kept here so the message appears
+      // in transcript mode and starts working if upstream fixes rendering.
       if (hookEvent === 'Stop') {
         try {
           const snap = readActivitySnapshot(sessionId);

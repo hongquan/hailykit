@@ -10,6 +10,11 @@
   "permissions": {
     "allow": []
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-statusline.cjs; [ -f \"$h\" ] || { h=\"$HOME/$h\"; s=\"$HOME/$s\"; }; bash \"$h\" \"$s\"'",
+    "padding": 0
+  },
   "hooks": {
     "SessionStart": [
       {

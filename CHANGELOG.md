@@ -5,6 +5,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### 🚀 Improvements
+
+- **Statusline** — new `haily-statusline.cjs` renders a live session summary (model · duration · lines changed · agents · tasks · quota) in the Claude Code statusline; replaces the Stop-hook summary, which Claude Code never renders ([#50542](https://github.com/anthropics/claude-code/issues/50542)). Injected on upgrade only when no user statusLine exists; removed on uninstall.
+
+---
+
 ## [1.7.0] (2026-06-12)
 
 ### 🚀 Improvements

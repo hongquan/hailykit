@@ -116,6 +116,7 @@ export function applyDeletions(targetClaudeDir: string, deletions: string[] = []
  *   Migration 2: [directory-access-guard.cjs, sensitive-file-blocker.cjs] → [haily-access.cjs]
  *   Migration 3: inject haily-pii.cjs into UserPromptSubmit (added alongside sensitive-file-blocker removal)
  *   Migration 4: inject haily-tracer.cjs into PreToolUse[Agent] (per-task model visibility)
+ *   Migration 5: inject statusLine command when the user has none configured
  *
  * @param targetClaudeDir - Absolute path to the user's .claude/ directory.
  * @returns Number of hook commands migrated.
@@ -133,7 +134,10 @@ export function migrateSettings(targetClaudeDir: string): number {
   const needsPiiGuardInjection = needsConsolidation && !raw.includes('haily-pii.cjs');
   // Inject haily-tracer whenever absent — runs independently of the older migrations.
   const needsTracerInjection = !raw.includes('haily-tracer.cjs');
-  if (!needsBarePathMigration && !needsConsolidation && !needsTracerInjection) return 0;
+  // Inject the statusline whenever the hook script isn't referenced — actual
+  // injection still defers to any user-configured statusLine (checked below).
+  const needsStatuslineInjection = !raw.includes('haily-statusline.cjs');
+  if (!needsBarePathMigration && !needsConsolidation && !needsTracerInjection && !needsStatuslineInjection) return 0;
 
   let settings: unknown;
   try { settings = JSON.parse(stripJsonComments(raw)); } catch { return 0; }
@@ -267,6 +271,12 @@ export function migrateSettings(targetClaudeDir: string): number {
     return true;
   }
 
+  // ── Migration 5: inject statusLine when the user has none ───────────────────
+  // The statusline carries the live session summary (model · duration · quota)
+  // because Stop-hook systemMessage output is not rendered by Claude Code
+  // (anthropics/claude-code#50542). Never overrides a user-configured statusLine.
+  const STATUSLINE_CMD = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-statusline.cjs; [ -f "$h" ] || { h="$HOME/$h"; s="$HOME/$s"; }; bash "$h" "$s"'`;
+
   const s = settings as Record<string, unknown>;
   if (needsBarePathMigration) {
     if (s.hooks) walkHooks(s.hooks);
@@ -280,6 +290,10 @@ export function migrateSettings(targetClaudeDir: string): number {
   }
   if (needsTracerInjection && s.hooks) {
     if (injectTracerHook(s.hooks)) count++;
+  }
+  if (needsStatuslineInjection && !s.statusLine) {
+    s.statusLine = { type: 'command', command: STATUSLINE_CMD, padding: 0 };
+    count++;
   }
 
   if (count > 0) {
@@ -422,6 +436,16 @@ export function removeManagedHookEntries(claudeDir: string): number {
       else delete hooksObj[event]; // event had only HailyKit hooks — drop the event
     }
     if (Object.keys(hooksObj).length === 0) delete s.hooks;
+  }
+
+  // Managed statusLine references the deleted hooks/ dir — drop it; user-authored
+  // statusLine commands never contain the wrapper marker and are left intact.
+  const slCmd = s.statusLine && typeof s.statusLine === 'object'
+    ? (s.statusLine as Record<string, unknown>).command
+    : undefined;
+  if (typeof slCmd === 'string' && slCmd.includes(HAILYKIT_HOOK_MARKER)) {
+    delete s.statusLine;
+    removed++;
   }
 
   // `_hailykit` is HailyKit-owned tracking metadata — unambiguously safe to drop.

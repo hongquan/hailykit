@@ -245,8 +245,9 @@ test('migrateSettings: deduplicates if haily-access already present', () => {
 test('migrateSettings: no-op when old hooks not present', () => {
   const dir = tmp();
   const p = path.join(dir, 'settings.json');
-  // Represents a fully-migrated settings.json: no old bare-path hooks, tracer already present.
+  // Represents a fully-migrated settings.json: no old bare-path hooks, tracer and statusline already present.
   const original = JSON.stringify({
+    statusLine: { type: 'command', command: makeOldHookCommand('haily-statusline.cjs') },
     hooks: {
       PreToolUse: [
         { hooks: [{ type: 'command', command: makeOldHookCommand('haily-rules.cjs') }] },
@@ -258,6 +259,42 @@ test('migrateSettings: no-op when old hooks not present', () => {
   const n = migrateSettings(dir);
   assert.equal(n, 0, 'returns 0 when nothing to migrate');
   assert.equal(fs.readFileSync(p, 'utf8'), original, 'file unchanged');
+});
+
+test('migrateSettings: injects statusLine when absent', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify({
+    statusLine: undefined,
+    hooks: {
+      PreToolUse: [
+        { matcher: 'Agent', hooks: [{ type: 'command', command: makeOldHookCommand('haily-tracer.cjs') }] },
+      ],
+    },
+  }));
+  const n = migrateSettings(dir);
+  assert.ok(n > 0, 'migration must report changes');
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  assert.equal(s.statusLine.type, 'command');
+  assert.ok(s.statusLine.command.includes('haily-statusline.cjs'), 'managed statusline injected');
+  assert.equal(s.statusLine.padding, 0);
+});
+
+test('migrateSettings: never overrides a user-configured statusLine', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  const userStatusLine = { type: 'command', command: 'node ~/.config/my-statusline.js' };
+  fs.writeFileSync(p, JSON.stringify({
+    statusLine: userStatusLine,
+    hooks: {
+      PreToolUse: [
+        { matcher: 'Agent', hooks: [{ type: 'command', command: makeOldHookCommand('haily-tracer.cjs') }] },
+      ],
+    },
+  }));
+  migrateSettings(dir);
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  assert.deepEqual(s.statusLine, userStatusLine, 'user statusLine untouched');
 });
 
 test('migrateSettings: injects haily-pii into UserPromptSubmit during consolidation', () => {
@@ -392,6 +429,26 @@ test('removeManagedHookEntries: drops empty hooks object when all were HailyKit'
   removeManagedHookEntries(dir);
   const s = JSON.parse(fs.readFileSync(p, 'utf8'));
   assert.equal(s.hooks, undefined, 'fully-empty hooks object removed');
+});
+
+test('removeManagedHookEntries: drops managed statusLine, keeps user statusLine', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify({
+    statusLine: { type: 'command', command: makeOldHookCommand('haily-statusline.cjs') },
+    hooks: { Stop: [{ hooks: [{ type: 'command', command: makeOldHookCommand('haily-state.cjs') }] }] },
+  }));
+  const removed = removeManagedHookEntries(dir);
+  assert.equal(removed, 2, 'hook + managed statusLine both counted');
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  assert.equal(s.statusLine, undefined, 'managed statusLine dropped');
+
+  const p2 = path.join(tmp(), 'settings.json');
+  const userStatusLine = { type: 'command', command: 'node ~/.config/my-statusline.js' };
+  fs.writeFileSync(p2, JSON.stringify({ statusLine: userStatusLine, _hailykit: {} }));
+  removeManagedHookEntries(path.dirname(p2));
+  const s2 = JSON.parse(fs.readFileSync(p2, 'utf8'));
+  assert.deepEqual(s2.statusLine, userStatusLine, 'user statusLine preserved');
 });
 
 test('removeManagedHookEntries: no settings.json is a no-op (returns 0)', () => {
