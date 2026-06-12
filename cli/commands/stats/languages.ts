@@ -217,6 +217,13 @@ export const LANGUAGES: Language[] = [
     blockComment: [],
     complexity: ['if ', 'else if ', ' for ', ' while ', ' tryCatch ', '||', '&&'],
   },
+  {
+    name: 'Gleam',
+    extensions: ['.gleam'],
+    lineComment: ['//'],
+    blockComment: [],
+    complexity: [' case ', ' use ', '||', '&&', ' if '],
+  },
 ];
 
 export const EXT_MAP = new Map<string, Language>(

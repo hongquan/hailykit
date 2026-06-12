@@ -5,6 +5,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.2] (2026-06-12)
+
+### 🚀 Improvements
+
+- **`hailykit stats`** — added Gleam language support (`.gleam` files, `//` comments, `case`/`use`/`||`/`&&` complexity keywords)
+
+---
+
 ## [1.6.1] (2026-06-12)
 
 ### 🐛 Fixes
@@ -116,6 +124,9 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+[1.6.2]: https://github.com/dxsl-org/hailykit/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/dxsl-org/hailykit/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/dxsl-org/hailykit/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/dxsl-org/hailykit/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/dxsl-org/hailykit/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/dxsl-org/hailykit/compare/v1.2.1...v1.3.0
