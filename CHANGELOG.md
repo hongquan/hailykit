@@ -10,12 +10,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### 🐛 Fixes
 
 - **`hailykit upgrade` / `install`** — upgrade logic
-- Usage and Model tracer fixed
+- **Model tracer + session summary** — now visible (dead hook revived)
 
 ### 🚀 Improvements
 
-- **`hailykit stats` command + `hl-stats` skill** — zero-dependency code statistics: file counts, nLOC per language, cyclomatic complexity hotspots, LLM token estimate
-- **`hailykit stats`** — added Gleam language support
+- **`hailykit stats` + `hl-stats`** — zero-dep code statistics
+- **`hailykit stats`** — Gleam support
 - Model tracer + usage enabled by default
 
 ---
@@ -24,12 +24,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hl-ultra` skill** — explicit opt-in deep-model escalation: main loop + five core reasoning agents escalate to the `deep` tier
+- **`hl-ultra`** — opt-in deep-model escalation
 
 ### 🐛 Fixes
 
-- **Gemini / Antigravity / Codex / Zed** — ` upgrade.
-- **Test isolation** — `HAILYKIT_HOME` env mutation in converter tests now guarded with `before`/`after` hooks; no cross-test contamination.
+- **Gemini / Antigravity / Codex / Zed** — upgrade fixes
+- **Test isolation** — `HAILYKIT_HOME` guarded in converter tests
 
 ---
 
@@ -37,9 +37,9 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **Block auto deep-research / dynamic workflows** — installer force-sets `workflowKeywordTriggerEnabled=false` on install + upgrade; explicit `/deep-research`, `/workflows`, `/effort ultracode` still work
-- **`hl-research` upgrade** — token-bounded cost discipline (snippet-first, sufficiency gate), active claim refutation, reverse/inversion fallback when forward search is dry, positioning vs native `/deep-research`
-- **`hailykit uninstall`** now strips dangling hook refs from `settings.json` (keeps security deny-rules)
+- Auto deep-research / dynamic workflows blocked on install
+- **`hl-research`** — cost discipline + claim refutation
+- **`hailykit uninstall`** — strips dangling hook refs
 
 ---
 
@@ -47,13 +47,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- `hailykit [uninstall] [--help]`
-- `hc-ship` upgrade, auto detect git/release automation
+- `hailykit uninstall` + `--help`
+- **`hc-ship`** — auto-detects git/release automation
 
 ### 🐛 Fixes
 
-- `hc-cop` skill now reachable from routing files
-- CI now enforces the skill cross-reference check
+- **`hc-cop`** — reachable from routing files
+- CI enforces skill cross-reference check
 
 ---
 
@@ -61,16 +61,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hc-ship` / `hc-docs` / `hc-new`** upgrade
-- **`AGENTS.md`** — adopted as canonical project context file
-- Workflow cross-references — added missing links between skills
+- **`hc-ship` / `hc-docs` / `hc-new`** — upgrades
+- **`AGENTS.md`** — canonical project context file
+- Skill cross-links added
 - Provider specs
-- **`hc-goal`** — autonomous development loop: give it a goal, it runs plan → cook → review → commit for each phase until done.
+- **`hc-goal`** — autonomous plan → cook → review → commit loop
 
 ### 🐛 Fixes
 
-- **Crush** skills install as `hc-name/SKILL.md` per Agent Skills spec
-- Remove `user-invocable` field not in agentskills.io spec
+- **Crush** — skills install as `hc-name/SKILL.md`
+- Removed non-spec `user-invocable` field
 
 ---
 
@@ -78,12 +78,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- Kimi & Crush provider
+- Kimi & Crush providers
 
 ### 🐛 Fixes
 
-- Model stripping for user-configured providers: `cursor`, `zed`, `windsurf`, `crush`, `opencode`, `kimi`
-- **OpenCode** `globalDir` on macOS and Windows
+- Model stripping for user-configured providers
+- **OpenCode** — `globalDir` on macOS/Windows
 
 ---
 
@@ -91,18 +91,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- Zero-dep TypeScript engine; native + polyglot NDJSON-over-stdio execution
-- `list`, `run`, `info` CLI commands with `--tools`, `--input`, `--timeout`
+- Zero-dep TypeScript engine; NDJSON-over-stdio tool execution
+- `list` / `run` / `info` CLI commands
 - Multi-provider installer: Claude, Gemini, Cursor, Windsurf, OpenCode, Codex, Zed
-- 30 skills in `hc-*` (coding) and `hl-*` (universal) prefixes
-- `hailykit install [--provider] [--project]`, `upgrade`, `status`
-- SKILL.md → TOML (Gemini), Markdown (Cursor/Windsurf), catalog (Codex)
-- `settings.json` deny rules: union-add only, never removes user entries
-- `PreToolUse` hook blocks private keys, secrets, and credential files
-- `UserPromptSubmit` PII guard warns on emails and card numbers; opt-in
-- `migrateSettings()` upgrades hook format on upgrade non-destructively
-- `metadata.json` `deletions[]` removes stale files from user installs
-- `settings.json` writes use temp-file + rename for atomicity
+- 30 skills (`hc-*` coding, `hl-*` universal)
+- `install` / `upgrade` / `status` commands
+- Per-provider SKILL.md conversion (TOML, Markdown, catalog)
+- `settings.json` deny rules — union-add, atomic writes
+- Secret/credential block hook + opt-in PII guard
+- Non-destructive settings migration; `deletions[]` removes stale files
 
 ---
 
