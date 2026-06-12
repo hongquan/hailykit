@@ -11,6 +11,12 @@ export interface FileStats {
   blanks: number;
   complexity: number;
   bytes: number;
+  /** Lines containing tech-debt markers. */
+  todo: number;
+  fixme: number;
+  hack: number;
+  /** Classified as a test file by path/name convention. */
+  isTest: boolean;
 }
 
 export interface ScanOptions {
@@ -83,6 +89,14 @@ function detectLanguage(filename: string): Language | null {
   return EXT_MAP.get(ext) ?? null;
 }
 
+// Test-file conventions across the supported ecosystems: tests/ dirs,
+// .test./.spec. infixes, Go/Python _test/test_ affixes.
+const TEST_RE = /(^|\/)(tests?|__tests__|spec)\/|\.(test|spec)\.[^/.]+$|_test\.[^/.]+$|(^|\/)test_[^/]+$/;
+
+const MARKER_RES = {
+  todo: /\bTODO\b/, fixme: /\bFIXME\b/, hack: /\bHACK\b/,
+} as const;
+
 function countFile(
   filePath: string,
   relPath: string,
@@ -100,6 +114,7 @@ function countFile(
 
   const rawLines = content.split('\n');
   let ncloc = 0, comments = 0, blanks = 0;
+  let todo = 0, fixme = 0, hack = 0;
   // Base complexity = 1 per file (one always-reachable execution path)
   let complexity = 1;
   let inBlock = false;
@@ -110,6 +125,11 @@ function countFile(
     const trimmed = line.trim();
 
     if (trimmed === '') { blanks++; continue; }
+
+    // Debt markers live mostly in comments — count before any branch skips them
+    if (line.includes('TODO') && MARKER_RES.todo.test(line)) todo++;
+    if (line.includes('FIXME') && MARKER_RES.fixme.test(line)) fixme++;
+    if (line.includes('HACK') && MARKER_RES.hack.test(line)) hack++;
 
     if (inBlock) {
       comments++;
@@ -141,8 +161,9 @@ function countFile(
     }
   }
 
+  const file = relPath.replace(/\\/g, '/');
   return {
-    file: relPath.replace(/\\/g, '/'),
+    file,
     language: lang.name,
     lines: rawLines.length,
     ncloc,
@@ -150,5 +171,9 @@ function countFile(
     blanks,
     complexity,
     bytes: stat.size,
+    todo,
+    fixme,
+    hack,
+    isTest: TEST_RE.test(file),
   };
 }

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { numberOption, parseArgs, stringOption } from './arg-parser';
 import { cmdInfo, cmdList, cmdRun, type EngineCliOptions } from './commands/engine-commands';
-import { cmdStats } from './commands/stats';
+import { cmdStats, DEFAULT_SALARY } from './commands/stats';
 import { cmdInstall } from './installer/commands/install';
 import { cmdUpgrade } from './installer/commands/upgrade';
 import { cmdUninstall } from './installer/commands/uninstall';
@@ -11,7 +11,7 @@ import { cmdStatus } from './installer/commands/status';
 import { PROVIDER_NAMES } from './installer/providers/index';
 
 /** Long flags that consume the next token as their value. */
-const VALUE_FLAGS = new Set(['provider', 'version', 'tools', 'input', 'timeout', 'lang', 'top', 'exclude']);
+const VALUE_FLAGS = new Set(['provider', 'version', 'tools', 'input', 'timeout', 'lang', 'top', 'exclude', 'since', 'salary']);
 
 // In dist/bin.js, __dirname resolves to dist/ — so this points to dist/tools/
 const DEFAULT_TOOLS_DIR = path.join(__dirname, 'tools');
@@ -54,6 +54,9 @@ Stats options:
   --lang <list>        Comma-separated language filter (e.g. ts,js)
   --top <n>            Number of complexity hotspots to show (default: 10)
   --exclude <pattern>  Additional path substring to exclude
+  --since <days>       Git churn window in days (default: 180)
+  --salary <n>         Avg annual salary for COCOMO estimate (default: 56286)
+  --no-git             Skip git-history insights (churn, risk, bus factor)
 
 Other:
   -h, --help           Show this help (append to a command for command help)
@@ -101,11 +104,17 @@ Options:
   --lang <list>        Comma-separated language filter (e.g. ts,js)
   --top <n>            Number of complexity hotspots to show (default: 10)
   --exclude <pattern>  Additional path substring to exclude
+  --since <days>       Git churn window in days (default: 180)
+  --salary <n>         Avg annual salary for COCOMO estimate (default: 56286)
+  --no-git             Skip git-history insights (churn, risk, bus factor)
 
 Output fields (JSON):
   ncloc                Non-comment lines of code (SonarQube canonical key)
   complexity           Cyclomatic complexity approximation (keyword count)
   token_est            Estimated LLM tokens: ncloc × 18
+  cocomo               COCOMO 81 organic estimate (effort/schedule/people/cost — directional)
+  git                  Churn-window risk hotspots (churn × complexity), bus factor,
+                       top owners, stale files; null outside a git repo or with --no-git
   thresholds           complexity_warn=15, complexity_error=25, file_loc_warn=200
 `.trim();
 
@@ -172,6 +181,9 @@ async function main(): Promise<number> {
       langs: stringOption(options, 'lang', '').split(',').filter(Boolean),
       top: numberOption(options, 'top') ?? 10,
       exclude: stringOption(options, 'exclude', '').split(',').filter(Boolean),
+      git: options['no-git'] !== true,
+      since: numberOption(options, 'since') ?? 180,
+      salary: numberOption(options, 'salary') ?? DEFAULT_SALARY,
     });
     default:
       console.error(`Unknown command: ${command}\nRun 'hailykit --help' for usage.`);
