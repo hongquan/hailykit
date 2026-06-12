@@ -3,11 +3,17 @@ import * as path from 'node:path';
 
 const REPO = 'dxsl-org/hailykit';
 const API_BASE = 'https://api.github.com';
-const HEADERS: Record<string, string> = {
-  'User-Agent': 'hailykit-cli',
-  Accept: 'application/vnd.github+json',
-  'X-GitHub-Api-Version': '2022-11-28',
-};
+
+function buildHeaders(): Record<string, string> {
+  const h: Record<string, string> = {
+    'User-Agent': 'hailykit-cli',
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  return h;
+}
 
 /** Shape of the GitHub release API response we rely on. */
 export interface GithubRelease {
@@ -29,8 +35,13 @@ export async function fetchRelease(tag = 'latest'): Promise<GithubRelease> {
     ? `${API_BASE}/repos/${REPO}/releases/latest`
     : `${API_BASE}/repos/${REPO}/releases/tags/${tag}`;
 
-  const res = await fetch(url, { headers: HEADERS });
-  if (res.status === 404) throw new Error(`Release not found: ${tag}`);
+  const res = await fetch(url, { headers: buildHeaders() });
+  if (res.status === 404) {
+    const hint = !(process.env.GITHUB_TOKEN || process.env.GH_TOKEN)
+      ? ' (private repo? set GITHUB_TOKEN or GH_TOKEN)'
+      : '';
+    throw new Error(`Release not found: ${tag}${hint}`);
+  }
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
 
   const release = await res.json() as unknown;
@@ -95,7 +106,7 @@ export async function downloadZip(release: GithubRelease, destDir: string): Prom
   const dest = path.join(destDir, 'hailykit.zip');
 
   process.stdout.write(`  Downloading ${release.tag_name}...`);
-  const res = await fetch(downloadUrl, { headers: HEADERS });
+  const res = await fetch(downloadUrl, { headers: buildHeaders() });
   if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
 
   const buf = await res.arrayBuffer();

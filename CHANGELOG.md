@@ -5,36 +5,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.3] (2026-06-12)
+
+### 🐛 Fixes
+
+- **`hailykit upgrade` / `install`** — reads `GITHUB_TOKEN` / `GH_TOKEN` env var for private-repo auth; 404 error now includes a hint when no token is set
+
+---
+
 ## [1.6.2] (2026-06-12)
 
 ### 🚀 Improvements
 
-- **`hailykit stats`** — added Gleam language support (`.gleam` files, `//` comments, `case`/`use`/`||`/`&&` complexity keywords)
-
----
-
-## [1.6.1] (2026-06-12)
-
-### 🐛 Fixes
-
-- **VSCode session summary** — `haily-state` Stop hook now writes to `stdout` (was `stderr`); the session summary (`━━━ Session Complete ━━━`) is now visible in the VSCode extension chat UI.
-- **VSCode agent trace** — `haily-session` injects an AGENT TRACE instruction at session startup when `model-tracer` is enabled; Claude self-announces `⚡ [subagent_type] → [model]` in response text before each Agent call, making it visible in VSCode.
-
----
-
-## [1.6.0] (2026-06-11)
-
-### 🚀 Features
-
-- **`hailykit stats` command** — zero-dependency code statistics: file counts, nLOC per language, cyclomatic complexity hotspots, LLM token estimate (`ncloc × 18`); supports `--json`, `--lang`, `--top`, `--exclude`; auto-excludes `node_modules`, `dist`, `.git`, etc.
-- **`hl-stats` skill + `haily-stats` agent** — user-invocable `/hl-stats [path]` delegates to a Haiku-tier agent; JSON schema follows SonarQube canonical keys (`ncloc`, `complexity`); thresholds: warn ≥ 15, error ≥ 25, file ≥ 200 loc.
-- **`haily-tracer` hook** — PreToolUse hook that announces which model tier a subagent will use on each Agent call (e.g. `⚡ [haily-planner] → thinking (claude-opus-4-8)`); enabled by default; config key `model-tracer`.
-
-### 🚀 Improvements
-
-- **`haily-usage` hook** — now enabled by default (was `false`); shows session usage stats at end of each turn.
-- **Installer Migration 4** — `hailykit upgrade` automatically injects `haily-tracer` into existing `settings.json` without overwriting user config.
-- **Config cleanup** — removed dead `statusline`, `statuslineColors`, `statuslineQuota` keys from `DEFAULT_CONFIG`.
+- **`hailykit stats` command + `hl-stats` skill** — zero-dependency code statistics: file counts, nLOC per language, cyclomatic complexity hotspots, LLM token estimate
+- **`hailykit stats`** — added Gleam language support
+- Model tracer + usage enabled by default
 
 ---
 
@@ -42,7 +27,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hl-ultra` skill** — explicit opt-in deep-model escalation: main loop + five core reasoning agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-brainstormer`, `haily-debugger`) escalate to the `deep` tier
+- **`hl-ultra` skill** — explicit opt-in deep-model escalation: main loop + five core reasoning agents escalate to the `deep` tier
 
 ### 🐛 Fixes
 
