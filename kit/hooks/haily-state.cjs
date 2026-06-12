@@ -86,7 +86,7 @@ try {
           }
 
           lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          process.stderr.write('\n' + lines.join('\n') + '\n');
+          process.stdout.write('\n' + lines.join('\n') + '\n');
         }
       } catch { /* fail silently — summary is informational only */ }
 

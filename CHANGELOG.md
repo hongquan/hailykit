@@ -5,6 +5,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.1] (2026-06-12)
+
+### 🐛 Fixes
+
+- **VSCode session summary** — `haily-state` Stop hook now writes to `stdout` (was `stderr`); the session summary (`━━━ Session Complete ━━━`) is now visible in the VSCode extension chat UI.
+- **VSCode agent trace** — `haily-session` injects an AGENT TRACE instruction at session startup when `model-tracer` is enabled; Claude self-announces `⚡ [subagent_type] → [model]` in response text before each Agent call, making it visible in VSCode.
+
+---
+
 ## [1.6.0] (2026-06-11)
 
 ### 🚀 Features

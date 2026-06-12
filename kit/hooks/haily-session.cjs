@@ -149,6 +149,32 @@ try {
     if (resolved.path) lines.push(`Active plan: ${resolved.path} (via ${resolved.resolvedBy})`);
     process.stdout.write(lines.join(' | ') + '\n');
 
+    // ── Agent trace instruction (model-tracer) ───────────────────────────────
+    // Injected when model-tracer is enabled so Claude self-announces in response
+    // text — the only mechanism that renders visibly in the VSCode extension.
+    if (isHookEnabled('model-tracer')) {
+      try {
+        const settingsDir = process.env.HL_CLAUDE_SETTINGS_DIR || path.join(os.homedir(), '.claude');
+        const agentDir = path.join(settingsDir, 'agents');
+        const agentMap = {};
+        if (fs.existsSync(agentDir)) {
+          for (const file of fs.readdirSync(agentDir)) {
+            if (!file.endsWith('.md')) continue;
+            try {
+              const content = fs.readFileSync(path.join(agentDir, file), 'utf8');
+              const m = content.match(/^model:\s*(.+)$/m);
+              if (m) agentMap[file.replace('.md', '')] = m[1].trim();
+            } catch { /* skip unreadable */ }
+          }
+        }
+        const mapStr = Object.entries(agentMap).map(([k, v]) => `${k}=${v}`).join(', ');
+        const instruction = mapStr
+          ? `AGENT TRACE: For each Agent tool call, write ⚡ [subagent_type] → [model] on its own line in your response text before the tool call. Model map: ${mapStr}`
+          : `AGENT TRACE: For each Agent tool call, write ⚡ [subagent_type] on its own line in your response text before the tool call.`;
+        process.stdout.write(instruction + '\n');
+      } catch { /* fail-open — tracer instruction is best-effort */ }
+    }
+
     timer.end({ status: 'ok', exit: 0, source, sessionId: sessionId.slice(0, 8) });
     process.exit(0);
   }
