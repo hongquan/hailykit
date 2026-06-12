@@ -49,13 +49,28 @@ command -v unzip >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1 \
   || die "unzip or python3 is required to extract the release"
 command -v node >/dev/null 2>&1 || die "Node.js >=20 is required. Install from https://nodejs.org"
 
+# ── Resolve GitHub auth token ────────────────────────────────────────────────
+# Priority: GITHUB_TOKEN env → GH_TOKEN env → gh auth token (gh CLI fallback)
+GH_AUTH_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+if [ -z "$GH_AUTH_TOKEN" ] && command -v gh >/dev/null 2>&1; then
+  GH_AUTH_TOKEN=$(gh auth token 2>/dev/null || true)
+fi
+# Build curl_github helper to avoid repeating auth header logic
+curl_github() {
+  if [ -n "$GH_AUTH_TOKEN" ]; then
+    curl -fsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GH_AUTH_TOKEN}" "$@"
+  else
+    curl -fsSL -H "Accept: application/vnd.github+json" "$@"
+  fi
+}
+
 # ── Fetch release metadata ──────────────────────────────────────────────────
 TAG="${VERSION:-latest}"
 echo "Fetching hailykit release (${TAG})..."
 if [ "$TAG" = "latest" ]; then
-  RELEASE_JSON=$(curl -fsSL -H "Accept: application/vnd.github+json" "${GITHUB_API}/repos/${REPO}/releases/latest")
+  RELEASE_JSON=$(curl_github "${GITHUB_API}/repos/${REPO}/releases/latest")
 else
-  RELEASE_JSON=$(curl -fsSL -H "Accept: application/vnd.github+json" "${GITHUB_API}/repos/${REPO}/releases/tags/${TAG}")
+  RELEASE_JSON=$(curl_github "${GITHUB_API}/repos/${REPO}/releases/tags/${TAG}")
 fi
 
 TAG_NAME=$(printf '%s' "$RELEASE_JSON" | grep '"tag_name"' | head -1 \
@@ -71,7 +86,7 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 echo "  Downloading ${TAG_NAME}..."
-curl -fsSL "$DOWNLOAD_URL" -o "$TMP/hailykit.zip"
+curl_github "$DOWNLOAD_URL" -o "$TMP/hailykit.zip"
 
 echo "  Extracting..."
 if command -v unzip >/dev/null 2>&1; then

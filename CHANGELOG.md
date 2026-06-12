@@ -5,6 +5,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.5] (2026-06-12)
+
+### 🐛 Fixes
+
+- **`install.ps1`** — now creates `hailykit.ps1` wrapper (alongside `.cmd`) pointing to `dist/bin.js`, overwriting any stale wrapper from old installs; also adds `gh auth token` fallback for private-repo auth
+- **`install.sh`** — adds `gh auth token` fallback via `curl_github` helper; download also uses auth header
+
+---
+
 ## [1.6.4] (2026-06-12)
 
 ### 🐛 Fixes

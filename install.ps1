@@ -25,7 +25,15 @@ $GithubBase = "https://github.com"
 $Repo       = "dxsl-org/hailykit"
 $Home_      = if ($env:HAILYKIT_HOME) { $env:HAILYKIT_HOME } else { Join-Path $env:USERPROFILE ".hailykit" }
 $BinDir     = if ($env:HAILYKIT_BIN)  { $env:HAILYKIT_BIN }  else { Join-Path $env:USERPROFILE ".local\bin" }
+
+# Auth token: env vars first, then gh CLI fallback
+$GithubToken = if ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN }
+               elseif ($env:GH_TOKEN)  { $env:GH_TOKEN }
+               elseif (Get-Command gh -ErrorAction SilentlyContinue) {
+                 try { (gh auth token 2>$null).Trim() } catch { $null }
+               }
 $ApiHeaders = @{ "User-Agent" = "hailykit-installer"; Accept = "application/vnd.github+json" }
+if ($GithubToken) { $ApiHeaders["Authorization"] = "Bearer $GithubToken" }
 
 function Die($msg) { Write-Error "x $msg"; exit 1 }
 
@@ -81,8 +89,9 @@ try {
 
   New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
   $binJs = Join-Path $Home_ "dist\bin.js"
-  # A .cmd shim so `hailykit` works from any shell on PATH.
+  # .cmd shim for cmd.exe; .ps1 shim for PowerShell — both overwrite any stale wrapper.
   "@node `"$binJs`" %*" | Set-Content -Encoding ASCII -Path (Join-Path $BinDir "hailykit.cmd")
+  "#!/usr/bin/env pwsh`nnode `"$binJs`" @args" | Set-Content -Encoding UTF8 -Path (Join-Path $BinDir "hailykit.ps1")
 
   # ── Install the skill catalog via the CLI (best-effort) ──────────────────
   if (-not $NoCatalog) {
