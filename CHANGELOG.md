@@ -5,32 +5,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.6] (2026-06-12)
+
+### 🐛 Fixes
+
+- **`haily-state` hook** — was dead on load: required the non-existent `haily-lib/haily-state-store.cjs` (renamed to `state.cjs` in the hooks cleanup) and exited silently; session summary + state persistence never ran
+- **Session summary** — now actually visible: emitted via the `systemMessage` hook field (raw Stop-hook stdout only renders in transcript mode), duration no longer NaN (ISO `sessionStart` parsed before subtraction), fires on `Stop` only instead of spamming every `SubagentStop`, quota shown only when the usage cache is ≤30 min old
+
+### 🚀 Improvements
+
+- **Model tracer** — always-visible model display: session startup prints `🤖 Model: <name>` (from the SessionStart `model` field, persisted as `HL_SESSION_MODEL`), and agent traces now show the model even when the agent inherits the session model instead of skipping silently; per-call `model` overrides on the Agent tool are honored
+
+---
+
 ## [1.6.5] (2026-06-12)
 
 ### 🐛 Fixes
 
-- **`install.ps1`** — now creates `hailykit.ps1` wrapper (alongside `.cmd`) pointing to `dist/bin.js`, overwriting any stale wrapper from old installs; also adds `gh auth token` fallback for private-repo auth
-- **`install.sh`** — adds `gh auth token` fallback via `curl_github` helper; download also uses auth header
-
----
-
-## [1.6.4] (2026-06-12)
-
-### 🐛 Fixes
-
-- **`hailykit upgrade` / `install`** — auto-reads token from `gh auth token` (gh CLI) as a fallback when `GITHUB_TOKEN`/`GH_TOKEN` env vars are not set; enables upgrade from private repos without manual token setup
-
----
-
-## [1.6.3] (2026-06-12)
-
-### 🐛 Fixes
-
-- **`hailykit upgrade` / `install`** — reads `GITHUB_TOKEN` / `GH_TOKEN` env var for private-repo auth
-
----
-
-## [1.6.2] (2026-06-12)
+- **`hailykit upgrade` / `install`** — upgrade logic
 
 ### 🚀 Improvements
 
