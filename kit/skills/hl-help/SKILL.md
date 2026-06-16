@@ -98,10 +98,11 @@ THINK & DECIDE
   {skill:hl-ultra}        Run an eligible skill on the deep-tier model (explicit opt-in, token-heavy)
 
 GIT & ENVIRONMENT
-  {skill:hc-git}                 Commit, push, PR, merge, impact analysis, sprint retro
-  {skill:hc-git} analyze [ref]   What changed conceptually (intent, arch delta, risk radar)
-  {skill:hc-git} retro [period]  Data-driven sprint retrospective from git history
-  {skill:hc-worktree}            Parallel branches — no stash/switch (monorepo + submodule)
+  {skill:hc-git}                        Commit, push, PR, merge, impact analysis, sprint retro
+  {skill:hc-git} analyze [ref]          What changed conceptually (intent, arch delta, risk radar)
+  {skill:hc-git} retro [period]         Data-driven sprint retrospective from git history
+  {skill:hc-git} issues [--auto] [--loop]  Discover, prioritize, and work through GitHub issues
+  {skill:hc-worktree}                   Parallel branches — no stash/switch (monorepo + submodule)
 
 RECORD & TRACK
   {skill:hl-log}          Write session log → .agents/logs/
@@ -181,6 +182,7 @@ Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
   {skill:hc-git}              Commits, PRs, merges, impact analysis, sprint retrospectives
   {skill:hc-git} analyze      Impact analysis of recent changes
   {skill:hc-git} retro        Sprint retrospective from git history
+  {skill:hc-git} issues       Discover + prioritize GitHub issues; delegate to hc-goal [--auto] [--loop]
   {skill:hc-docs}             Update project documentation
   {skill:hc-lookup}           Search library/framework docs — topic, version (@ver), comparison (vs), migration
   {skill:hc-scout} --pack     Pack repository into LLM context (repomix)
@@ -431,6 +433,11 @@ One command: merge main → test → review → version → commit → push → 
 
 # Sprint retrospective
 {skill:hc-git} retro 2w --compare     (vs previous 2 weeks; add --team for per-author)
+
+# GitHub issue triage
+{skill:hc-git} issues                        (show prioritized list, pick interactively)
+{skill:hc-git} issues --auto                 (pick highest-priority issue, implement, close)
+{skill:hc-git} issues --auto --loop          (work through all open issues autonomously)
 
 # Tech debt session
 Task(subagent_type="haily-tech-analyst", prompt="audit src/ for P1-P2 debt")

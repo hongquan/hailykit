@@ -1,12 +1,12 @@
 ---
 name: hc-git
-description: "Git workflows: commits, PRs, merges, conflict resolution, change impact analysis, and sprint retrospectives. Auto-splits by scope, scans for secrets."
-when_to_use: "Invoke for all git operations: committing, branching, PRs, conflict resolution, change analysis, or sprint metrics."
+description: "Git workflows: commits, PRs, merges, conflict resolution, change impact analysis, sprint retrospectives, and autonomous GitHub issue triage. Auto-splits by scope, scans for secrets."
+when_to_use: "Invoke for all git operations: committing, branching, PRs, conflict resolution, change analysis, sprint metrics, or working through GitHub issues autonomously."
 user-invocable: true
-argument-hint: "cm|cp|pr|merge|analyze|retro [args]"
+argument-hint: "cm|cp|pr|merge|analyze|retro|issues [args]"
 metadata:
   category: dev-tools
-  keywords: [git, commits, staging, PR, merge, impact, analysis, retrospective, technical-debt, risk]
+  keywords: [git, commits, staging, PR, merge, impact, analysis, retrospective, technical-debt, risk, issues, triage, github]
 ---
 
 # Git Operations — Commits, Analysis & Retrospectives
@@ -25,8 +25,9 @@ metadata:
 | `merge [to] [from]` | Merge branches (defaults: main / current branch) |
 | `analyze [ref]` | Impact analysis: intent, arch delta, tech debt, risk radar, open gaps |
 | `retro [timeframe]` | Data-driven sprint retrospective from git history |
+| `issues [--auto] [--loop] [--filter <label>]` | Discover, prioritize, and delegate GitHub issues |
 
-No arguments: `AskUserQuestion` (header "Git Operation") with primary options `cm / cp / pr / merge`; note "For analysis: `{skill:hc-git} analyze` | For retro: `{skill:hc-git} retro`".
+No arguments: `AskUserQuestion` (header "Git Operation") with primary options `cm / cp / pr / merge`; note "For analysis: `{skill:hc-git} analyze` | For retro: `{skill:hc-git} retro` | For issues: `{skill:hc-git} issues`".
 
 ## Constraints
 
@@ -37,7 +38,8 @@ No arguments: `AskUserQuestion` (header "Git Operation") with primary options `c
 ## Execution Model
 
 **cm / cp / pr / merge** — delegate to `haily-git-manager` subagent; execute in ≤4 tool calls per operation.  
-**analyze / retro** — run inline; require reasoning. Full protocols in `references/workflow-analyze.md` and `references/workflow-retro.md`.
+**analyze / retro** — run inline; require reasoning. Full protocols in `references/workflow-analyze.md` and `references/workflow-retro.md`.  
+**issues** — run inline; full protocol in `references/workflow-issues.md`. Delegates implementation to `{skill:hc-goal}`.
 
 ## Commit Process (cm / cp)
 
@@ -88,3 +90,4 @@ No arguments: `AskUserQuestion` (header "Git Operation") with primary options `c
 - `references/gh-cli-guide.md` — GitHub CLI commands reference
 - `references/retro-metrics.md` — metric definitions, git commands, health thresholds
 - `references/retro-report.md` — retro report template with all sections
+- `references/workflow-issues.md` — issue triage protocol: priority playbook, delegation, close logic

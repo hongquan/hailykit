@@ -5,11 +5,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### 🚀 Improvements
+
+- **`hailykit install/upgrade`** — `fetchWithRetry` wraps GitHub API and download calls; retries transient 5xx/429 (1.5 s → 3 s backoff, 3 attempts); permanent 4xx returned immediately
+- **`hc-git issues`** — new subcommand: discover open GitHub issues, classify P1–P5 by label, show prioritized list; `--auto` picks top priority and delegates to `hc-goal`; `--loop` works through all issues autonomously
+
+---
+
 ## [1.8.0] (2026-06-12)
 
 ### 🚀 Improvements
 
-- **Statusline** — new `haily-statusline.cjs` renders a live session summary (model · duration · lines changed · agents · tasks · quota) in the Claude Code statusline; replaces the Stop-hook summary, which Claude Code never renders ([#50542](https://github.com/anthropics/claude-code/issues/50542)). Injected on upgrade only when no user statusLine exists; removed on uninstall.
+- **Statusline** — new `haily-statusline.cjs` renders a live session summary
 
 ---
 
@@ -17,7 +26,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hailykit stats` + `hl-stats`** — dev/manager metrics: COCOMO effort/cost estimate (`--salary`), git risk hotspots (churn × complexity, `--since`), bus factor + code ownership, stale-file detection, test ratio, TODO/FIXME/HACK debt markers, oversized-file list, comment density, 12-week commit velocity sparkline, contributor activity, release cadence; `--no-git` opt-out; JSON schema v2
+- `hailykit stats` + `hl-stats`
 
 ---
 
