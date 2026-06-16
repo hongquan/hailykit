@@ -26,6 +26,19 @@ function buildHeaders(): Record<string, string> {
   return h;
 }
 
+// Retries on transient server errors (5xx, 429). Returns immediately on permanent
+// client errors (404/401/403) so callers can throw meaningful messages without waiting.
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 2): Promise<Response> {
+  const DELAYS_MS = [1500, 3000];
+  let res!: Response;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    res = await fetch(url, options);
+    if (res.ok || res.status === 404 || res.status === 401 || res.status === 403) return res;
+    if (attempt < maxRetries) await new Promise(r => setTimeout(r, DELAYS_MS[attempt] ?? 3000));
+  }
+  return res;
+}
+
 /** Shape of the GitHub release API response we rely on. */
 export interface GithubRelease {
   tag_name: string;
@@ -46,7 +59,7 @@ export async function fetchRelease(tag = 'latest'): Promise<GithubRelease> {
     ? `${API_BASE}/repos/${REPO}/releases/latest`
     : `${API_BASE}/repos/${REPO}/releases/tags/${tag}`;
 
-  const res = await fetch(url, { headers: buildHeaders() });
+  const res = await fetchWithRetry(url, { headers: buildHeaders() });
   if (res.status === 404) throw new Error(`Release not found: ${tag}`);
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
 
@@ -112,7 +125,7 @@ export async function downloadZip(release: GithubRelease, destDir: string): Prom
   const dest = path.join(destDir, 'hailykit.zip');
 
   process.stdout.write(`  Downloading ${release.tag_name}...`);
-  const res = await fetch(downloadUrl, { headers: buildHeaders() });
+  const res = await fetchWithRetry(downloadUrl, { headers: buildHeaders() });
   if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
 
   const buf = await res.arrayBuffer();
