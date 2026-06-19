@@ -87,7 +87,7 @@ Which stages run per flag combination:
 
 3. **Review Circuit** — 3 stages in sequence:
    - **Stage 1 — Spec** (`references/review-spec.md`): verify implementation matches plan/spec; absent plan, check for unjustified scope additions. Must pass before Stage 2. Skip if `--quick`.
-   - **Stage 2 — Quality**: delegate `haily-reviewer` subagent with diff + scout findings. Standards, security, performance, edge cases.
+   - **Stage 2 — Quality**: auto-discover `.agents/checks/*.yaml`; filter by scope glob vs diff files; log `✓ Checks: [N] discovered, [M] matched`; inject matching checks into `haily-reviewer` prompt (see `references/checks.md`). Delegate `haily-reviewer` subagent with diff + scout findings + repo-specific checks. Standards, security, performance, edge cases.
    - **Stage 3 — Stress Probe** (`references/review-adversarial.md`): adversarial pass — skip if `--quick`; also scope-gated: skip if ≤2 files AND ≤30 lines AND no auth/crypto/schema/env/migration files touched.
    - For 3+ changed files: use task-managed pipeline (`references/process-task-pipeline.md`)
    - Log `✓ Review: [N] findings — [X critical, Y medium, Z low]`
@@ -142,6 +142,7 @@ Active only when the turn was started via `{skill:hl-ultra}` (it passes the inte
 | `references/process-reception.md` | Receiving and evaluating review feedback |
 | `references/process-edge-cases.md` | Edge case scouting before review |
 | `references/process-requesting.md` | Requesting code review from haily-reviewer subagent |
+| `references/checks.md` | Checks system: YAML schema, glob matching, Stage 2 injection format, examples |
 | `references/checklists/base.md` | Universal review checklist (injection, auth, races, dead code, type coercion) |
 | `references/checklists/api.md` | API overlay (auth/rate limiting, input validation, data exposure, observability) |
 | `references/checklists/web-app.md` | Web app overlay (XSS, CSRF, N+1, frontend perf, accessibility) |
