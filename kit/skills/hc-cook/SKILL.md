@@ -25,6 +25,7 @@ Full pipeline from task to committed code. Classifies input automatically, deleg
 | `--quick` | Skip Recon + Scope Contract. Go straight to Draft → Build → Verify → Ship. Use when you already understand the codebase — small fixes, known refactors, follow-on tasks. |
 | `--auto` | Autonomous — resolves Checkpoints without pausing; applies Auto-Resolve Ladder on regressions. Run `{skill:hc-plan} validate` first for a clean run. |
 | `--tdd` | Behavioral modifier — write tests before each plan phase, verify after |
+| `--spec` | Insert a Spec checkpoint between Draft and Build: draft EARS-notation acceptance criteria via `{skill:hc-spec}` and pause for user approval before implementation begins. In `--auto` mode the spec is drafted and auto-approved. |
 | `--tier fast\|medium\|thinking` | Model tier hint — forwarded to Build and Verify agents (see `references/agent-invocations.md` § Tier Routing). Passed automatically by `{skill:hc-goal}` per phase; absent = session model (backward compatible) |
 | `--strict` | Require the full test suite to be green (restores original zero-regress behavior; overrides default no-new-failures gate) |
 | `migrate "[description]"` | Large-scale codebase migration — scope analysis → compatibility strategy → incremental phased execution → verification → cleanup. See `references/workflow-migration.md`. |
@@ -47,14 +48,15 @@ Flags compose freely: `--quick --auto`, `--quick --tdd`, `--auto --tdd`.
 
 Which stages are active per flag combination:
 
-| Mode | Recon | Scope Contract | Draft gate | Build gate | Verify | Ship |
-|------|-------|----------------|-----------|-----------|--------|------|
-| *(none)* task | ✅ | ✅ | User approval | User approval | Full | Full |
-| *(none)* plan-path | skip | skip | User approval | User approval | Full | Full |
-| `--quick` | **skip** | **skip** | User approval | User approval | Full | Full |
-| `--auto` | ✅ | skip | Auto | Auto | Auto (artifact-gated) | Full |
-| `--quick --auto` | **skip** | **skip** | Auto | Auto | Auto | Full |
-| `--tdd` | ✅ | ✅ | User approval | TDD sub-phases | Full | Full |
+| Mode | Recon | Scope Contract | Draft gate | Spec gate | Build gate | Verify | Ship |
+|------|-------|----------------|-----------|-----------|-----------|--------|------|
+| *(none)* task | ✅ | ✅ | User approval | — | User approval | Full | Full |
+| *(none)* plan-path | skip | skip | User approval | — | User approval | Full | Full |
+| `--quick` | **skip** | **skip** | User approval | — | User approval | Full | Full |
+| `--spec` | ✅ | ✅ | User approval | User approval | User approval | Full | Full |
+| `--auto` | ✅ | skip | Auto | — | Auto | Auto (artifact-gated) | Full |
+| `--spec --auto` | ✅ | skip | Auto | Auto | Auto | Auto | Full |
+| `--tdd` | ✅ | ✅ | User approval | — | TDD sub-phases | Full | Full |
 
 Ship is **never skipped** in any mode — `haily-project-manager`, `docs-manager`, and `haily-git-manager` always run.
 
@@ -99,6 +101,7 @@ Stored in `context-snippets.json`: task, acceptanceCriteria, touchpoints, blastR
 
 3. **Draft** — spawn `haily-planner`; produce `plan.md` + `phase-XX-*.md`. Build Stage Graph from `blockedBy` fields; identify parallel-eligible phases. Log `✓ Draft: [N] phases, [M] parallel-eligible`. [skip plan.md production when plan-path input]
    - **Checkpoint (Draft exit):** `AskUserQuestion`: Approve / Revise / Validate (`{skill:hc-plan} validate`) / Abort. [skip: `--auto`]
+   - **Spec Checkpoint (`--spec` only):** invoke `{skill:hc-spec}` with plan context; pause for user approval. In `--auto` mode the spec is drafted and auto-approved. Build does not begin until the spec is approved.
 
 4. **Build** — execute plan phases; parallel when Stage Graph allows + `--auto`. Spawn `haily-designer` for frontend work; activate `{skill:hc-db}` for schema/query/migration work. Run compile check after each file. Run Lean Pass if LOC delta breaches threshold (see `references/process-steps.md` § Lean Pass). Forward `--tier` hint to Build and Verify agents (see `references/agent-invocations.md` § Tier Routing). Log `✓ Build: [N] files changed — [M/M] phases complete`.
    - **Checkpoint (Build exit):** review implementation summary. [skip: `--auto`]

@@ -3,7 +3,7 @@ name: hc-plan
 description: "Turns a task into a structured, phased plan through research, codebase analysis, and adversarial review. Auto-detects research depth. Use --deep for architecture decisions requiring maximum scrutiny."
 when_to_use: "Invoke when planning a new feature or complex task before implementation."
 user-invocable: true
-argument-hint: "<task> [--quick] [--deep] [--auto] [--tdd] | red-team [plan-path] | validate [plan-path]"
+argument-hint: "<task> [--quick] [--deep] [--auto] [--tdd] [--resume] | red-team [plan-path] | validate [plan-path]"
 metadata:
   category: workflow
   keywords: [planning, architecture, phases, roadmap, research, design]
@@ -30,6 +30,7 @@ If invoked without arguments or with ambiguous intent, use `AskUserQuestion` (he
 | `--deep` | Force maximum depth: 2–3 researchers + per-phase scout + red-team + validation. Use for architecture decisions where the cost of a wrong approach is high. |
 | `--auto` | Autonomous — agent decides all trade-offs, no stops. Composes with `--deep` or `--quick`. |
 | `--tdd` | Behavioral modifier — adds a tests-first structure block to each phase |
+| `--resume` | Memory-augmented planning: load relevant memories (`feedback`, `project`) before Research; write new memories (rejected alternatives, discovered constraints, user preferences) after Red Team. Composes with all other flags. See `references/memory-bridge.md`. |
 
 Flags compose freely: `--quick --auto`, `--deep --auto`, `--tdd --auto`, `--deep --tdd --auto`. `--quick` and `--deep` are mutually exclusive — `--deep` wins if both given.
 
@@ -54,11 +55,13 @@ Scope Check → Research → Codebase Analysis → Solution Design
 | Stage | Detail | Skip condition |
 |-------|--------|----------------|
 | **Scope Check** | Confirm task boundaries before spending research cycles | Trivially small task |
+| **Memory READ** | Load `references/memory-bridge.md` read protocol: type-filter MEMORY.md (feedback + project), keyword-scan descriptions against plan topic, inject top-5 relevant memories; flag entries >90 days as "verify before acting" | `--resume` absent; MEMORY.md not found |
 | **Research** | Spawn `haily-researcher` subagents in parallel — `references/research-phase.md` | `--quick`; research reports already provided |
 | **Codebase Analysis** | Read relevant files, patterns, constraints — `references/codebase-analysis.md` | Scout reports already provided |
 | **Solution Design** | Evaluate approach options, select best fit — `references/solution-design.md` | — |
 | **Plan Writing** | Produce `plan.md` + phase files — `references/plan-structure.md`, `references/plan-quality.md`. Auto-classify `tier` per phase: `fast` (mechanical/boilerplate), `medium` (logic/integration, default), `thinking` (arch/security/schema). See `references/phase-template.md` for the `tier` field. | — |
 | **Red Team** | `{skill:hc-plan} red-team {plan-path}` — `references/red-team-workflow.md` | `--quick`; default: auto on `--deep`; Interactive: Checkpoint |
+| **Memory WRITE** | Write atomic memories per `references/memory-bridge.md` write protocol: one file per rejected alternative (type: feedback), discovered constraint (type: project), observed user preference (type: feedback); dedup-check before writing; update MEMORY.md index | `--resume` absent; Red Team triggered major revision (defer until re-plan completes) |
 | **Validation** | `{skill:hc-plan} validate {plan-path}` — `references/validate-workflow.md` | `--quick`; default: auto on `--deep`; Interactive: Checkpoint |
 | **Task Hydration** | `TaskCreate` per phase when CLI available; falls back to `TodoWrite` | Fewer than 3 phases |
 | **Cook Handoff** | Print absolute plan path and `{skill:hc-cook}` invocation (MANDATORY) | — |
@@ -75,6 +78,14 @@ Plans save to `.agents/[YYMMDD]-[HHMM]-[slug]/`:
 - `scout-report.md` — codebase analysis summary written at Codebase Analysis stage; read by `{skill:hc-review}` and `{skill:hc-debug}` to skip re-scouting within the same plan
 
 Phase file template: `references/phase-template.md`
+
+## --resume Mode
+
+`--resume` is NOT about resuming a paused plan session — it is about cross-session memory injection. Activates a bidirectional bridge to `~/.claude/projects/<project>/memory/`.
+
+**Before Research:** scans MEMORY.md for entries matching the plan topic (type: `feedback` + `project`; keyword scan on `description:` fields against plan topic nouns; recency preference). Top-5 loaded into planning context; entries >90 days flagged as "verify before acting, not acting on." Gracefully skips if MEMORY.md is absent.
+
+**After Red Team (if Red Team passes):** writes one atomic memory file per: rejected alternative (type: `feedback`) · discovered constraint (type: `project`) · observed user preference (type: `feedback`). Dedup guard: updates existing entry if similar description found. Updates MEMORY.md index. Full protocol: `references/memory-bridge.md`.
 
 ## Constraints
 
@@ -124,3 +135,4 @@ Active only when the turn was started via `{skill:hl-ultra}` (it passes the inte
 | `references/validate-workflow.md` | Critical-questions validation interview |
 | `references/task-management.md` | Task hydration and Claude Task patterns |
 | `references/plan-dependencies.md` | Dependency detection across plans |
+| `references/memory-bridge.md` | `--resume` mode: memory read protocol, write protocol, relevance scoring, staleness handling, dedup guard, write examples |

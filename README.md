@@ -3,7 +3,7 @@
 A **zero-dependency** TypeScript framework for AI coding agents — a tool-execution **engine** and a multi-provider skill **installer**.
 
 - **Engine** (`cli/`) — register, route, and execute tools: native TypeScript (in-process) or polyglot executables (Python/Rust/Go/…) over NDJSON stdio.
-- **Installer** (`kit/`) — distribute 32 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed, Crush, Kimi Code).
+- **Installer** (`kit/`) — distribute 35 curated skills into any AI agent runtime (Claude Code, Cursor, Gemini CLI, Windsurf, OpenCode, Codex, Antigravity, Zed, Crush, Kimi Code).
 
 > No npm account required. Zero runtime dependencies. Distributed via GitHub release — never `npm publish`.
 
@@ -114,7 +114,7 @@ Open Claude Code after installing — skills are ready immediately.
 
 ## Skills
 
-32 skills across two domain prefixes, installed together and activated on demand.
+35 skills across two domain prefixes, installed together and activated on demand.
 
 ### Coding — `hc-*`
 
@@ -122,10 +122,12 @@ Open Claude Code after installing — skills are ready immediately.
 |---|---|
 | `/hc-goal` | Autonomous development loop: goal → plan → cook → review → commit until done. Only stops on genuine blockers |
 | `/hc-plan` | Turn a task into a phased plan via research + codebase analysis + adversarial review |
+| `/hc-spec` | Draft EARS-notation acceptance criteria before coding. Approval gate before Build stage. Use standalone or via `hc-cook --spec` |
 | `/hc-cook` | Implement from a plan: Recon → Draft → Build → Verify → Ship |
 | `/hc-new` | Bootstrap a project end-to-end: research → stack → design → plan → implement → ship |
 | `/hc-fix` | Root-cause-first bug fix: runtime errors, test failures, type errors, CI failures |
 | `/hc-debug` | Root-cause analysis before fixing — 10 specialist techniques |
+| `/hc-adr` | Capture architectural decisions as ADRs. `scan` mode auto-discovers undocumented decisions from codebase patterns and git history |
 | `/hc-review` | Adversarial review: spec compliance → quality → stress probe. `--comment` posts inline |
 | `/hc-test` | Tests + coverage: JS/TS, Python, Go, Rust, Flutter. `--web` adds Playwright/k6/a11y |
 | `/hc-ship` | Full release: tests → review → version bump → changelog → push → PR → merge |
@@ -162,6 +164,8 @@ Open Claude Code after installing — skills are ready immediately.
 ---
 
 ## Security
+
+HailyKit is built security-first by design: **zero runtime dependencies** (no npm supply chain attack surface), **path-level deny rules** enforced natively by the Claude Code runtime — not the model, and not a userland wrapper you can bypass — and **hook-based guards** that block sensitive file access before tool calls reach the model. These are structural guarantees, not configuration options.
 
 HailyKit applies three protection layers on every Claude Code session.
 

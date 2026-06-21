@@ -3,7 +3,7 @@ name: hc-scout
 description: "Parallel codebase discovery before implementation. Splits the repo into segments and spawns one Explore subagent per segment simultaneously. Reports project type, relevant modules, patterns, in-flight plans, and public APIs. Supports ext (broad parallel scouting), --pack (repomix dump), and --graph (knowledge graph)."
 when_to_use: "Invoke when locating code, mapping dependencies, or discovering relevant files before making changes."
 user-invocable: true
-argument-hint: "[target] [ext] [--quick] [--contracts] [--pack] [--graph]"
+argument-hint: "[target] [ext] [--quick] [--contracts] [--pack] [--graph] [--deps <module> [--owner <org>]]"
 metadata:
   category: project
   keywords: [codebase, scouting, file-discovery, parallel, repomix, knowledge-graph]
@@ -22,6 +22,8 @@ Splits the codebase into non-overlapping segments and launches one Explore subag
 {skill:hc-scout} --contracts [target]  # extract public API surface and contracts
 {skill:hc-scout} --pack                # full repo dump via repomix
 {skill:hc-scout} --graph               # codebase-memory-mcp knowledge graph
+{skill:hc-scout} --deps @my-org/api-client           # trace cross-repo consumers
+{skill:hc-scout} --deps src/api/users --owner my-org # trace local module consumers
 ```
 
 | Mode | Speed | When to use |
@@ -32,6 +34,7 @@ Splits the codebase into non-overlapping segments and launches one Explore subag
 | `--contracts` | ⚡ 10–30s | Before a refactor — extract the public API surface you must not break |
 | `--pack` | 30–60s | Share full repo context with an external LLM or snapshot |
 | `--graph` | 60–120s | Cross-file dependency chains on large codebases (>200 files) |
+| `--deps` | 30–90s | Trace downstream consumers of a module across repos; flag architectural drift |
 
 Modes compose: `{skill:hc-scout} --quick --contracts src/auth` — fast contract extraction from a known module.
 
@@ -47,7 +50,7 @@ Modes compose: `{skill:hc-scout} --quick --contracts src/auth` — fast contract
 
 ## Process
 
-1. **Extract targets** — parse the prompt for file types, symbol names, directories, or patterns to locate.
+1. **Extract targets** — parse the prompt for file types, symbol names, directories, or patterns to locate. When `--deps <module>` is present, load `references/flow-deps.md` and follow the 3-query fan-out protocol instead of standard segment partition.
 2. **Partition** — divide the codebase into non-overlapping segments; determine agent count.
 3. **Register tasks** — call `TaskList` to check for existing scout tasks; create one per agent via `TaskCreate` with scope in metadata. Fall back to `TodoWrite` when Task tools are absent. Log `✓ Registered [N] scout tasks ([internal|external] mode)`.
 4. **Spawn in parallel** — launch one Explore subagent per segment; set each to `in_progress` via `TaskUpdate` before spawning. Scope each prompt to the 200K token context window.
@@ -165,6 +168,10 @@ codebase-memory serve     # expose as MCP server
 
 Use `--graph` only when all three conditions hold: the codebase exceeds ~200 files, the task is a major feature or refactor, and cross-file dependency chains must be understood before planning.
 
+## --deps Mode
+
+Activated by `--deps <module-name-or-path> [--owner <org>]`. Traces downstream consumers of an API or module across repositories using `gh search code` — no running service required, only `gh auth login`. Runs a 3-query fan-out: declared consumers (package.json/manifest), active import sites (import statements), version drift (old major version pinned). Classifies each consumer as ACTIVE, DECLARED_ONLY, DRIFTED, or IMPLICIT. Emits a consumer table sorted by urgency (DRIFTED first). Subject to GitHub code search constraints: default branch only, ~1000 results per query, 9 req/min rate limit (7-second sleep between queries enforced). Full protocol: `references/flow-deps.md`.
+
 ## Workflow Position
 
 **Precedes:** `{skill:hc-plan}`, `{skill:hc-cook}`, `{skill:hc-debug}`
@@ -181,3 +188,4 @@ Use `--graph` only when all three conditions hold: the codebase exceeds ~200 fil
 | `references/tech-repomix-config.md` | Repomix configuration file options, ignore patterns, output formats |
 | `references/tech-repomix-patterns.md` | Repomix usage patterns: AI analysis, security audit, CI/CD integration |
 | `references/protocol-contract-extraction.md` | `--contracts` mode: how to extract exported types, endpoints, schemas, event contracts per stack |
+| `references/flow-deps.md` | `--deps` mode: 3-query fan-out protocol, org inference, consumer table format, drift detection, rate-limit protocol, hard limitations |

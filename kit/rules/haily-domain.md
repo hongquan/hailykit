@@ -39,6 +39,17 @@ Deep technical research report              → {skill:hl-research} <topic>
 ```
 Disambiguate: want a persistent graph you can extend → `{skill:hl-mindmap}` · want a one-shot research report → `{skill:hl-research}`.
 
+## Architecture & Specification
+
+```
+Write EARS-notation spec before coding       → {skill:hc-spec} "feature description"
+Gate hc-cook with spec approval              → {skill:hc-cook} --spec "task"
+Capture agreed architectural decision (ADR)  → {skill:hc-adr} "context or decision"
+Auto-discover undocumented decisions         → {skill:hc-adr} scan
+Scope scan to a subtree                      → {skill:hc-adr} scan --dir src/auth
+```
+Disambiguate: need formal acceptance criteria before coding → `{skill:hc-spec}` · decision already made, need to record it → `{skill:hc-adr}` · no prior documentation of decisions exists → `{skill:hc-adr} scan`.
+
 ## Project Initialization
 
 ```

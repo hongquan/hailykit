@@ -38,6 +38,23 @@ Some HailyKit skills have names that look similar to Claude Code built-in comman
 
 **Rule of thumb:** if you want a quick, single-purpose action on the current session/repo, the built-in is usually right. If you want a full workflow with phases, modes, and reports, reach for the `/hc:*` skill.
 
+## Community Skill Aliases
+
+HailyKit skills are known by different names in other skill catalogs. If you're looking for one of these, here's the HailyKit equivalent:
+
+| Community name | HailyKit skill | What it does |
+|---|---|---|
+| `code-reviewer`, `pr-reviewer`, `review-assistant` | `{skill:hc-review}` | Adversarial 3-stage review: spec → quality (red-team) → stress probe |
+| `commit-writer`, `git-commit-writer`, `smart-commit` | `{skill:hc-git}` | Staged diff → conventional commit message → push |
+| `changelog-generator`, `release-notes-writer` | `{skill:hc-ship}` | Full release pipeline: version bump → changelog → PR. No standalone changelog tool — changelog is one step of the full release pipeline. |
+| `debugger`, `error-fixer`, `bug-investigator` | `{skill:hc-debug}` + `{skill:hc-fix}` | Root cause first, then fix |
+| `test-writer`, `test-generator` | `{skill:hc-test}` | Unit/integration/e2e + coverage, `--web` for Playwright/a11y |
+| `security-scanner`, `secret-detector`, `dependency-auditor` | `{skill:hc-security}` | STRIDE/OWASP + `--quick` for pre-commit secret/dep scan |
+| `scaffolder`, `boilerplate-generator`, `project-initializer` | `{skill:hc-new}` | End-to-end project bootstrap: research → stack → design → code → docs |
+| `tech-debt-finder`, `code-quality-analyzer` | `Task(subagent_type="haily-tech-analyst")` | Systematic debt inventory + priority matrix |
+| `adr-writer`, `decision-log`, `architecture-record` | `{skill:hc-adr}` | Capture or auto-discover architectural decisions |
+| `api-designer`, `openapi-generator` | `Task(subagent_type="haily-api-designer")` | REST/GraphQL contract design + OpenAPI spec |
+
 ## Usage
 
 ```
@@ -63,7 +80,9 @@ BUILD
   {skill:hc-goal}         Autonomous loop: goal → plan → cook → review → commit until done [--auto]
   {skill:hc-new}          Bootstrap new project end-to-end
   {skill:hc-plan}         Plan a feature or architecture
+  {skill:hc-spec}         Write EARS-notation spec before coding (or hc-cook --spec)
   {skill:hc-cook}         Implement from a plan
+  {skill:hc-adr}          Capture or discover architectural decisions [scan]
   {skill:hc-cop}          Port a feature from another repo
 
 FIX & DEBUG
@@ -128,7 +147,7 @@ SPECIALIZED
 Canonical chain: brainstorm → plan → cook → test → review → ship → log
 
   {skill:hl-help} --combos          All workflow chains
-  {skill:hl-help} --list            All 32 skills by category
+  {skill:hl-help} --list            All 35 skills by category
   {skill:hl-help} --search <kw>     Find by topic
 ```
 
@@ -189,11 +208,13 @@ Read `.claude/scripts/skills_data.yaml`, group by `category`, print with prefix:
   {skill:hl-stats}            Code metrics — nLOC, language breakdown, complexity hotspots, token estimate
   {skill:hc-mcp-builder}      Build + agentize MCP servers
 
-## Senior Dev Specialists (via Task tool)
-  Task(subagent_type="haily-adr-writer")          Architecture Decision Records
+## Senior Dev Workflows (skills + specialists)
+  {skill:hc-spec}                            EARS-notation spec + approval gate before Build
+  {skill:hc-adr}                             Capture an agreed architectural decision as an ADR
+  {skill:hc-adr} scan                        Auto-discover undocumented decisions from codebase + git history
   Task(subagent_type="haily-tech-analyst")   Systematic tech debt inventory + priority matrix
-  Task(subagent_type="haily-api-designer")         REST/GraphQL API contract design
-  Task(subagent_type="haily-test-architect")      Test strategy design before implementation
+  Task(subagent_type="haily-api-designer")   REST/GraphQL API contract design
+  Task(subagent_type="haily-test-architect") Test strategy design before implementation
   Task(subagent_type="haily-optimizer")      Simplify + efficiency + dead code removal
 
 ## Project Management
@@ -307,6 +328,44 @@ Expert consultation through a specific lens. One persona flag = skip full brains
 
 Skills compose into chains. Each `→` means "after that step completes, invoke the next skill".
 
+### Senior Dev Quick Start
+
+```
+# Understand what changed and review a PR
+{skill:hc-git} analyze main..HEAD        (intent + arch delta + risk radar)
+  → {skill:hc-review}
+
+# Review multiple PRs at once (batch)
+{skill:hc-review} --batch "#123,#456,#789"   (per-PR findings + Team Health Report)
+
+# Review an AI agent / LLM feature for OWASP Agentic risks
+{skill:hc-review} --agentic              (auto-detects agentic patterns; forces ASI:2026 checks)
+
+# Write a spec before coding a risky feature
+{skill:hc-spec} "feature description"   (EARS notation → approval gate)
+  → {skill:hc-cook} <plan-path>
+
+# Capture architectural decisions already made
+{skill:hc-adr} scan                     (auto-discover undocumented decisions)
+{skill:hc-adr} "we chose X over Y because Z"
+
+# Investigate a bug the right way (no guessing)
+{skill:hc-debug} "symptom"              (confidence-gated: only propose fix at PROBABLE+)
+  → {skill:hc-fix}
+
+# Find who consumes an API across repos
+{skill:hc-scout} --deps @my-org/api-client  (ACTIVE / DRIFTED / DECLARED_ONLY table)
+
+# Plan with memory of past decisions (cross-session)
+{skill:hc-plan} --resume "feature"          (injects relevant memories; saves new decisions)
+
+# Tech debt audit
+Task(subagent_type="haily-tech-analyst", prompt="audit src/ for P1-P2 debt")
+
+# Sprint retrospective
+{skill:hc-git} retro 2w --compare       (vs previous sprint; add --team for per-author)
+```
+
 ### Feature Development (autonomous — hands-off)
 
 ```
@@ -411,6 +470,18 @@ One command: merge main → test → review → version → commit → push → 
 {skill:hl-visualize} --slides "topic"
 ```
 
+### Spec-First Development (formal acceptance criteria)
+
+```
+{skill:hc-plan} "feature"
+  → {skill:hc-spec} .agents/<plan-dir>/plan.md   (EARS spec + approval gate)
+  → {skill:hc-cook} <plan-path>
+  → {skill:hc-review}
+
+# or in one command:
+{skill:hc-cook} --spec "Add payment webhook"
+```
+
 ### Edge-Case Coverage Before Implementation
 
 ```
@@ -443,7 +514,10 @@ One command: merge main → test → review → version → commit → push → 
 Task(subagent_type="haily-tech-analyst", prompt="audit src/ for P1-P2 debt")
 
 # Architecture decision record
-Task(subagent_type="haily-adr-writer", prompt="document decision: PostgreSQL over MongoDB")
+{skill:hc-adr} "we chose PostgreSQL over MongoDB for ACID guarantees"
+
+# Discover undocumented architectural decisions
+{skill:hc-adr} scan
 
 # Feature flag gradual rollout
 {skill:hc-ship} rollout feature.checkout.new-payment-flow

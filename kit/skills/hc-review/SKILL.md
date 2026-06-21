@@ -3,7 +3,7 @@ name: hc-review
 description: "Adversarial code review pipeline: Spec compliance → Quality (haily-reviewer) → Stress Probe. Supports PR, commit, pending, codebase, and UI/UX targets. Post findings inline with --comment, apply to working tree with --fix."
 when_to_use: "Invoke when reviewing code changes, a PR, a commit, or the full codebase."
 user-invocable: true
-argument-hint: "[#PR | COMMIT | --pending | codebase] [--quick] [--comment] [--fix] [--ui [pattern]]"
+argument-hint: "[#PR | COMMIT | --pending | codebase] [--quick] [--comment] [--fix] [--ui [pattern]] [--batch <\"#N,#M,...\">] [--agentic]"
 metadata:
   category: workflow
   keywords: [review, quality, adversarial, red-team, code-quality, security]
@@ -27,20 +27,25 @@ metadata:
 | `--comment` | Post accepted findings as inline PR comments (PR input only) |
 | `--fix` | Apply accepted findings to working tree after review |
 | `--ui [pattern]` | UI/UX audit — load `references/flow-ui-ux.md` checklist |
+| `--batch <"#N,#M,...">` | Review multiple PRs or commits in one session. Runs full 3-stage review per target; produces per-target findings + Team Health Report. Composes with `--quick` and `--comment`. |
+| `--agentic` | Force-inject OWASP Agentic Top 10 (ASI:2026) checks into Stage 2, regardless of auto-detection. Auto-detect fires on any diff containing LLM/agent SDK imports, `@tool` decorators, or MCP tool schema patterns. |
 
-Flags compose freely: `--quick --fix`, `--quick --comment`, `--fix --comment`.
+Flags compose freely: `--quick --fix`, `--quick --comment`, `--fix --comment`, `--batch --quick`, `--batch --comment`.
 
 ```
-{skill:hc-review}                       # auto-detect from context
-{skill:hc-review} --pending             # staged + unstaged changes
-{skill:hc-review} --pending --quick     # quick quality check only
-{skill:hc-review} #123                  # PR diff
-{skill:hc-review} #123 --comment        # review + post inline PR comments
-{skill:hc-review} #123 --quick --comment  # quick review + post comments
-{skill:hc-review} abc1234              # single commit
-{skill:hc-review} codebase             # full codebase scan
-{skill:hc-review} codebase parallel    # parallel edge-case audit
-{skill:hc-review} --ui src/components/ # UI/UX checklist audit
+{skill:hc-review}                             # auto-detect from context
+{skill:hc-review} --pending                   # staged + unstaged changes
+{skill:hc-review} --pending --quick           # quick quality check only
+{skill:hc-review} #123                        # PR diff
+{skill:hc-review} #123 --comment             # review + post inline PR comments
+{skill:hc-review} #123 --quick --comment      # quick review + post comments
+{skill:hc-review} abc1234                     # single commit
+{skill:hc-review} codebase                    # full codebase scan
+{skill:hc-review} codebase parallel           # parallel edge-case audit
+{skill:hc-review} --ui src/components/        # UI/UX checklist audit
+{skill:hc-review} --batch "#123,#456,abc1234" # batch review — Team Health Report
+{skill:hc-review} --batch "#123,#456" --quick # batch quick review
+{skill:hc-review} #123 --agentic              # force OWASP Agentic checks
 ```
 
 ## Mode×Stage Reference
@@ -57,6 +62,8 @@ Which stages run per flag combination:
 | `--quick --comment` | **skip** | ✅ | **skip** | Post PR comments |
 | `--ui` | skip | UI/UX checklist | skip | Interactive |
 | `codebase` | skip | Parallel research+review | skip | Report |
+| `--batch` | ✅ (per target) | ✅ (per target) | ✅ scope-gated (per target) | Per-target findings + Team Health Report |
+| `--batch --quick` | **skip** | ✅ (per target) | **skip** | Per-target findings + Team Health Report |
 
 **Input Detection** (priority order; full routing logic in `references/input-routing.md`):
 
@@ -70,6 +77,7 @@ Which stages run per flag combination:
 | `--ui [pattern]` | UI/UX audit | `references/flow-ui-ux.md` |
 | *(no args, recent context)* | Default | pending changes in context |
 | *(no args, no context)* | Prompt | `AskUserQuestion` (header "Review Target") |
+| `--batch <targets>` | Batch | comma-separated PR numbers, commit hashes, or `--pending` |
 
 ## Constraints
 
@@ -79,7 +87,7 @@ Which stages run per flag combination:
 
 ## Process
 
-1. **Route** — classify first arg via `references/input-routing.md`; select review mode; initialize diff context. Log `✓ Route: [mode] — input=[type], flags=[list]`
+1. **Route** — classify first arg via `references/input-routing.md`; select review mode; initialize diff context. When `--batch` is present, load `references/flow-batch.md` and follow the batch loop protocol instead of single-target processing — each target runs its own Route→Scout→Review Circuit, then results are aggregated into a Team Health Report. Log `✓ Route: [mode] — input=[type], flags=[list]`
 
 2. **Scout** — spawn `{skill:hc-scout}` with edge-case prompt: affected files, data flows, boundary conditions, blast radius. Document findings for review stages. Log `✓ Scout: [N] findings`
    - Skip: `codebase` and `codebase parallel` modes
@@ -89,7 +97,7 @@ Which stages run per flag combination:
 
 3. **Review Circuit** — 3 stages in sequence:
    - **Stage 1 — Spec** (`references/review-spec.md`): verify implementation matches plan/spec; absent plan, check for unjustified scope additions. Must pass before Stage 2. Skip if `--quick`.
-   - **Stage 2 — Quality**: auto-discover `.agents/checks/*.yaml`; filter by scope glob vs diff files; log `✓ Checks: [N] discovered, [M] matched`; inject matching checks into `haily-reviewer` prompt (see `references/checks.md`). Delegate `haily-reviewer` subagent with diff + scout findings + repo-specific checks. Standards, security, performance, edge cases.
+   - **Stage 2 — Quality**: auto-discover `.agents/checks/*.yaml`; filter by scope glob vs diff files; log `✓ Checks: [N] discovered, [M] matched`; inject matching checks into `haily-reviewer` prompt (see `references/checks.md`). **Agentic check injection:** scan diff for agentic patterns (LLM SDK imports — `from anthropic`, `from langchain`, `import openai`; `@tool` decorator; MCP tool schema keys — `"tools": [{`, `inputSchema`; agent invocation — `.invoke(`, `.run(` on agent objects). If patterns found (≥1 LLM SDK import, OR ≥2 other signals) OR `--agentic` flag is set, load `references/checklists/agentic.md` and append to reviewer prompt; log `ℹ Agentic code detected — injecting OWASP Agentic Top 10 checks`. If not detected and no `--agentic`, log `ℹ No agentic patterns — skipping agentic checks`. Delegate `haily-reviewer` subagent with diff + scout findings + repo-specific checks + injected agentic checks. Standards, security, performance, edge cases.
    - **Stage 3 — Stress Probe** (`references/review-adversarial.md`): adversarial pass — skip if `--quick`; also scope-gated: skip if ≤2 files AND ≤30 lines AND no auth/crypto/schema/env/migration files touched.
    - For 3+ changed files: use task-managed pipeline (`references/process-task-pipeline.md`)
    - Log `✓ Review: [N] findings — [X critical, Y medium, Z low]`
@@ -98,7 +106,12 @@ Which stages run per flag combination:
    - `--fix`: apply accepted findings to working tree; run compile check after each; verify no regressions
    - `--comment`: post accepted findings as inline comments via `gh pr review`
    - Interactive (default): present findings summary; `AskUserQuestion` for each Critical finding: Fix now / Defer / Reject
+   - `--batch` active: after all targets complete, generate Team Health Report per `references/flow-batch.md` § Report Format; save to `.agents/reports/batch-review-<YYMMDD-HHMM>.md`; log `✓ Batch: [N] targets reviewed — [X critical, Y medium, Z low] total`
    - Log `✓ Act: [N applied | N commented | N deferred]`
+
+## --batch Mode
+
+Activated by `--batch "<comma-separated targets>"`. Follows `references/flow-batch.md` in place of single-target processing. Runs the full Route→Scout→Review Circuit on each target sequentially, collects per-target findings, identifies cross-PR patterns (same finding type in ≥2 targets), then generates a Team Health Report saved to `.agents/reports/batch-review-<YYMMDD-HHMM>.md`. A single inaccessible target does not abort the batch — it is logged as skipped. Composes with `--quick` (Stage 2 only per target) and `--comment` (inline comments per PR target).
 
 ## --ui Mode
 
@@ -145,6 +158,8 @@ Active only when the turn was started via `{skill:hl-ultra}` (it passes the inte
 | `references/process-edge-cases.md` | Edge case scouting before review |
 | `references/process-requesting.md` | Requesting code review from haily-reviewer subagent |
 | `references/checks.md` | Checks system: YAML schema, glob matching, Stage 2 injection format, examples |
+| `references/flow-batch.md` | Batch review loop: parse targets, per-target process, cross-PR pattern detection, Team Health Report format, error handling |
+| `references/checklists/agentic.md` | OWASP Agentic Top 10 (ASI01–ASI10:2026): static check items (ASI02–ASI05, ASI07) + runtime testing guidance (ASI01, ASI06, ASI08–ASI10) |
 | `references/checklists/base.md` | Universal review checklist (injection, auth, races, dead code, type coercion) |
 | `references/checklists/api.md` | API overlay (auth/rate limiting, input validation, data exposure, observability) |
 | `references/checklists/web-app.md` | Web app overlay (XSS, CSRF, N+1, frontend perf, accessibility) |

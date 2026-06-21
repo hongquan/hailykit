@@ -40,6 +40,8 @@ Diagnoses bugs, test failures, CI/CD pipeline errors, and performance regression
 
 > **Required — no fixes without root cause:** Write zero fix code until the exact cause is identified and documented. Guessing and patching wastes cycles and leaves the real defect in place. Every fix must be traceable to a specific, confirmed cause.
 
+> **Required — confidence gate:** Before proposing a fix, compute the confidence level per `references/confidence-signaling.md`. Only propose a fix at PROBABLE or CONFIRMED confidence. At SUSPECTED (one signal type, no reproduction), emit a hypothesis warning and name the next falsification step instead of proposing fix code.
+
 ## Technique Routing
 
 Select the row that best matches the presenting symptom. Load the reference file — it contains the complete technique including steps, tools, and decision points.
@@ -65,7 +67,7 @@ Select the row that best matches the presenting symptom. Load the reference file
 2. Load the reference file — follow it completely, do not skim.
 3. Work through all phases before writing any fix. Skipping phases to save time costs more time.
 4. When the issue spans multiple techniques (e.g., a CI failure masking a performance regression), apply them in routing-table order: broader investigation before specialist analysis.
-5. On confirmed root cause, write a one-paragraph cause statement before proceeding to `{skill:hc-fix}`.
+5. On confirmed root cause, compute confidence level per `references/confidence-signaling.md`; emit `Confidence: [LEVEL] ([N] signals: [types])`. At SUSPECTED, write the hypothesis with the next falsification step instead of proceeding to `{skill:hc-fix}`. At PROBABLE or CONFIRMED, write a one-paragraph cause statement and proceed to `{skill:hc-fix}`.
 
 ## Red Flags
 
@@ -77,6 +79,7 @@ Stop and restart from systematic investigation if any of these thoughts occur:
 - "Seems fixed" stated without a reproduction test
 - Three or more failed fix attempts with no change in diagnostic approach → **Oracle escalation:** spawn `haily-debugger` at `{model:thinking}` tier, carrying only confirmed evidence (not prior fix history). A fresh high-capacity perspective breaks the confirmation-bias loop. Do not retry the same approach a fourth time.
 - Skipping a reference phase because the cause "looks obvious"
+- Proposing a fix at SUSPECTED confidence — only one signal type, no reproduction. Name the next falsification step instead.
 
 ## Tools
 
@@ -93,7 +96,13 @@ Stop and restart from systematic investigation if any of these thoughts occur:
 
 ## Output
 
-Reports save to `.agents/debug/debug-YYMMDD-HHMM-{slug}.md`. Minimum contents: symptom, evidence collected, confirmed root cause, and fix recommendation. Use `references/reporting-standards.md` for structure.
+Reports save to `.agents/debug/debug-YYMMDD-HHMM-{slug}.md`. Minimum contents: symptom, evidence collected, confirmed root cause, fix recommendation. Report header must include: `**Confidence:** SUSPECTED | PROBABLE | CONFIRMED ([N] signals: [types])` immediately after the root cause statement. Use `references/reporting-standards.md` for structure.
+
+## References
+
+| File | Content |
+|------|---------|
+| `references/confidence-signaling.md` | SUSPECTED/PROBABLE/CONFIRMED vocabulary, signal type ranking, fix gate rule, display format, examples |
 
 ## Workflow Position
 

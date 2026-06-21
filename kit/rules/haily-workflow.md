@@ -9,6 +9,7 @@ Flow: `plan → cook → test → review → ship → log`
 | User Intent | Start |
 |-------------|-------|
 | "implement X", "build X", "add X" | `{skill:hc-plan}` then `{skill:hc-cook}` |
+| "spec first, then build X" | `{skill:hc-spec}` then `{skill:hc-cook}`, or `{skill:hc-cook} --spec` |
 | "autonomously build X until done, no manual steps" | `{skill:hc-goal} "description"` |
 | "autonomously build, no prompts" | `{skill:hc-goal} "description" --auto` |
 | "long autonomous run, many phases, bounded by budget" | `{skill:hc-goal} "description" --auto --budget N` |
@@ -40,7 +41,9 @@ Flow: `scout → debug → fix → test → review`
 | "plan feature X" | `{skill:hc-plan}` |
 | "quick plan, skip research" | `{skill:hc-plan} --quick` |
 | "high-stakes architecture decision" | `{skill:hc-plan} --deep` |
-| "document this architectural decision" | Delegate: `Task(subagent_type="haily-adr-writer")` |
+| "document this architectural decision" | `{skill:hc-adr}` |
+| "find undocumented decisions in codebase" | `{skill:hc-adr} scan` |
+| "write formal spec before coding X" | `{skill:hc-spec} "X"` |
 | "design the API for X" | Delegate: `Task(subagent_type="haily-api-designer")` |
 | "what tests should we write for X?" | Delegate: `Task(subagent_type="haily-test-architect")` |
 
