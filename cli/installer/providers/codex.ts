@@ -61,7 +61,8 @@ function _agentsMdScaffold(rulesBlock: string): string {
  *
  * Hooks:    Claude Code hook scripts copied to ~/.codex/hooks/ with Codex-protocol
  *           wrapper shims. hooks.json regenerated; [features] hooks = true written.
- *           Hooks skipped on Windows (not supported by Codex CLI there).
+ *           Cross-platform incl. Windows (wrappers are shebang-free, invoked as
+ *           `node "<abs>"`; Codex supports Windows hooks per 6/2026 docs).
  *
  * Spec: 2025+ (no semver) — researched 2026-06-08
  * Docs: https://developers.openai.com/codex/skills
@@ -334,19 +335,18 @@ export class CodexProvider extends BaseProvider {
   // ── Hooks ─────────────────────────────────────────────────────────────────
 
   /**
-   * Install Codex-compatible hooks:
-   *   1. Skip entirely on Windows (Codex CLI does not support hooks there)
-   *   2. Copy hook scripts from release into ~/.codex/hooks/
-   *   3. Generate protocol-translation wrapper shims (codex-hook-compat)
-   *   4. Write hooks.json pointing at wrappers
-   *   5. Enable hooks feature flag in config.toml
+   * Install Codex-compatible hooks (cross-platform, incl. Windows):
+   *   1. Copy hook scripts from release into ~/.codex/hooks/
+   *   2. Generate protocol-translation wrapper shims (codex-hook-compat)
+   *   3. Write hooks.json pointing at wrappers
+   *   4. Enable hooks feature flag in config.toml
+   *
+   * Windows note: the generated artifacts are platform-neutral — wrappers carry
+   * no shebang and hooks.json invokes them as `node "<abs-path>"`, which Codex
+   * runs the same on Windows (verified: developers.openai.com/codex/hooks, 6/2026 —
+   * Windows is supported; a `command_windows` override field even exists).
    */
   installHooks(extractedClaudeDir: string, targetProviderDir: string): void {
-    if (process.platform === 'win32') {
-      console.log('    Hooks: skipped (Codex CLI does not support hooks on Windows)');
-      return;
-    }
-
     const settingsPath = path.join(extractedClaudeDir, 'settings.json');
     if (!fs.existsSync(settingsPath)) return;
 

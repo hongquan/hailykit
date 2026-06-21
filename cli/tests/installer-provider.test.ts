@@ -622,6 +622,36 @@ test('atomicWriteToml: writes content and leaves no .hailykit-tmp', () => {
   assert.ok(!fs.existsSync(`${p}.hailykit-tmp`), 'temp file cleaned up after rename');
 });
 
+test('CodexProvider.installHooks: runs cross-platform (incl. Windows) — writes wrappers, hooks.json, feature flag', () => {
+  const root = tmp();
+  const kit = path.join(root, 'kit');
+  fs.mkdirSync(path.join(kit, 'hooks'), { recursive: true });
+  fs.writeFileSync(path.join(kit, 'hooks', 'haily-session.cjs'), '// hook');
+  const cmd = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-session.cjs; bash "$h" "$s"'`;
+  fs.writeFileSync(
+    path.join(kit, 'settings.json'),
+    JSON.stringify({ hooks: { SessionStart: [{ matcher: 'startup', hooks: [{ type: 'command', command: cmd, timeout: 8000 }] }] } }),
+  );
+
+  const target = path.join(root, 'out');
+  fs.mkdirSync(target, { recursive: true });
+  new CodexProvider().installHooks(kit, target); // no win32 early-return anymore
+
+  // hooks.json present with a forward-slash `node "..."` wrapper command
+  const hooksJson = JSON.parse(fs.readFileSync(path.join(target, 'hooks.json'), 'utf8'));
+  assert.equal(hooksJson.length, 1);
+  assert.match(hooksJson[0].command.script, /^node "/);
+  assert.ok(!hooksJson[0].command.script.includes('\\'), 'wrapper path uses forward slashes');
+  assert.equal(hooksJson[0].command.timeout_sec, 8000);
+
+  // a compat wrapper was generated for the .cjs
+  const wrappers = fs.readdirSync(path.join(target, 'hooks')).filter((f) => f.startsWith('compat-'));
+  assert.equal(wrappers.length, 1);
+
+  // feature flag enabled
+  assert.match(fs.readFileSync(path.join(target, 'config.toml'), 'utf8'), /\[features\]\nhooks = true/);
+});
+
 // ---------------------------------------------------------------------------
 // GeminiProvider — installRules + installAgents
 // ---------------------------------------------------------------------------
