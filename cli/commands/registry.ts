@@ -6,6 +6,7 @@ import { cmdVulnScan } from './scan/vuln-scan';
 import { cmdContracts } from './contracts/contracts';
 import { cmdTestDetect } from './test/detect';
 import { cmdCoverageParse, type CoverageFormat } from './test/coverage';
+import { cmdDepsAudit } from './deps/audit';
 
 /**
  * Registry of native analysis commands (stats, and the Tier 1–3 tools added by
@@ -213,6 +214,28 @@ Options:
   },
 };
 
+const depsAuditCommand: CommandSpec = {
+  name: 'deps-audit',
+  summary: 'Run + normalize npm/pip/cargo/go vulnerability audits',
+  help: `hailykit deps-audit [path] — Normalize the ecosystem auditor's output to one schema
+
+Arguments:
+  path                 Project directory (default: current directory)
+
+Options:
+  --ecosystem <name>   Force npm | pip | cargo | go (else auto-detect from lockfiles)
+  --json               Emit the JSON envelope (machine-readable)
+
+Requires the ecosystem auditor on PATH (npm / pip-audit / cargo-audit /
+govulncheck). A missing auditor yields a structured 'auditor_missing', not an error.`,
+  valueFlags: ['ecosystem'],
+  run: ({ positionals, options }) => cmdDepsAudit({
+    path: positionals[0] || '.',
+    ecosystem: stringOption(options, 'ecosystem', '') || undefined,
+    json: options.json === true,
+  }),
+};
+
 export const COMMANDS: CommandSpec[] = [
   statsCommand,
   gitInsightsCommand,
@@ -221,6 +244,7 @@ export const COMMANDS: CommandSpec[] = [
   contractsCommand,
   testDetectCommand,
   coverageParseCommand,
+  depsAuditCommand,
 ];
 
 /** Look up a registered command by name. */
