@@ -1,6 +1,8 @@
 import { numberOption, stringOption } from '../arg-parser';
 import { cmdStats, DEFAULT_SALARY } from './stats';
 import { cmdGitInsights } from './git-insights';
+import { cmdSecrets } from './scan/secrets';
+import { cmdVulnScan } from './scan/vuln-scan';
 
 /**
  * Registry of native analysis commands (stats, and the Tier 1–3 tools added by
@@ -91,9 +93,65 @@ const gitInsightsCommand: CommandSpec = {
   }),
 };
 
+const SECRETS_HELP = `
+hailykit secrets [path] — Scan for hardcoded credentials (exits non-zero on findings)
+
+Arguments:
+  path                 Directory to scan (default: current directory)
+
+Options:
+  --staged             Scan only git-staged files (pre-commit gate)
+  --exclude <pattern>  Additional path substring to exclude
+  --json               Emit the JSON envelope (machine-readable)
+
+Output is always redacted — the raw secret value is never printed. This is the
+fast local gate; use gitleaks for deep/historical scans (see hc-security).
+`.trim();
+
+const VULN_SCAN_HELP = `
+hailykit vuln-scan [path] — Fast regex scan for vulnerability patterns (informational)
+
+Arguments:
+  path                 Directory to scan (default: current directory)
+
+Options:
+  --exclude <pattern>  Additional path substring to exclude
+  --json               Emit the JSON envelope (machine-readable)
+
+A complement to semgrep, not a replacement (no data-flow/AST). Findings are
+leads to verify. Always exits 0.
+`.trim();
+
+const secretsCommand: CommandSpec = {
+  name: 'secrets',
+  summary: 'Scan for hardcoded credentials (pre-commit gate)',
+  help: SECRETS_HELP,
+  valueFlags: ['exclude'],
+  run: ({ positionals, options }) => cmdSecrets({
+    path: positionals[0] || '.',
+    staged: options.staged === true,
+    json: options.json === true,
+    exclude: stringOption(options, 'exclude', '').split(',').filter(Boolean),
+  }),
+};
+
+const vulnScanCommand: CommandSpec = {
+  name: 'vuln-scan',
+  summary: 'Fast regex scan for vulnerability patterns',
+  help: VULN_SCAN_HELP,
+  valueFlags: ['exclude'],
+  run: ({ positionals, options }) => cmdVulnScan({
+    path: positionals[0] || '.',
+    json: options.json === true,
+    exclude: stringOption(options, 'exclude', '').split(',').filter(Boolean),
+  }),
+};
+
 export const COMMANDS: CommandSpec[] = [
   statsCommand,
   gitInsightsCommand,
+  secretsCommand,
+  vulnScanCommand,
 ];
 
 /** Look up a registered command by name. */
