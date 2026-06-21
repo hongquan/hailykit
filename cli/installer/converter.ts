@@ -126,6 +126,26 @@ export function getModelMap(provider: string): Record<ModelTier, string> {
 }
 
 /**
+ * Optional per-provider, per-tier reasoning-effort hints (e.g. Codex
+ * `model_reasoning_effort`). Empty today — kept separate from MODEL_MAP so the
+ * typed tier→model contract stays clean. Populate when a provider needs an
+ * explicit effort; consumers emit the hint only when a value is present.
+ */
+export const MODEL_EFFORT_MAP: Record<string, Partial<Record<ModelTier, string>>> = {};
+
+/**
+ * Resolve the reasoning-effort hint for a provider/tier, or undefined when none
+ * is configured (the common case). Lets agent converters emit
+ * `model_reasoning_effort` without inventing data.
+ *
+ * @param provider - Provider key (e.g. "codex").
+ * @param tier     - Model tier.
+ */
+export function getModelEffort(provider: string, tier: ModelTier): string | undefined {
+  return MODEL_EFFORT_MAP[provider]?.[tier];
+}
+
+/**
  * Providers where the active model is user-configured at runtime (not fixed per-install).
  * For these providers, the `model:` tier line is stripped from agent files so the
  * provider uses whatever model the developer has selected in their editor settings.

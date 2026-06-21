@@ -12,7 +12,7 @@ import { OpenCodeProvider } from '../installer/providers/opencode';
 import { ZedProvider } from '../installer/providers/zed';
 import { toCrushMd, toKimiMd } from '../installer/converter';
 import {
-  escapeTomlMultiline, toCodexSlug, buildAgentConfigEntry,
+  escapeTomlMultiline, toCodexSlug, buildAgentConfigEntry, deriveSandboxMode,
   extractUnmanagedAgentSlugs, mergeManagedTomlBlock,
 } from '../installer/providers/codex-toml';
 import { parseVersion, compareVersions, warnIfCodexHooksUnsupported } from '../installer/providers/codex-version';
@@ -368,6 +368,54 @@ test('CodexProvider.installAgents: body with triple-quotes produces parseable .t
   const toml = fs.readFileSync(path.join(target, 'agents', 'haily_researcher.toml'), 'utf8');
   const inner = toml.slice(toml.indexOf('"""') + 3, toml.lastIndexOf('"""'));
   assert.ok(!inner.includes('"""'), 'no raw triple-quote run inside developer_instructions');
+});
+
+// ---------------------------------------------------------------------------
+// P3 — deriveSandboxMode + model/effort line assembly
+// ---------------------------------------------------------------------------
+
+test('deriveSandboxMode: write tool → workspace-write, read-only → read-only, none → null', () => {
+  assert.equal(deriveSandboxMode('Bash, Read'), 'workspace-write');
+  assert.equal(deriveSandboxMode('Glob, Grep, Read'), 'read-only');
+  assert.equal(deriveSandboxMode('Task(Explore)'), 'workspace-write'); // task counts as write; parens stripped
+  assert.equal(deriveSandboxMode(undefined), null);
+  assert.equal(deriveSandboxMode(''), null);
+  assert.equal(deriveSandboxMode('WebFetch'), null); // no known read/write tool
+});
+
+test('CodexProvider.installAgents: emits sandbox_mode from tools frontmatter', () => {
+  const kit = kitWithAgent('haily-writer', 'Body.', 'model: medium\ntools: Bash, Read\n');
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  new CodexProvider().installAgents!(kit, target);
+  const toml = fs.readFileSync(path.join(target, 'agents', 'haily_writer.toml'), 'utf8');
+  assert.match(toml, /sandbox_mode = "workspace-write"/);
+  assert.match(toml, /model = "gpt-5\.4"/); // medium tier resolved
+  assert.ok(!toml.includes('model_reasoning_effort'), 'no effort data today → no effort line');
+});
+
+test('CodexProvider.installAgents: read-only tools → read-only; no tools → no sandbox line', () => {
+  const ro = kitWithAgent('haily-reader', 'Body.', 'tools: Glob, Grep, Read\n');
+  const t1 = path.join(path.dirname(ro), 'out');
+  fs.mkdirSync(t1, { recursive: true });
+  new CodexProvider().installAgents!(ro, t1);
+  assert.match(fs.readFileSync(path.join(t1, 'agents', 'haily_reader.toml'), 'utf8'), /sandbox_mode = "read-only"/);
+
+  const none = kitWithAgent('haily-plain', 'Body.'); // no tools field
+  const t2 = path.join(path.dirname(none), 'out');
+  fs.mkdirSync(t2, { recursive: true });
+  new CodexProvider().installAgents!(none, t2);
+  assert.ok(!fs.readFileSync(path.join(t2, 'agents', 'haily_plain.toml'), 'utf8').includes('sandbox_mode'));
+});
+
+test('CodexProvider.installAgents: unknown concrete model preserved as comment (no model = undefined)', () => {
+  const kit = kitWithAgent('haily-x', 'Body.', 'model: some-raw-id\n');
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  new CodexProvider().installAgents!(kit, target);
+  const toml = fs.readFileSync(path.join(target, 'agents', 'haily_x.toml'), 'utf8');
+  assert.match(toml, /# model = "some-raw-id"/);
+  assert.ok(!toml.includes('model = undefined'), 'must never emit model = undefined');
 });
 
 // ---------------------------------------------------------------------------

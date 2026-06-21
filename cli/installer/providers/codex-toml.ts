@@ -53,6 +53,28 @@ export function toCodexSlug(name: string): string {
 }
 
 /**
+ * Infer a Codex `sandbox_mode` from an agent's `tools:` frontmatter.
+ * Any write-capable tool → `workspace-write`; otherwise any read tool →
+ * `read-only`; otherwise null (omit, Codex uses its default). `task` counts
+ * as write — spawned subagents may write (conservative). Parenthesized forms
+ * like `Task(Explore)` are normalized to the bare tool name.
+ *
+ * @param tools - Comma/semicolon/pipe-separated tool list, or undefined.
+ */
+export function deriveSandboxMode(tools: string | undefined): 'workspace-write' | 'read-only' | null {
+  if (typeof tools !== 'string' || !tools.trim()) return null;
+  const list = tools
+    .split(/[,;|]/)
+    .map((t) => t.trim().toLowerCase().replace(/\(.*\)$/, ''))
+    .filter(Boolean);
+  const WRITE = ['bash', 'write', 'edit', 'multiedit', 'notebookedit', 'apply_patch', 'task'];
+  const READ = ['read', 'grep', 'glob', 'ls', 'search'];
+  if (list.some((t) => WRITE.includes(t))) return 'workspace-write';
+  if (list.some((t) => READ.includes(t))) return 'read-only';
+  return null;
+}
+
+/**
  * Build the 3-line `[agents.<slug>]` registry table for config.toml.
  *
  * @param slug        - snake_case key (also the `agents/<slug>.toml` basename).

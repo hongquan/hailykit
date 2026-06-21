@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
 import {
   parseFrontmatter, resolveSkillRefs, resolveAgentRefs, isProviderAllowed,
-  getModelMap, resolveModel, resolveModelRefs, type ModelTier, type AgentRefType,
+  getModelMap, getModelEffort, resolveModel, resolveModelRefs, type ModelTier, type AgentRefType,
 } from '../converter.js';
 import {
   installHookWrappers,
@@ -16,6 +16,7 @@ import {
   escapeTomlMultiline,
   toCodexSlug,
   buildAgentConfigEntry,
+  deriveSandboxMode,
   extractUnmanagedAgentSlugs,
   mergeManagedTomlBlock,
 } from './codex-toml.js';
@@ -23,6 +24,7 @@ import { warnIfCodexHooksUnsupported } from './codex-version.js';
 
 const AGENTS_SENTINEL_START = '# --- hailykit-agents-start ---';
 const AGENTS_SENTINEL_END = '# --- hailykit-agents-end ---';
+const KNOWN_TIERS = new Set<string>(['thinking', 'medium', 'fast', 'deep']);
 
 /**
  * Build the default scaffold content for a fresh or reset AGENTS.md.
@@ -211,8 +213,6 @@ export class CodexProvider extends BaseProvider {
 
       const name = frontmatter.name || file.replace(/\.md$/, '');
       const description = frontmatter.description || '';
-      const tier = (frontmatter.model ?? 'medium') as ModelTier;
-      const model = getModelMap('codex')[tier];
       const slug = toCodexSlug(name);
 
       if (unmanaged.has(slug) || entries.has(slug)) {
@@ -228,15 +228,28 @@ export class CodexProvider extends BaseProvider {
         this.name,
       );
 
-      const toml = [
+      const lines = [
         `name = ${JSON.stringify(name)}`,
         `description = ${JSON.stringify(description)}`,
-        `model = ${JSON.stringify(model)}`,
-        'developer_instructions = """',
-        escapeTomlMultiline(resolvedBody),
-        '"""',
-        '',
-      ].join('\n');
+      ];
+
+      // model: resolve a known tier to its concrete id; preserve an unknown
+      // concrete id as a comment (never emit `model = undefined`).
+      const rawModel = frontmatter.model;
+      if (rawModel == null || KNOWN_TIERS.has(rawModel)) {
+        const tier = (rawModel ?? 'medium') as ModelTier;
+        lines.push(`model = ${JSON.stringify(getModelMap('codex')[tier])}`);
+        const effort = getModelEffort('codex', tier);
+        if (effort) lines.push(`model_reasoning_effort = ${JSON.stringify(effort)}`);
+      } else {
+        lines.push(`# model = ${JSON.stringify(String(rawModel).trim())}`);
+      }
+
+      const sandbox = deriveSandboxMode(typeof frontmatter.tools === 'string' ? frontmatter.tools : undefined);
+      if (sandbox) lines.push(`sandbox_mode = ${JSON.stringify(sandbox)}`);
+
+      lines.push('', 'developer_instructions = """', escapeTomlMultiline(resolvedBody), '"""', '');
+      const toml = lines.join('\n');
 
       fs.writeFileSync(path.join(outDir, `${slug}.toml`), toml, 'utf8');
       entries.set(slug, buildAgentConfigEntry(slug, description));
