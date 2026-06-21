@@ -114,7 +114,11 @@ export class KimiProvider extends BaseProvider {
           const h = hook as Record<string, unknown>;
           if (h.type !== 'command' || typeof h.command !== 'string') continue;
 
-          const m = h.command.match(/node\s+\.claude\/hooks\/(.+\.cjs)/);
+          // Capture the hooks-dir-relative .cjs from either the plain
+          // `node .claude/hooks/x.cjs` form OR the shipped runner form
+          // `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/x.cjs; …'`.
+          // The catalog uses the latter, so a `node …`-only pattern matched nothing.
+          const m = h.command.match(/\.claude\/hooks\/([^\s"';]+\.cjs)/);
           if (!m) continue;
 
           const absScript = `${destNorm}/${m[1]}`;

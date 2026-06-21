@@ -771,6 +771,25 @@ test('KimiProvider.installHooks writes TOML [[hooks]] block to config.toml', () 
   assert.match(toml, /# hailykit-managed-end/);
 });
 
+test('KimiProvider.installHooks handles the shipped bash -c runner command shape', () => {
+  const root = tmp();
+  const kit = path.join(root, 'kit');
+  fs.mkdirSync(path.join(kit, 'hooks'), { recursive: true });
+  fs.writeFileSync(path.join(kit, 'hooks', 'haily-prompt.cjs'), '// hook');
+
+  const cmd = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-prompt.cjs; bash "$h" "$s"'`;
+  const settings = { hooks: { UserPromptSubmit: [{ hooks: [{ type: 'command', command: cmd, timeout: 9000 }] }] } };
+  fs.writeFileSync(path.join(kit, 'settings.json'), JSON.stringify(settings));
+
+  const target = path.join(root, 'out');
+  new KimiProvider().installHooks(kit, target);
+
+  const toml = fs.readFileSync(path.join(target, 'config.toml'), 'utf8');
+  assert.match(toml, /\[\[hooks\]\]/);
+  assert.match(toml, /haily-prompt\.cjs/); // resolved the .cjs, not the .sh runner
+  assert.ok(!toml.includes('haily-node.sh'), 'must not point at the .sh runner');
+});
+
 test('KimiProvider.installHooks upserts managed block in existing config.toml', () => {
   const root = tmp();
   const kit = path.join(root, 'kit');
