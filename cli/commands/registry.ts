@@ -7,6 +7,9 @@ import { cmdContracts } from './contracts/contracts';
 import { cmdTestDetect } from './test/detect';
 import { cmdCoverageParse, type CoverageFormat } from './test/coverage';
 import { cmdDepsAudit } from './deps/audit';
+import { cmdAdrNext } from './adr-next';
+import { cmdLicenseDetect } from './license-detect';
+import { cmdPack } from './pack';
 
 /**
  * Registry of native analysis commands (stats, and the Tier 1–3 tools added by
@@ -236,6 +239,61 @@ govulncheck). A missing auditor yields a structured 'auditor_missing', not an er
   }),
 };
 
+const adrNextCommand: CommandSpec = {
+  name: 'adr-next',
+  summary: 'Compute the next ADR number and filename',
+  help: `hailykit adr-next [--dir <path>] [--slug "<title>"] — Next ADR number/filename
+
+Options:
+  --dir <path>         Decisions directory (default: docs/decisions)
+  --slug "<title>"     Title to slugify into the filename
+  --json               Emit the JSON envelope`,
+  valueFlags: ['dir', 'slug'],
+  run: ({ options }) => cmdAdrNext({
+    dir: stringOption(options, 'dir', 'docs/decisions'),
+    slug: stringOption(options, 'slug', ''),
+    json: options.json === true,
+  }),
+};
+
+const licenseDetectCommand: CommandSpec = {
+  name: 'license-detect',
+  summary: 'Classify a source license into adapt|rewrite',
+  help: `hailykit license-detect [path] — Classify license → port mode (adapt | rewrite)
+
+Arguments:
+  path                 Source directory (default: current directory)
+
+Options:
+  --json               Emit the JSON envelope
+
+Cross-checks LICENSE text vs package.json; conflict or unknown → rewrite.`,
+  valueFlags: [],
+  run: ({ positionals, options }) => cmdLicenseDetect({ path: positionals[0] || '.', json: options.json === true }),
+};
+
+const packCommand: CommandSpec = {
+  name: 'pack',
+  summary: 'Concatenate repo text files + token estimate (secret-safe)',
+  help: `hailykit pack [path] — Pack repo text files into one blob (zero-dep repomix subset)
+
+Arguments:
+  path                 Directory to pack (default: current directory)
+
+Options:
+  --exclude <pattern>  Additional path substring to exclude
+  --json               Emit the JSON envelope
+
+Default-deny for secrets: gitignore-aware + credential-file denylist + content
+secret scan. Use repomix for remote repos / compression / alternate formats.`,
+  valueFlags: ['exclude'],
+  run: ({ positionals, options }) => cmdPack({
+    path: positionals[0] || '.',
+    exclude: stringOption(options, 'exclude', '').split(',').filter(Boolean),
+    json: options.json === true,
+  }),
+};
+
 export const COMMANDS: CommandSpec[] = [
   statsCommand,
   gitInsightsCommand,
@@ -245,6 +303,9 @@ export const COMMANDS: CommandSpec[] = [
   testDetectCommand,
   coverageParseCommand,
   depsAuditCommand,
+  adrNextCommand,
+  licenseDetectCommand,
+  packCommand,
 ];
 
 /** Look up a registered command by name. */

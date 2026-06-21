@@ -147,9 +147,12 @@ Files that MUST NOT change their public interface without a version bump or migr
 
 ## --pack Mode
 
-Runs `repomix` to collapse the full repository into one AI-consumable file. Use when sharing context with an external LLM or when a complete snapshot is required.
+Collapse the repository into one AI-consumable file. Use when sharing context with an external LLM or when a complete snapshot is required.
+
+For a quick zero-dependency local dump, `hailykit pack [path] --json` concatenates text files (gitignore-aware) with a token estimate and is **secret-safe by default** (credential-file denylist + content secret scan exclude any file that could leak). For remote repos, compression, alternate output formats, or clipboard, use `repomix`:
 
 ```bash
+hailykit pack . --json                                          # zero-dep, secret-safe local dump
 repomix                                                          # pack CWD → repomix-output.xml
 repomix --style markdown                                         # markdown output
 repomix --include "src/**/*.ts" --remove-comments -o output.md  # scoped, comments stripped
