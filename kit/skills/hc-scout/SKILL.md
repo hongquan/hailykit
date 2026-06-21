@@ -110,6 +110,8 @@ Extracts the public API surface of a target module or scope — exported interfa
 
 **Use when:** planning a refactor, reviewing cross-module dependencies, or establishing a stability boundary before making changes.
 
+**Fast path (TS/JS, Python, Go):** run `hailykit contracts <scope> --json` first — it extracts exported symbols, signatures, and HTTP endpoints deterministically with no subagent. Read its output as the surface map; only fall back to manual extraction (or other stacks) via the patterns below. It is a fast regex surface map, not a parser — read source for edge syntax it misses.
+
 See `references/protocol-contract-extraction.md` for extraction patterns per language/stack.
 
 ```

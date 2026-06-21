@@ -3,6 +3,7 @@ import { cmdStats, DEFAULT_SALARY } from './stats';
 import { cmdGitInsights } from './git-insights';
 import { cmdSecrets } from './scan/secrets';
 import { cmdVulnScan } from './scan/vuln-scan';
+import { cmdContracts } from './contracts/contracts';
 
 /**
  * Registry of native analysis commands (stats, and the Tier 1–3 tools added by
@@ -147,11 +148,40 @@ const vulnScanCommand: CommandSpec = {
   }),
 };
 
+const CONTRACTS_HELP = `
+hailykit contracts [path] — Extract the public surface (exports, signatures, endpoints)
+
+Arguments:
+  path                 Directory or file to scan (default: current directory)
+
+Options:
+  --lang <list>        Comma-separated language filter (ts,js,py,go)
+  --exclude <pattern>  Additional path substring to exclude
+  --json               Emit the JSON envelope (machine-readable)
+
+Supports TS/JS, Python, Go. A fast regex surface map, not a parser — read the
+source for edge syntax it misses.
+`.trim();
+
+const contractsCommand: CommandSpec = {
+  name: 'contracts',
+  summary: 'Extract exported symbols, signatures, and endpoints',
+  help: CONTRACTS_HELP,
+  valueFlags: ['lang', 'exclude'],
+  run: ({ positionals, options }) => cmdContracts({
+    path: positionals[0] || '.',
+    json: options.json === true,
+    langs: stringOption(options, 'lang', '').split(',').filter(Boolean),
+    exclude: stringOption(options, 'exclude', '').split(',').filter(Boolean),
+  }),
+};
+
 export const COMMANDS: CommandSpec[] = [
   statsCommand,
   gitInsightsCommand,
   secretsCommand,
   vulnScanCommand,
+  contractsCommand,
 ];
 
 /** Look up a registered command by name. */
