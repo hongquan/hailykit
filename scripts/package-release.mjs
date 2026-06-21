@@ -8,7 +8,7 @@
  * platform's zip tool, mirroring src/installer/extractor.ts.
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { createZip } from './zip-writer.mjs';
 
@@ -68,6 +68,21 @@ function collectFiles(dir) {
 
 buildDist();
 stage();
+
+// Stamp the release version into the staged kit/metadata.json so that
+// installed copies always report the correct version.  package.json is the
+// single source of truth for the version number; kit/metadata.json in the
+// repo is a working-copy file that may lag behind between bumps.
+const pkgVersion = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
+const stagedMetaPath = join(STAGE_DIR, 'kit', 'metadata.json');
+if (existsSync(stagedMetaPath)) {
+  const meta = JSON.parse(readFileSync(stagedMetaPath, 'utf8'));
+  meta.version = pkgVersion;
+  meta.buildDate = new Date().toISOString().slice(0, 10);
+  writeFileSync(stagedMetaPath, JSON.stringify(meta, null, 2) + '\n', 'utf8');
+  console.log(`Stamped kit/metadata.json → version=${pkgVersion}`);
+}
+
 const files = collectFiles(STAGE_DIR);
 createZip(files, OUT_ZIP);
 console.log(`\nPackaged ${OUT_ZIP} (${files.length} files)`);

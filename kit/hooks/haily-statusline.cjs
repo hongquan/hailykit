@@ -72,7 +72,7 @@ try {
     const agents = snap?.agents || [];
     const todos = snap?.todos || [];
     if (agents.length > 0) {
-      parts.push(`⚡ ${agents.filter((a) => a.completedAt).length}/${agents.length}`);
+      parts.push(`🤖 ${agents.filter((a) => a.completedAt).length}/${agents.length}`);
     }
     if (todos.length > 0) {
       parts.push(`☑ ${todos.filter((t) => t.status === 'completed').length}/${todos.length}`);

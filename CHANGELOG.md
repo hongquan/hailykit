@@ -7,39 +7,42 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [1.10.3] (2026-06-21)
+
 ### 🚀 Improvements
 
-- Codex provider: register agents as `[agents.<slug>]` in `~/.codex/config.toml` (sentinel-managed) so Codex actually discovers installed agents — previously the per-agent `.toml` files were inert
-- Codex provider: escape `developer_instructions` for TOML multiline (bodies containing `"""` no longer corrupt the generated file)
-- Codex hooks: per-hook timeout baked into wrappers (from each hook's `timeout`), and `additionalContext` is kept only for events Codex accepts it on (`SessionStart`, `SubagentStart`, `PreToolUse`, `PostToolUse`, `UserPromptSubmit`) — stripped at the verified nested `hookSpecificOutput.additionalContext` location for all others
-- Codex hooks: warn (never block) when the `codex` CLI is missing or older than the recommended baseline
-- Codex agents: emit `sandbox_mode` inferred from each agent's `tools` (`workspace-write` / `read-only`) and preserve an unknown concrete `model` id as a comment instead of writing `model = undefined`; `model_reasoning_effort` wiring in place (emitted only when the model map supplies an effort)
-- Codex config.toml: all writes are now atomic (temp + rename); the `[features] hooks` flag writer self-heals — merges into an existing `[features]` section without a duplicate header/key, flips `hooks = false` → `true`, and drops the legacy `codex_hooks` flag
-- Codex hooks now install on Windows (previously skipped) — the generated wrappers are shebang-free and invoked as `node "<abs>"`, which Codex runs the same cross-platform
+- hailykit git-insights: churn, bus factor, velocity, change-impact
+- hailykit secrets: native secret and vulnerability scanners
+- hailykit contracts: extract exports, signatures, endpoints
+- hailykit test-detect: framework and coverage normalization
+- hailykit deps-audit: unified advisory schema across package managers
+- hailykit adr-next: ADR, license, and secret-safe pack tools
+- cli/lib: shared zero-dep git, fs-scan, spawn primitives
+- hc-spec: EARS-notation acceptance criteria with approval gate
+- hc-adr: capture or auto-discover architectural decisions
+- hc-review: batch mode and OWASP Agentic checks
+- hc-debug: SUSPECTED/PROBABLE/CONFIRMED confidence levels
+- hc-scout: cross-repo consumer tracing via --deps flag
+- hc-plan: memory-augmented planning via --resume flag
+- Codex provider: register agents in config.toml sentinel block
+- Codex provider: escape developer_instructions for TOML multiline
+- Codex hooks: bake per-hook timeout into generated wrappers
+- Codex hooks: strip additionalContext for non-accepting events
+- Codex hooks: warn when codex CLI is missing or outdated
+- Codex agents: infer sandbox_mode from agent tools list
+- Codex agents: preserve unknown model id as comment
+- Codex config.toml: atomic writes via temp-file rename
+- Codex config.toml: self-healing features.hooks flag writer
+- Codex hooks: install on Windows using node invocation
+- hc-ship: embed changelog format constraint inline in step 8
 
 ### 🐛 Fixes
 
-- Codex hooks: hook-command parser now matches the shipped `bash -c` runner command shape, not only `node …` — previously `hooks.json` / the feature flag were never written against the real catalog
-
----
-
-## [1.10.1] (2026-06-21)
-
-### 🚀 Improvements
-
-- hailykit git-insights — churn, bus factor, velocity, change-impact
-- hailykit secrets / vuln-scan — native secret + vulnerability scanners
-- hailykit contracts — extract exports, signatures, endpoints (TS/Py/Go)
-- hailykit test-detect / coverage-parse — framework + coverage normalization
-- hailykit deps-audit — unified npm/pip/cargo/go advisory schema
-- hailykit adr-next / license-detect / pack — ADR, license, secret-safe pack
-- cli/lib — shared zero-dep git/fs-scan/spawn/gitignore primitives
-- hc-spec: EARS-notation acceptance criteria with approval gate
-- hc-adr: capture or auto-discover architectural decisions
-- hc-review: batch mode, team health report, OWASP Agentic checks
-- hc-debug: SUSPECTED/PROBABLE/CONFIRMED confidence signaling
-- hc-scout: cross-repo consumer tracing via --deps flag
-- hc-plan: memory-augmented planning via --resume flag
+- hailykit upgrade: version always read from kit/metadata.json
+- release:pack: stamp correct version into kit/metadata.json before zip
+- Codex hooks: parser matches bash -c runner command shape
 
 ---
 
@@ -47,13 +50,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- `hailykit install` — wraps GitHub API and download calls with retry logic
-- **`hc-git issues`** — discover and triage open GitHub issues by priority
-- **`hc-goal`** — redesigned autonomous loop: clarify-or-assume instead of halting, no-new-failures regression gate, run-ledger compaction, per-phase model-tier routing
-- **`hc-cook`** — no-new-failures regression gate (baseline-relative; pre-existing failures non-blocking); `--strict` restores full-suite-green
-- **`hc-review`** — Checks system: user-defined per-repo criteria in `.agents/checks/*.yaml`, auto-discovered and injected at Stage 2 Quality
-- **`hc-debug`** — Oracle escalation: 3+ failed fix attempts → `haily-debugger` at `{model:thinking}` tier with fresh evidence only
-- **`hc-plan`** — writes `scout-report.md` to plan folder; `hc-review` and `hc-debug` reuse it to skip re-scouting within the same plan session
+- hailykit install: retry logic for GitHub API and downloads
+- hc-git issues: discover and triage open GitHub issues
+- hc-goal: clarify-or-assume replaces halt-on-ambiguity
+- hc-goal: no-new-failures regression gate with ledger compaction
+- hc-cook: baseline-relative no-new-failures regression gate
+- hc-cook: --strict restores full-suite-green requirement
+- hc-review: user-defined per-repo check criteria via checks/*.yaml
+- hc-debug: oracle escalation after 3 failed fix attempts
+- hc-plan: scout-report.md reused by review and debug agents
 
 ---
 
@@ -61,7 +66,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **Statusline** — new `haily-statusline.cjs` renders a live session summary
+- haily-statusline: live session summary in status line
 
 ---
 
@@ -69,23 +74,23 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- `hailykit stats` + `hl-stats`
+- hailykit stats: zero-dep code statistics CLI
+- hl-stats: code metrics skill
 
 ---
 
 ## [1.6.7] (2026-06-12)
 
-### 🐛 Fixes
-
-- **`hailykit upgrade` / `install`** — upgrade logic
-- **Model tracer + session summary** — now visible (dead hook revived)
-- Release create fall back to upload
-
 ### 🚀 Improvements
 
-- **`hailykit stats` + `hl-stats`** — zero-dep code statistics
-- **`hailykit stats`** — Gleam support
-- Model tracer + usage enabled by default
+- hailykit stats: Gleam language support
+- haily-tracer: model tracer and usage enabled by default
+
+### 🐛 Fixes
+
+- hailykit upgrade: fix version detection and upgrade logic
+- haily-tracer: dead hook revived, output now visible
+- hailykit release: fall back to upload when create fails
 
 ---
 
@@ -93,12 +98,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hl-ultra`** — opt-in deep-model escalation
+- hl-ultra: opt-in deep-model escalation skill
 
 ### 🐛 Fixes
 
-- **Gemini / Antigravity / Codex / Zed** — upgrade fixes
-- **Test isolation** — `HAILYKIT_HOME` guarded in converter tests
+- Gemini, Codex, Zed: upgrade path fixes
+- converter tests: HAILYKIT_HOME guard for test isolation
 
 ---
 
@@ -106,9 +111,9 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- Auto deep-research / dynamic workflows blocked on install
-- **`hl-research`** — cost discipline + claim refutation
-- **`hailykit uninstall`** — strips dangling hook refs
+- installer: block auto deep-research and dynamic workflows
+- hl-research: cost discipline and claim refutation
+- hailykit uninstall: strip dangling hook references
 
 ---
 
@@ -116,13 +121,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- `hailykit uninstall` + `--help`
-- **`hc-ship`** — auto-detects git/release automation
+- hailykit: add uninstall command and --help flag
+- hc-ship: auto-detect git and release automation regime
 
 ### 🐛 Fixes
 
-- **`hc-cop`** — reachable from routing files
-- CI enforces skill cross-reference check
+- hc-cop: reachable from domain routing files
+- CI: enforce skill cross-reference check on push
 
 ---
 
@@ -130,16 +135,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- **`hc-ship` / `hc-docs` / `hc-new`** — upgrades
-- **`AGENTS.md`** — canonical project context file
-- Skill cross-links added
-- Provider specs
-- **`hc-goal`** — autonomous plan → cook → review → commit loop
+- hc-ship, hc-docs, hc-new: skill upgrades
+- AGENTS.md: canonical project context file
+- skills: add cross-links between related skills
+- providers: add multi-provider spec files
+- hc-goal: autonomous plan to cook to review loop
 
 ### 🐛 Fixes
 
-- **Crush** — skills install as `hc-name/SKILL.md`
-- Removed non-spec `user-invocable` field
+- Crush: skills install as hc-name/SKILL.md path
+- skills: remove non-spec user-invocable field
 
 ---
 
@@ -147,12 +152,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- Kimi & Crush providers
+- providers: add Kimi and Crush provider support
 
 ### 🐛 Fixes
 
-- Model stripping for user-configured providers
-- **OpenCode** — `globalDir` on macOS/Windows
+- providers: model stripping for user-configured providers
+- OpenCode: globalDir path on macOS and Windows
 
 ---
 
@@ -160,25 +165,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- Zero-dep TypeScript engine; NDJSON-over-stdio tool execution
-- `list` / `run` / `info` CLI commands
-- Multi-provider installer: Claude, Gemini, Cursor, Windsurf, OpenCode, Codex, Zed
-- 30 skills (`hc-*` coding, `hl-*` universal)
-- `install` / `upgrade` / `status` commands
-- Per-provider SKILL.md conversion (TOML, Markdown, catalog)
-- `settings.json` deny rules — union-add, atomic writes
-- Secret/credential block hook + opt-in PII guard
-- Non-destructive settings migration; `deletions[]` removes stale files
+- engine: zero-dep TypeScript NDJSON-over-stdio tool execution
+- CLI: list, run, and info commands
+- installer: multi-provider support for six providers
+- skills: 30 skills across hc and hl prefixes
+- installer: install, upgrade, and status commands
+- converter: per-provider SKILL.md conversion pipeline
+- settings: deny rules with union-add and atomic writes
+- hooks: secret block and opt-in PII guard
+- installer: non-destructive settings migration with deletions array
 
 ---
-
-[1.6.2]: https://github.com/dxsl-org/hailykit/compare/v1.6.1...v1.6.2
-[1.6.1]: https://github.com/dxsl-org/hailykit/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/dxsl-org/hailykit/compare/v1.5.0...v1.6.0
-[1.5.0]: https://github.com/dxsl-org/hailykit/compare/v1.4.0...v1.5.0
-[1.4.0]: https://github.com/dxsl-org/hailykit/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/dxsl-org/hailykit/compare/v1.2.1...v1.3.0
-[1.2.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.1...v1.2.1
-[1.1.1]: https://github.com/dxsl-org/hailykit/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/dxsl-org/hailykit/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/dxsl-org/hailykit/releases/tag/v1.0.0

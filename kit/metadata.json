@@ -1,8 +1,8 @@
 {
-  "version": "1.8.0",
+  "version": "1.10.1",
   "name": "hailykit",
   "description": "Skill-based workflow framework for AI coding agents — Claude Code, Gemini CLI, Cursor, Windsurf, and more.",
-  "buildDate": "2026-06-12",
+  "buildDate": "2026-06-21",
   "repository": {
     "type": "git",
     "url": "https://github.com/dxsl-org/hailykit.git"
