@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { GeminiProvider } from '../installer/providers/gemini';
 import { CodexProvider } from '../installer/providers/codex';
 import { CrushProvider } from '../installer/providers/crush';
@@ -10,6 +11,24 @@ import { KimiProvider } from '../installer/providers/kimi';
 import { OpenCodeProvider } from '../installer/providers/opencode';
 import { ZedProvider } from '../installer/providers/zed';
 import { toCrushMd, toKimiMd } from '../installer/converter';
+import {
+  escapeTomlMultiline, toCodexSlug, buildAgentConfigEntry,
+  extractUnmanagedAgentSlugs, mergeManagedTomlBlock,
+} from '../installer/providers/codex-toml';
+import { parseVersion, compareVersions, warnIfCodexHooksUnsupported } from '../installer/providers/codex-version';
+import { generateHookWrapper, buildTimeoutsByPath, buildCodexHooksJson, installHookWrappers } from '../installer/providers/codex-hook-compat';
+
+/** Write an agent .md into a fresh kit/agents/ and return the kit dir. */
+function kitWithAgent(name: string, body: string, fm = ''): string {
+  const root = tmp();
+  const kit = path.join(root, 'kit');
+  fs.mkdirSync(path.join(kit, 'agents'), { recursive: true });
+  fs.writeFileSync(
+    path.join(kit, 'agents', `${name}.md`),
+    `---\nname: ${name}\ndescription: d\n${fm}---\n\n${body}`,
+  );
+  return kit;
+}
 
 function tmp(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'haily-prov-'));
@@ -232,11 +251,266 @@ test('CodexProvider.installAgents generates TOML from agent MD files', () => {
   fs.mkdirSync(target, { recursive: true });
   new CodexProvider().installAgents!(kit, target);
 
-  const toml = fs.readFileSync(path.join(target, 'agents', 'haily-researcher.toml'), 'utf8');
+  // Filename uses the snake_case slug (matches the config_file registry path).
+  const toml = fs.readFileSync(path.join(target, 'agents', 'haily_researcher.toml'), 'utf8');
   assert.match(toml, /name = "haily-researcher"/);
   assert.match(toml, /description = "Research things"/);
   assert.match(toml, /developer_instructions/);
   assert.match(toml, /Do research\./);
+
+  // Agent is registered in config.toml so Codex can discover it.
+  const cfg = fs.readFileSync(path.join(target, 'config.toml'), 'utf8');
+  assert.match(cfg, /\[agents\.haily_researcher\]/);
+  assert.match(cfg, /config_file = "agents\/haily_researcher\.toml"/);
+  assert.match(cfg, /# --- hailykit-agents-start ---/);
+});
+
+// ---------------------------------------------------------------------------
+// codex-toml helpers
+// ---------------------------------------------------------------------------
+
+test('escapeTomlMultiline: breaks triple-quote runs, escapes backslash, pads trailing quote', () => {
+  assert.equal(escapeTomlMultiline('a """ b'), 'a ""\\" b');
+  assert.equal(escapeTomlMultiline('c:\\d'), 'c:\\\\d');
+  assert.equal(escapeTomlMultiline('ends"'), 'ends"\n');
+});
+
+test('escapeTomlMultiline: escaped body keeps the closing delimiter intact', () => {
+  const body = 'See """ x """ block';
+  const toml = `developer_instructions = """\n${escapeTomlMultiline(body)}\n"""`;
+  // No raw triple-quote run survives between the open and close delimiters.
+  const inner = toml.slice(toml.indexOf('\n') + 1, toml.lastIndexOf('\n'));
+  assert.ok(!inner.includes('"""'), 'inner body must not contain a raw """');
+});
+
+test('toCodexSlug: kebab → snake, lowercases, strips unsafe chars (no path traversal)', () => {
+  assert.equal(toCodexSlug('haily-researcher'), 'haily_researcher');
+  assert.equal(toCodexSlug('A B/../c'), 'a_b_c');
+  assert.match(toCodexSlug('***'), /^agent_[0-9a-f]{8}$/); // empty-normalize → hash fallback
+});
+
+test('buildAgentConfigEntry: 3-line table with config_file pointer', () => {
+  assert.equal(
+    buildAgentConfigEntry('haily_researcher', 'Research things'),
+    '[agents.haily_researcher]\ndescription = "Research things"\nconfig_file = "agents/haily_researcher.toml"',
+  );
+});
+
+test('extractUnmanagedAgentSlugs: finds user [agents.X] tables', () => {
+  const slugs = extractUnmanagedAgentSlugs('[agents.mybot]\nx = 1\n[other]\n[agents.two]\n');
+  assert.deepEqual([...slugs].sort(), ['mybot', 'two']);
+});
+
+test('mergeManagedTomlBlock: idempotent single block, preserves user content, empty removes', () => {
+  const S = '# --- hailykit-agents-start ---', E = '# --- hailykit-agents-end ---';
+  const user = '[agents.mybot]\nx = 1\n';
+  const once = mergeManagedTomlBlock(user, '[agents.a]', S, E);
+  assert.match(once, /\[agents\.mybot\]/);
+  assert.equal((once.match(/hailykit-agents-start/g) || []).length, 1);
+  const twice = mergeManagedTomlBlock(once, '[agents.a]', S, E);
+  assert.equal((twice.match(/hailykit-agents-start/g) || []).length, 1);
+  assert.match(twice, /\[agents\.mybot\]/);
+  const removed = mergeManagedTomlBlock(twice, '', S, E);
+  assert.ok(!removed.includes('hailykit-agents-start'));
+  assert.match(removed, /\[agents\.mybot\]/);
+});
+
+// ---------------------------------------------------------------------------
+// CodexProvider.installAgents — registry, collision, idempotency, uninstall
+// ---------------------------------------------------------------------------
+
+test('CodexProvider.installAgents: preserves user [agents.X], skips slug collision', () => {
+  const kit = kitWithAgent('mybot', 'Body.'); // normalizes to slug "mybot"
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  fs.writeFileSync(path.join(target, 'config.toml'), '[agents.mybot]\ndescription = "user"\n');
+
+  new CodexProvider().installAgents!(kit, target);
+
+  const cfg = fs.readFileSync(path.join(target, 'config.toml'), 'utf8');
+  assert.match(cfg, /description = "user"/); // user entry preserved
+  assert.ok(!cfg.includes('hailykit-agents-start'), 'colliding kit agent must be skipped, no managed block');
+  assert.ok(!fs.existsSync(path.join(target, 'agents', 'mybot.toml')), 'collision must skip .toml write');
+});
+
+test('CodexProvider.installAgents: running twice yields exactly one managed block', () => {
+  const kit = kitWithAgent('haily-researcher', 'Body.');
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  const prov = new CodexProvider();
+  prov.installAgents!(kit, target);
+  prov.installAgents!(kit, target);
+  const cfg = fs.readFileSync(path.join(target, 'config.toml'), 'utf8');
+  assert.equal((cfg.match(/hailykit-agents-start/g) || []).length, 1);
+});
+
+test('CodexProvider.uninstall: strips agents block, leaves user [agents.X]', () => {
+  const kit = kitWithAgent('haily-researcher', 'Body.');
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  fs.writeFileSync(path.join(target, 'config.toml'), '[agents.mybot]\ndescription = "user"\n');
+  const prov = new CodexProvider();
+  prov.installAgents!(kit, target);
+  prov.writeVersion(target, '1.0.0'); // uninstall needs the meta file present
+
+  prov.uninstall(target);
+
+  const cfg = fs.readFileSync(path.join(target, 'config.toml'), 'utf8');
+  assert.ok(!cfg.includes('hailykit-agents-start'), 'managed block removed');
+  assert.match(cfg, /\[agents\.mybot\]/); // user entry survives
+});
+
+test('CodexProvider.installAgents: body with triple-quotes produces parseable .toml', () => {
+  const kit = kitWithAgent('haily-researcher', 'See """ x """ block');
+  const target = path.join(path.dirname(kit), 'out');
+  fs.mkdirSync(target, { recursive: true });
+  new CodexProvider().installAgents!(kit, target);
+  const toml = fs.readFileSync(path.join(target, 'agents', 'haily_researcher.toml'), 'utf8');
+  const inner = toml.slice(toml.indexOf('"""') + 3, toml.lastIndexOf('"""'));
+  assert.ok(!inner.includes('"""'), 'no raw triple-quote run inside developer_instructions');
+});
+
+// ---------------------------------------------------------------------------
+// codex-version — parse / compare / warn-only
+// ---------------------------------------------------------------------------
+
+test('parseVersion: tolerates prefixes, prerelease, missing patch; garbage → null', () => {
+  assert.deepEqual(parseVersion('codex 0.130.0'), { major: 0, minor: 130, patch: 0, prerelease: '' });
+  assert.deepEqual(parseVersion('v0.124.0-alpha.3'), { major: 0, minor: 124, patch: 0, prerelease: 'alpha.3' });
+  assert.deepEqual(parseVersion('0.130'), { major: 0, minor: 130, patch: 0, prerelease: '' });
+  assert.equal(parseVersion('nope'), null);
+});
+
+test('compareVersions: numeric precedence + prerelease < release + null lowest', () => {
+  assert.equal(compareVersions('0.131.0', '0.130.0'), 1);
+  assert.equal(compareVersions('0.124.0', '0.130.0'), -1);
+  assert.equal(compareVersions('0.130.0', '0.130.0'), 0);
+  assert.equal(compareVersions('0.130.0-alpha', '0.130.0'), -1);
+  assert.equal(compareVersions('garbage', '0.130.0'), -1);
+});
+
+test('warnIfCodexHooksUnsupported: warns on null and on old version, silent on current', () => {
+  const calls: string[] = [];
+  const orig = console.warn;
+  console.warn = (m?: unknown) => { calls.push(String(m)); };
+  try {
+    warnIfCodexHooksUnsupported(() => null);
+    warnIfCodexHooksUnsupported(() => '0.124.0');
+    warnIfCodexHooksUnsupported(() => '0.131.0');
+  } finally { console.warn = orig; }
+  assert.equal(calls.length, 2);
+  assert.match(calls[0], /could not detect/);
+  assert.match(calls[1], /older than the recommended/);
+});
+
+// ---------------------------------------------------------------------------
+// codex-hook-compat — per-hook timeout + allowlist nested additionalContext strip
+// ---------------------------------------------------------------------------
+
+test('generateHookWrapper: bakes per-hook timeout (default 30000) + supported-events set', () => {
+  assert.match(generateHookWrapper('/h/x.cjs', 15000), /timeout: 15000/);
+  assert.match(generateHookWrapper('/h/x.cjs'), /timeout: 30000/);
+  const src = generateHookWrapper('/h/x.cjs');
+  for (const ev of ['SessionStart', 'SubagentStart', 'PreToolUse', 'PostToolUse', 'UserPromptSubmit']) {
+    assert.ok(src.includes(`"${ev}"`), `supported set must list ${ev}`);
+  }
+});
+
+test('buildTimeoutsByPath: maps resolved hook path → timeout, skips entries without timeout', () => {
+  const hooks = {
+    SessionStart: [{ hooks: [
+      { type: 'command', command: 'node .claude/hooks/a.cjs', timeout: 12000 },
+      { type: 'command', command: 'node .claude/hooks/b.cjs' },
+    ] }],
+  };
+  const map = buildTimeoutsByPath(hooks, '/dest');
+  assert.equal(map.get(path.join('/dest', 'a.cjs')), 12000);
+  assert.equal(map.has(path.join('/dest', 'b.cjs')), false);
+});
+
+test('buildTimeoutsByPath: extracts .cjs from the shipped bash -c runner command shape', () => {
+  // The real kit/settings.json uses this runner form, not `node .claude/hooks/x.cjs`.
+  const cmd = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-session.cjs; [ -f "$h" ] || { h="$HOME/$h"; s="$HOME/$s"; }; bash "$h" "$s"'`;
+  const map = buildTimeoutsByPath({ SessionStart: [{ hooks: [{ type: 'command', command: cmd, timeout: 9000 }] }] }, '/dest');
+  // Picks the .cjs (haily-session.cjs), never the .sh runner.
+  assert.equal(map.get(path.join('/dest', 'haily-session.cjs')), 9000);
+});
+
+test('buildCodexHooksJson: resolves wrapper for the shipped bash -c runner command shape', () => {
+  const cmd = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-session.cjs; bash "$h" "$s"'`;
+  const wrapperMap = new Map<string, string>([[path.join('/dest', 'haily-session.cjs'), '/dest/compat-x.cjs']]);
+  const entries = buildCodexHooksJson({ SessionStart: [{ hooks: [{ type: 'command', command: cmd }] }] }, '/dest', wrapperMap);
+  assert.equal(entries.length, 1);
+  assert.match(entries[0].command.script, /compat-x\.cjs/);
+});
+
+// Runtime behavior of the generated wrapper: spawn it through node and inspect stdout.
+// Verifies the verified-spec fix (nested field, allowlist, default-keep) end to end.
+function runWrapper(wrapperPath: string, stdin: string): Record<string, unknown> {
+  const out = execFileSync(process.execPath, [wrapperPath], { input: stdin, encoding: 'utf8' });
+  return JSON.parse(out);
+}
+
+function stubHook(dir: string, emit: object): string {
+  const p = path.join(dir, 'h.cjs');
+  fs.writeFileSync(p, `process.stdout.write(${JSON.stringify(JSON.stringify(emit))});`);
+  return p;
+}
+
+test('wrapper: KEEPS additionalContext for all 5 allowlist events (nested)', () => {
+  const dir = tmp();
+  const hook = stubHook(dir, { hookSpecificOutput: { additionalContext: 'x' } });
+  const wrapper = path.join(dir, 'w.cjs');
+  fs.writeFileSync(wrapper, generateHookWrapper(hook));
+  for (const ev of ['SessionStart', 'SubagentStart', 'PreToolUse', 'PostToolUse', 'UserPromptSubmit']) {
+    const out = runWrapper(wrapper, JSON.stringify({ hook_event_name: ev }));
+    assert.equal((out.hookSpecificOutput as Record<string, unknown>).additionalContext, 'x', `kept for ${ev}`);
+  }
+});
+
+test('wrapper: STRIPS additionalContext (nested + top-level) for non-allowlist events', () => {
+  const dir = tmp();
+  const hook = stubHook(dir, { hookSpecificOutput: { additionalContext: 'x', other: 1 }, additionalContext: 'y' });
+  const wrapper = path.join(dir, 'w.cjs');
+  fs.writeFileSync(wrapper, generateHookWrapper(hook));
+  for (const ev of ['PermissionRequest', 'Stop', 'PreCompact', 'PostCompact', 'SubagentStop']) {
+    const out = runWrapper(wrapper, JSON.stringify({ hook_event_name: ev }));
+    assert.equal((out.hookSpecificOutput as Record<string, unknown>).additionalContext, undefined, `nested stripped for ${ev}`);
+    assert.equal((out.hookSpecificOutput as Record<string, unknown>).other, 1, 'sibling field retained');
+    assert.equal(out.additionalContext, undefined, `top-level stripped for ${ev}`);
+  }
+});
+
+test('wrapper: nested-only emit removed on non-allowlist, kept on allowlist (proves nested targeting)', () => {
+  const dir = tmp();
+  const hook = stubHook(dir, { hookSpecificOutput: { additionalContext: 'x' } });
+  const wrapper = path.join(dir, 'w.cjs');
+  fs.writeFileSync(wrapper, generateHookWrapper(hook));
+  const stripped = runWrapper(wrapper, JSON.stringify({ hook_event_name: 'Stop' }));
+  assert.equal((stripped.hookSpecificOutput as Record<string, unknown>).additionalContext, undefined);
+  const kept = runWrapper(wrapper, JSON.stringify({ hook_event_name: 'PreToolUse' }));
+  assert.equal((kept.hookSpecificOutput as Record<string, unknown>).additionalContext, 'x');
+});
+
+test('wrapper: no hookSpecificOutput on non-allowlist event does not throw (null-check)', () => {
+  const dir = tmp();
+  const hook = stubHook(dir, { additionalContext: 'y', keep: 1 });
+  const wrapper = path.join(dir, 'w.cjs');
+  fs.writeFileSync(wrapper, generateHookWrapper(hook));
+  const out = runWrapper(wrapper, JSON.stringify({ hook_event_name: 'Stop' }));
+  assert.equal(out.additionalContext, undefined);
+  assert.equal(out.keep, 1);
+});
+
+test('wrapper: default-keep when event undetectable (non-JSON / missing hook_event_name)', () => {
+  const dir = tmp();
+  const hook = stubHook(dir, { hookSpecificOutput: { additionalContext: 'x' } });
+  const wrapper = path.join(dir, 'w.cjs');
+  fs.writeFileSync(wrapper, generateHookWrapper(hook));
+  const noEvent = runWrapper(wrapper, JSON.stringify({ foo: 1 }));
+  assert.equal((noEvent.hookSpecificOutput as Record<string, unknown>).additionalContext, 'x');
+  const nonJson = runWrapper(wrapper, 'not json');
+  assert.equal((nonJson.hookSpecificOutput as Record<string, unknown>).additionalContext, 'x');
 });
 
 // ---------------------------------------------------------------------------

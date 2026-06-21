@@ -9,8 +9,20 @@ import {
 import {
   installHookWrappers,
   buildCodexHooksJson,
+  buildTimeoutsByPath,
   writeCodexConfigToml,
 } from './codex-hook-compat.js';
+import {
+  escapeTomlMultiline,
+  toCodexSlug,
+  buildAgentConfigEntry,
+  extractUnmanagedAgentSlugs,
+  mergeManagedTomlBlock,
+} from './codex-toml.js';
+import { warnIfCodexHooksUnsupported } from './codex-version.js';
+
+const AGENTS_SENTINEL_START = '# --- hailykit-agents-start ---';
+const AGENTS_SENTINEL_END = '# --- hailykit-agents-end ---';
 
 /**
  * Build the default scaffold content for a fresh or reset AGENTS.md.
@@ -162,8 +174,16 @@ export class CodexProvider extends BaseProvider {
   // ── Agents ────────────────────────────────────────────────────────────────
 
   /**
-   * Generate ~/.codex/agents/<name>.toml for each kit/agents/*.md file.
-   * Codex reads these as named custom agents invokable by natural language.
+   * Generate ~/.codex/agents/<slug>.toml for each kit/agents/*.md file AND
+   * register each as an `[agents.<slug>]` table in ~/.codex/config.toml.
+   *
+   * Codex 2025+ only loads a custom agent when config.toml carries an
+   * `[agents.<slug>]` entry with `config_file = "agents/<slug>.toml"`. Writing
+   * the per-agent .toml alone (the prior behavior) left every agent inert.
+   *
+   * The registry lives in a sentinel-managed block; user-authored `[agents.X]`
+   * tables outside the block are preserved, and a kit agent whose slug collides
+   * with such a user table is skipped with a warning.
    *
    * @param extractedClaudeDir - Source kit/ dir from the release zip.
    * @param targetProviderDir  - ~/.codex/.
@@ -175,6 +195,14 @@ export class CodexProvider extends BaseProvider {
     const outDir = path.join(targetProviderDir, 'agents');
     fs.mkdirSync(outDir, { recursive: true });
 
+    const configPath = path.join(targetProviderDir, 'config.toml');
+    const existingConfig = fs.existsSync(configPath) ? fs.readFileSync(configPath, 'utf8') : '';
+    // Strip the managed block before scanning so only USER-owned tables count as unmanaged.
+    const unmanaged = extractUnmanagedAgentSlugs(
+      mergeManagedTomlBlock(existingConfig, '', AGENTS_SENTINEL_START, AGENTS_SENTINEL_END),
+    );
+
+    const entries = new Map<string, string>();
     for (const file of fs.readdirSync(agentsDir).sort()) {
       if (!file.endsWith('.md')) continue;
 
@@ -185,6 +213,12 @@ export class CodexProvider extends BaseProvider {
       const description = frontmatter.description || '';
       const tier = (frontmatter.model ?? 'medium') as ModelTier;
       const model = getModelMap('codex')[tier];
+      const slug = toCodexSlug(name);
+
+      if (unmanaged.has(slug) || entries.has(slug)) {
+        console.warn(`    Skipped agent ${name}: [agents.${slug}] already exists (user-defined or duplicate)`);
+        continue;
+      }
 
       const resolvedBody = resolveModelRefs(
         resolveSkillRefs(
@@ -199,12 +233,20 @@ export class CodexProvider extends BaseProvider {
         `description = ${JSON.stringify(description)}`,
         `model = ${JSON.stringify(model)}`,
         'developer_instructions = """',
-        resolvedBody,
+        escapeTomlMultiline(resolvedBody),
         '"""',
         '',
       ].join('\n');
 
-      fs.writeFileSync(path.join(outDir, `${name}.toml`), toml, 'utf8');
+      fs.writeFileSync(path.join(outDir, `${slug}.toml`), toml, 'utf8');
+      entries.set(slug, buildAgentConfigEntry(slug, description));
+    }
+
+    const block = [...entries.keys()].sort().map((s) => entries.get(s)!).join('\n\n');
+    const merged = mergeManagedTomlBlock(existingConfig, block, AGENTS_SENTINEL_START, AGENTS_SENTINEL_END);
+    if (merged !== existingConfig) {
+      fs.mkdirSync(targetProviderDir, { recursive: true });
+      fs.writeFileSync(configPath, merged, 'utf8');
     }
   }
 
@@ -301,13 +343,17 @@ export class CodexProvider extends BaseProvider {
     if (typeof settings !== 'object' || settings === null) return;
     const allHooks = (settings as Record<string, unknown>).hooks;
 
+    // Warn (never gate) when Codex is missing or older than the recommended baseline.
+    warnIfCodexHooksUnsupported();
+
     const srcHooksDir = path.join(extractedClaudeDir, 'hooks');
     const destHooksDir = path.join(targetProviderDir, 'hooks');
     if (fs.existsSync(srcHooksDir)) {
       this._copyHookDir(srcHooksDir, destHooksDir);
     }
 
-    const wrapperMap = installHookWrappers(destHooksDir);
+    const timeoutsByPath = buildTimeoutsByPath(allHooks, destHooksDir);
+    const wrapperMap = installHookWrappers(destHooksDir, timeoutsByPath);
     const hooksArray = buildCodexHooksJson(allHooks, destHooksDir, wrapperMap);
     if (hooksArray.length === 0) return;
 
@@ -323,6 +369,10 @@ export class CodexProvider extends BaseProvider {
 
   uninstall(providerDir: string): void {
     super.uninstall(providerDir);
+
+    // Strip the managed [agents.X] registry block from config.toml — base uninstall
+    // removes agents/ but would otherwise leave dangling config entries Codex warns on.
+    this._removeSentinelBlock(path.join(providerDir, 'config.toml'), AGENTS_SENTINEL_START, AGENTS_SENTINEL_END);
 
     // Remove HailyKit skill dirs from ~/.agents/skills/ (all hl-* and hc-* dirs)
     const agentsSkillsDir = path.join(os.homedir(), '.agents', 'skills');

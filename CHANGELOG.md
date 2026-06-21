@@ -7,6 +7,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### 🚀 Improvements
+
+- Codex provider: register agents as `[agents.<slug>]` in `~/.codex/config.toml` (sentinel-managed) so Codex actually discovers installed agents — previously the per-agent `.toml` files were inert
+- Codex provider: escape `developer_instructions` for TOML multiline (bodies containing `"""` no longer corrupt the generated file)
+- Codex hooks: per-hook timeout baked into wrappers (from each hook's `timeout`), and `additionalContext` is kept only for events Codex accepts it on (`SessionStart`, `SubagentStart`, `PreToolUse`, `PostToolUse`, `UserPromptSubmit`) — stripped at the verified nested `hookSpecificOutput.additionalContext` location for all others
+- Codex hooks: warn (never block) when the `codex` CLI is missing or older than the recommended baseline
+
+### 🐛 Fixes
+
+- Codex hooks: hook-command parser now matches the shipped `bash -c` runner command shape, not only `node …` — previously `hooks.json` / the feature flag were never written against the real catalog
+
 ---
 
 ## [1.10.1] (2026-06-21)
