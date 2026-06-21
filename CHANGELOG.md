@@ -7,20 +7,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [1.10.0] (2026-06-21)
+
 ### 🚀 Improvements
 
 - hc-spec: EARS-notation acceptance criteria with approval gate
 - hc-adr: capture or auto-discover architectural decisions
-- hc-review: batch mode for multiple PRs with team health report
-- hc-review: OWASP Agentic Top 10 checks via --agentic flag
+- hc-review: batch mode for multiple PRs with team health report, OWASP Agentic Top 10 checks via --agentic flag
 - hc-debug: SUSPECTED/PROBABLE/CONFIRMED confidence signaling
 - hc-scout: cross-repo consumer tracing via --deps flag
 - hc-plan: memory-augmented planning via --resume flag
-- hl-help: community alias table and senior dev quick start combos
-
-### 🐛 Fixes
-
-- hc-ship: changelog bullets capped at 8 words, no sub-lists
 
 ---
 
