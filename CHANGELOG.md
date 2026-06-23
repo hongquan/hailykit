@@ -9,6 +9,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.10.6] (2026-06-23)
+
+### 📋 Legal & Community
+
+- license: switch from PolyForm Noncommercial to GPL-3.0-only
+- license: add commercial exception via COMMERCIAL_LICENSE.md
+- repo: add CONTRIBUTING.md with CLA contribution terms
+- repo: add Ko-fi funding channel via FUNDING.yml
+
+### 🚀 Improvements
+
+- hooks: bold model name in agent trace output
+
+---
+
 ## [1.10.5] (2026-06-22)
 
 ### 🚀 Improvements
