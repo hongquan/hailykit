@@ -22,6 +22,7 @@ metadata:
 | `cm` | Stage files & create commits |
 | `cp` | Stage files, create commits, and push |
 | `pr [to] [from]` | Create Pull Request (defaults: main / current branch) |
+| `pr --merge <refs...>` | Review-gate, label, and merge the given PRs in order; watch post-merge CI to green |
 | `merge [to] [from]` | Merge branches (defaults: main / current branch) |
 | `analyze [ref]` | Impact analysis: intent, arch delta, tech debt, risk radar, open gaps |
 | `retro [timeframe]` | Data-driven sprint retrospective from git history |
@@ -35,9 +36,12 @@ No arguments: `AskUserQuestion` (header "Git Operation") with primary options `c
 
 > **Required — analysis only (analyze/retro):** Do not implement, commit, checkout, merge, or push unless explicitly requested.
 
+> **Required — merge gate (pr --merge):** Never merge a PR that has not passed the `haily-reviewer` gate (zero Critical/Important findings, no conflicts, required checks green). Merge in input order, delete the head branch on success, and monitor post-merge CI until green or a documented blocker. Never force-push; never direct-push to protected branches.
+
 ## Execution Model
 
 **cm / cp / pr / merge** — delegate to `haily-git-manager` subagent; execute in ≤4 tool calls per operation.  
+**pr --merge** — delegates review to `haily-reviewer`, merge mechanics to `haily-git-manager`, and CI-fix convergence to `{skill:hc-fix}`; full protocol in `references/workflow-merge-pr.md`.  
 **analyze / retro** — run inline; require reasoning. Full protocols in `references/workflow-analyze.md` and `references/workflow-retro.md`.  
 **issues** — run inline; full protocol in `references/workflow-issues.md`. Delegates implementation to `{skill:hc-goal}`.
 
@@ -91,3 +95,4 @@ No arguments: `AskUserQuestion` (header "Git Operation") with primary options `c
 - `references/retro-metrics.md` — metric definitions, git commands, health thresholds
 - `references/retro-report.md` — retro report template with all sections
 - `references/workflow-issues.md` — issue triage protocol: priority playbook, delegation, close logic
+- `references/workflow-merge-pr.md` — pr --merge pipeline: validate, review-gate, label, ordered merge, post-merge CI convergence
