@@ -1,6 +1,6 @@
 ---
 name: hc-review
-description: "Adversarial code review pipeline: Spec compliance → Quality (haily-reviewer) → Stress Probe. Supports PR, commit, pending, codebase, and UI/UX targets. Post findings inline with --comment, apply to working tree with --fix."
+description: "Adversarial code review pipeline: Spec compliance → Quality (haily-reviewer) → Stress Probe → Simplification Scan. Supports PR, commit, pending, codebase, and UI/UX targets. Post findings inline with --comment, apply to working tree with --fix."
 when_to_use: "Invoke when reviewing code changes, a PR, a commit, or the full codebase."
 user-invocable: true
 argument-hint: "[#PR | COMMIT | --pending | codebase] [--quick] [--comment] [--fix] [--ui [pattern]] [--batch <\"#N,#M,...\">] [--agentic]"
@@ -11,7 +11,7 @@ metadata:
 
 # Review — Adversarial Code Review Pipeline
 
-3-stage Review Circuit: Spec compliance → Quality (haily-reviewer) → Stress Probe (adversarial). Accepts PR numbers, commit hashes, pending changes, and full codebase scans.
+4-stage Review Circuit: Spec compliance → Quality (haily-reviewer) → Stress Probe (adversarial) → Simplification Scan (advisory). Accepts PR numbers, commit hashes, pending changes, and full codebase scans.
 
 ## Usage
 
@@ -52,18 +52,18 @@ Flags compose freely: `--quick --fix`, `--quick --comment`, `--fix --comment`, `
 
 Which stages run per flag combination:
 
-| Mode | Stage 1 Spec | Stage 2 Quality | Stage 3 Adversarial | Act |
-|------|-------------|----------------|--------------------|----|
-| *(none)* | ✅ | ✅ | ✅ (scope-gated) | Interactive |
-| `--quick` | **skip** | ✅ | **skip** | Interactive |
-| `--fix` | ✅ | ✅ | ✅ | Apply to tree |
-| `--quick --fix` | **skip** | ✅ | **skip** | Apply to tree |
-| `--comment` | ✅ | ✅ | ✅ | Post PR comments |
-| `--quick --comment` | **skip** | ✅ | **skip** | Post PR comments |
-| `--ui` | skip | UI/UX checklist | skip | Interactive |
-| `codebase` | skip | Parallel research+review | skip | Report |
-| `--batch` | ✅ (per target) | ✅ (per target) | ✅ scope-gated (per target) | Per-target findings + Team Health Report |
-| `--batch --quick` | **skip** | ✅ (per target) | **skip** | Per-target findings + Team Health Report |
+| Mode | Stage 1 Spec | Stage 2 Quality | Stage 3 Adversarial | Stage 4 Simplification | Act |
+|------|-------------|----------------|--------------------|-----------------------|----|
+| *(none)* | ✅ | ✅ | ✅ (scope-gated) | ✅ (advisory) | Interactive |
+| `--quick` | **skip** | ✅ | **skip** | **skip** | Interactive |
+| `--fix` | ✅ | ✅ | ✅ | ✅ (advisory) | Apply to tree |
+| `--quick --fix` | **skip** | ✅ | **skip** | **skip** | Apply to tree |
+| `--comment` | ✅ | ✅ | ✅ | ✅ (advisory) | Post PR comments |
+| `--quick --comment` | **skip** | ✅ | **skip** | **skip** | Post PR comments |
+| `--ui` | skip | UI/UX checklist | skip | skip | Interactive |
+| `codebase` | skip | Parallel research+review | skip | ✅ (advisory) | Report |
+| `--batch` | ✅ (per target) | ✅ (per target) | ✅ scope-gated (per target) | ✅ (advisory, per target) | Per-target findings + Team Health Report |
+| `--batch --quick` | **skip** | ✅ (per target) | **skip** | **skip** | Per-target findings + Team Health Report |
 
 **Input Detection** (priority order; full routing logic in `references/input-routing.md`):
 
@@ -102,7 +102,13 @@ Which stages run per flag combination:
    - For 3+ changed files: use task-managed pipeline (`references/process-task-pipeline.md`)
    - Log `✓ Review: [N] findings — [X critical, Y medium, Z low]`
 
-4. **Act** — apply results based on flags:
+4. **Simplification Scan** (`references/flow-simplification.md`) — informational pass; does not block review completion. Skip if `--quick`.
+   - **Pass 1 — Haily markers:** grep diff files for `// haily:` comments; report each with its ceiling and upgrade trigger
+   - **Pass 2 — YAGNI taxonomy:** spawn `haily-reviewer` with 5-tag taxonomy (`delete:`, `stdlib:`, `native:`, `yagni:`, `shrink:`); output `net: -N lines possible` summary
+   - Findings are advisory — present to developer; fix now / defer / accept
+   - Log `✓ Simplification: [N markers, M findings] — net: -N lines possible`
+
+5. **Act** — apply results based on flags:
    - `--fix`: apply accepted findings to working tree; run compile check after each; verify no regressions
    - `--comment`: post accepted findings as inline comments via `gh pr review`
    - Interactive (default): present findings summary; `AskUserQuestion` for each Critical finding: Fix now / Defer / Reject
@@ -161,3 +167,4 @@ Judgment agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-
 | `references/checklists/web-app.md` | Web app overlay (XSS, CSRF, N+1, frontend perf, accessibility) |
 | `references/checklists/database.md` | Database / migration overlay (locking, backfill safety, N+1, SQL injection, cascade) |
 | `references/checklists/observability.md` | Observability overlay (logging PII, metrics cardinality, tracing, error capture, health checks) |
+| `references/flow-simplification.md` | Stage 4 Simplification Scan: Haily marker harvest + YAGNI taxonomy (5 tags), advisory output |

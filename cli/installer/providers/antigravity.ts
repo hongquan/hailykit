@@ -22,14 +22,14 @@ import { resolveSkillRefs, resolveModel, resolveModelRefs } from '../converter.j
  * Docs (B): https://antigravity.google/docs · https://codelabs.developers.google.com/getting-started-with-antigravity-skills
  *
  * Directory layout (product A):
- *   Global:  ~/.antigravity/skills/   (SKILL.md files, same format)
- *   Project: .antigravity/skills/
+ *   Global:  ~/.gemini/config/global_workflows/<skill-name>/   (SKILL.md files, same format)
+ *   Project: .antigravity/skills/<skill-name>/
  */
 export class AntigravityProvider extends BaseProvider {
   get name(): string { return 'antigravity'; }
   get label(): string { return 'Antigravity'; }
 
-  globalDir(): string { return path.join(os.homedir(), '.antigravity'); }
+  globalDir(): string { return path.join(os.homedir(), '.gemini', 'config', 'global_workflows'); }
   protected _projectDirName(): string { return '.antigravity'; }
   commandsSubDir(): string { return 'skills'; }
   hooksSupported(): boolean { return false; }

@@ -310,6 +310,33 @@ Never use slash form (`/hc-plan`) in skill body text. Slash form is terminal syn
 
 > **agentskills.io compliance:** The `name:` field uses `[a-z0-9-]` only (no colons), per the [agentskills.io spec](https://agentskills.io/specification). Hyphen separates domain prefix from bare name: `hc-debug` = prefix `hc` + name `debug`. When porting future `hd-*` design skills, use `hc-` prefix per domain routing decision.
 
+### Code Implementation Comments
+
+Use the `haily:` comment convention to mark **intentional simplifications** in hook and tool source code (`.cjs`, `.ts`, `.js`). This makes deliberate shortcuts machine-harvestable by `{skill:hc-review}` Stage 4 and audit-ready.
+
+```
+// haily: <ceiling>, <upgrade trigger>
+```
+
+| Part | Meaning | Example |
+|---|---|---|
+| `<ceiling>` | Maximum abstraction tier this shortcut stops at | `sync-only`, `single-file`, `no-streaming` |
+| `<upgrade trigger>` | Condition that warrants revisiting | `if N>1 providers`, `when file >10 MB`, `on v2 milestone` |
+
+Examples:
+```js
+// haily: sync-only, upgrade to streaming when file >10 MB
+const content = fs.readFileSync(path, 'utf8')
+
+// haily: single-file, extract shared helper if 2+ hooks need this
+function normalizeHookEvent(raw) { ... }
+```
+
+Rules:
+- Add only when the shortcut is **intentional** — a deliberate tradeoff, not an oversight.
+- Do NOT use to mark TODOs, bugs, or incomplete work — use `// TODO:` for those.
+- `{skill:hc-review}` scans these markers in Stage 4 and surfaces them as advisory findings.
+
 ### Example Selection
 
 When illustrating a skill, use examples that reflect HailyKit's multi-modal

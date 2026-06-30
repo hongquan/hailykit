@@ -149,7 +149,7 @@ export function getModelEffort(provider: string, tier: ModelTier): string | unde
  * For these providers, the `model:` tier line is stripped from agent files so the
  * provider uses whatever model the developer has selected in their editor settings.
  */
-const USER_CONFIGURED_MODEL_PROVIDERS = new Set(['cursor', 'zed', 'windsurf', 'crush', 'opencode', 'kimi']);
+const USER_CONFIGURED_MODEL_PROVIDERS = new Set(['cursor', 'zed', 'windsurf', 'crush', 'opencode', 'kimi', 'cline']);
 
 /** Matches a `model: <tier>` frontmatter line (with optional trailing whitespace). */
 const MODEL_TIER_RE = /^(model:\s*)(thinking|medium|fast|ultra)\s*$/m;
@@ -399,6 +399,20 @@ export function toCrushMd(name: string, description: string, body: string): stri
  * @param body        - Skill body text (the instruction content).
  */
 export function toKimiMd(name: string, description: string, body: string): string {
+  const desc = JSON.stringify(description || '');
+  return `---\nname: ${name}\ndescription: ${desc}\n---\n\n${body}\n`;
+}
+
+/**
+ * Convert skill body to Cline markdown format (Agent Skills open standard).
+ * Cline discovers skills by the `name:` and `description:` frontmatter fields
+ * inside a <name>/SKILL.md directory under ~/.cline/skills/.
+ *
+ * @param name        - Command slug used as the skill's invocation name.
+ * @param description - Skill description shown in the skill picker.
+ * @param body        - Skill body text (the instruction content).
+ */
+export function toClineMd(name: string, description: string, body: string): string {
   const desc = JSON.stringify(description || '');
   return `---\nname: ${name}\ndescription: ${desc}\n---\n\n${body}\n`;
 }

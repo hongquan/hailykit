@@ -6,6 +6,10 @@ hailykit — zero-dependency TypeScript tool-execution engine + multi-provider s
 - Test: `npm test` — pretest compiles to .test-build/ first; delete .test-build/ after removing source test files
 - Release: `npm run release:pack`
 
+## Scope Rule — Global vs Project
+
+Files under `~/.claude/` (rules, hooks, agents, settings) are **machine-local** — modifying them only affects this machine and will not be shipped to users. To ship a change, make it inside `kit/` (skills, hooks, rules, agents, templates) and release via GitHub. Reading global files for reference is fine; writing to them is not a substitute for a proper kit change.
+
 ## Safety Rules
 - NEVER commit secrets (.env, API keys, credentials)
 - NEVER add npm-registry runtime dependencies — Node built-ins with `node:` prefix only

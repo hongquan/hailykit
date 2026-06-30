@@ -8,6 +8,7 @@ import { ZedProvider } from './zed.js';
 import { CodexProvider } from './codex.js';
 import { CrushProvider } from './crush.js';
 import { KimiProvider } from './kimi.js';
+import { ClineProvider } from './cline.js';
 import type { Provider } from './base.js';
 
 const PROVIDERS: Record<string, Provider> = {
@@ -21,6 +22,7 @@ const PROVIDERS: Record<string, Provider> = {
   codex:       new CodexProvider(),
   crush:       new CrushProvider(),
   kimi:        new KimiProvider(),
+  cline:       new ClineProvider(),
 };
 
 export const PROVIDER_NAMES: string[] = Object.keys(PROVIDERS);

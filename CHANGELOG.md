@@ -5,18 +5,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [1.10.10] (2026-06-30)
+
+### 🚀 Improvements
+
+- hc-review: simplification scan, add ceiling + trigger markers
+
+### 🐛 Bug Fixes
+
+- installer: fix Antigravity provider global install path
 
 ---
 
 ## [1.10.8] (2026-06-23)
-
-### 📋 Legal & Community
-
-- license: switch from PolyForm Noncommercial to GPL-3.0-only
-- license: add COMMERCIAL_LICENSE.md for commercial use
-- repo: add CONTRIBUTING.md with CLA contribution terms
-- repo: add Ko-fi funding channel via FUNDING.yml
 
 ### 🚀 Improvements
 
@@ -25,6 +26,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - hooks: resolve inherit to actual session model name in agent trace
 - hl-help: surface hc-git pr --merge in quick-start and skill list
 - readme: document hc-git pr --merge in skills table
+- license: switch from PolyForm Noncommercial to GPL-3.0-only
 
 ---
 
