@@ -14,8 +14,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🐛 Bug Fixes
 
-- installer: fix Antigravity provider global install path
-- installer: fix Gemini provider native skill installation to use flat skill-name.md files instead of subdirectories
+- installer: fix Antigravity provider global install path + skill
 
 ---
 
