@@ -1,4 +1,4 @@
-﻿import { test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -68,7 +68,7 @@ test('GeminiProvider.installSkills installs TOML command AND native SKILL.md', (
 
   assert.equal(count, 1);
   assert.ok(fs.existsSync(path.join(target, 'commands', 'hl-plan.toml')));
-  const native = fs.readFileSync(path.join(target, 'skills', 'hl-plan', 'SKILL.md'), 'utf8');
+  const native = fs.readFileSync(path.join(target, 'skills', 'hl-plan.md'), 'utf8');
   assert.equal(native, md);
 });
 
@@ -84,10 +84,28 @@ test('GeminiProvider native SKILL.md resolves model tier and {model:ultra} place
 
   new GeminiProvider().installSkills(claude, path.join(root, 'out'));
 
-  const native = fs.readFileSync(path.join(root, 'out', 'skills', 'hl-ultra', 'SKILL.md'), 'utf8');
+  const native = fs.readFileSync(path.join(root, 'out', 'skills', 'hl-ultra.md'), 'utf8');
   assert.ok(!native.includes('{model:'), `placeholder leaked: ${native}`);
   assert.ok(!native.includes('model: ultra'), `tier line leaked: ${native}`);
   assert.match(native, /model: gemini-3\.1-pro-preview/);
+});
+
+test('GeminiProvider.uninstall removes commands, skills, agents subdirectories and rules block', () => {
+  const root = tmp();
+  const target = path.join(root, 'out');
+  fs.mkdirSync(path.join(target, 'commands'), { recursive: true });
+  fs.mkdirSync(path.join(target, 'skills'), { recursive: true });
+  fs.mkdirSync(path.join(target, 'agents'), { recursive: true });
+  fs.writeFileSync(path.join(target, 'GEMINI.md'), 'Notes\n<!-- hailykit-managed-start -->\n@haily-coding.md\n<!-- hailykit-managed-end -->\n');
+  fs.writeFileSync(path.join(target, '.hailykit-meta.json'), '{"version":"1.0.0"}');
+
+  new GeminiProvider().uninstall(target);
+
+  assert.ok(!fs.existsSync(path.join(target, 'commands')));
+  assert.ok(!fs.existsSync(path.join(target, 'skills')));
+  assert.ok(!fs.existsSync(path.join(target, 'agents')));
+  const gemini = fs.readFileSync(path.join(target, 'GEMINI.md'), 'utf8');
+  assert.ok(!gemini.includes('hailykit-managed-start'));
 });
 
 test('CodexProvider skill copy resolves {model:ultra} placeholders', () => {

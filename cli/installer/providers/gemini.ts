@@ -94,8 +94,17 @@ export class GeminiProvider extends BaseProvider {
     }
   }
 
+  override uninstall(providerDir: string): void {
+    super.uninstall(providerDir);
+    const skillsDir = path.join(providerDir, 'skills');
+    if (fs.existsSync(skillsDir)) {
+      fs.rmSync(skillsDir, { recursive: true, force: true });
+      console.log('    Removed skills/');
+    }
+  }
+
   /**
-   * Copy SKILL.md files to skills/<name>/SKILL.md, applying the same providers gate.
+   * Copy SKILL.md files to skills/<name>.md, applying the same providers gate.
    * Model tier lines and {model:<tier>} placeholders are resolved — they must
    * never ship verbatim; other refs are kept canonical for the native format.
    */
@@ -110,9 +119,9 @@ export class GeminiProvider extends BaseProvider {
       if (!isProviderAllowed(parseFrontmatter(content), this.name)) continue;
       content = resolveModel(content, this.name);
       content = resolveModelRefs(content, this.name);
-      const outDir = path.join(targetProviderDir, 'skills', entry.name);
+      const outDir = path.join(targetProviderDir, 'skills');
       fs.mkdirSync(outDir, { recursive: true });
-      fs.writeFileSync(path.join(outDir, 'SKILL.md'), content, 'utf8');
+      fs.writeFileSync(path.join(outDir, `${entry.name}.md`), content, 'utf8');
     }
   }
 
