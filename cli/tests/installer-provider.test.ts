@@ -113,10 +113,15 @@ test('AntigravityProvider.installSkills: global vs project installation and mani
   const root = tmp();
   const claude = path.join(root, 'claude');
   const skillDir = path.join(claude, 'skills', 'hc-test');
-  fs.mkdirSync(skillDir, { recursive: true });
+  const refDir = path.join(skillDir, 'references');
+  fs.mkdirSync(refDir, { recursive: true });
   fs.writeFileSync(
     path.join(skillDir, 'SKILL.md'),
-    '---\nname: hc-test\ndescription: Test\n---\n\nTest body.',
+    '---\nname: hc-test\ndescription: Test\n---\n\nTest body. See references/detail.md.',
+  );
+  fs.writeFileSync(
+    path.join(refDir, 'detail.md'),
+    'Detailed reference documentation.',
   );
 
   const provider = new AntigravityProvider();
@@ -129,7 +134,11 @@ test('AntigravityProvider.installSkills: global vs project installation and mani
   const countGlobal = provider.installSkills(claude, testGlobalDir);
   assert.equal(countGlobal, 1);
   // Expecting: testGlobalDir/hc-test.md (flat markdown files in global_workflows)
-  assert.ok(fs.existsSync(path.join(testGlobalDir, 'hc-test.md')));
+  const globalMdPath = path.join(testGlobalDir, 'hc-test.md');
+  assert.ok(fs.existsSync(globalMdPath));
+  const globalContent = fs.readFileSync(globalMdPath, 'utf8');
+  assert.ok(globalContent.includes('# Reference: references/detail.md'));
+  assert.ok(globalContent.includes('Detailed reference documentation.'));
   const manifestGlobal = JSON.parse(fs.readFileSync(path.join(testGlobalDir, 'hailykit-installed-skills.json'), 'utf8'));
   assert.deepEqual(manifestGlobal, ['hc-test']);
 
@@ -137,8 +146,8 @@ test('AntigravityProvider.installSkills: global vs project installation and mani
   const testProjectDir = path.join(root, 'project');
   const countProject = provider.installSkills(claude, testProjectDir);
   assert.equal(countProject, 1);
-  // Expecting: testProjectDir/skills/hc-test/SKILL.md
-  assert.ok(fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test', 'SKILL.md')));
+  // Expecting: testProjectDir/skills/hc-test.md
+  assert.ok(fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test.md')));
   const manifestProject = JSON.parse(fs.readFileSync(path.join(testProjectDir, 'hailykit-installed-skills.json'), 'utf8'));
   assert.deepEqual(manifestProject, ['hc-test']);
 
@@ -151,7 +160,7 @@ test('AntigravityProvider.installSkills: global vs project installation and mani
   assert.ok(!fs.existsSync(path.join(testGlobalDir, 'hailykit-installed-skills.json')));
 
   provider.uninstall(testProjectDir);
-  assert.ok(!fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test')));
+  assert.ok(!fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test.md')));
   assert.ok(!fs.existsSync(path.join(testProjectDir, 'hailykit-installed-skills.json')));
 });
 

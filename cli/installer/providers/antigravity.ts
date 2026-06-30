@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { resolveSkillRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed } from '../converter.js';
+import { resolveSkillRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed, bundleFlatSkill } from '../converter.js';
 
 const SKILLS_MANIFEST = 'hailykit-installed-skills.json';
 const SAFE_SKILL_DIR_RE = /^[a-z][a-z0-9-]*$/;
@@ -67,28 +67,26 @@ export class AntigravityProvider extends BaseProvider {
       const skillMd = path.join(srcSkillDir, 'SKILL.md');
       if (!fs.existsSync(skillMd)) continue;
 
-      let content = fs.readFileSync(skillMd, 'utf8');
-      const parsed = parseFrontmatter(content);
-      if (!isProviderAllowed(parsed, this.name)) continue;
+      const raw = fs.readFileSync(skillMd, 'utf8');
+      if (!isProviderAllowed(parseFrontmatter(raw), this.name)) continue;
 
-      if (isGlobal) {
-        content = resolveSkillRefs(content, (p, n) => this.skillRef(p, n));
+      const bundled = bundleFlatSkill(srcSkillDir, (text) => {
+        let content = resolveSkillRefs(text, (p, n) => this.skillRef(p, n));
         content = resolveModel(content, this.name);
         content = resolveModelRefs(content, this.name);
-        fs.writeFileSync(path.join(destSkillsDir, `${skillName}.md`), content, 'utf8');
+        return content;
+      });
 
-        const entries = fs.readdirSync(srcSkillDir).filter(e => e !== 'SKILL.md');
-        const destSkillDir = path.join(destSkillsDir, skillName);
-        if (entries.length > 0) {
-          this._copyDir(srcSkillDir, destSkillDir, true);
-          const staleMd = path.join(destSkillDir, 'SKILL.md');
-          if (fs.existsSync(staleMd)) fs.rmSync(staleMd, { force: true });
-        } else if (fs.existsSync(destSkillDir)) {
-          fs.rmSync(destSkillDir, { recursive: true, force: true });
-        }
-      } else {
-        const destSkillDir = path.join(destSkillsDir, skillName);
-        this._copyDir(srcSkillDir, destSkillDir);
+      fs.writeFileSync(path.join(destSkillsDir, `${skillName}.md`), bundled, 'utf8');
+
+      const entries = fs.readdirSync(srcSkillDir).filter(e => e !== 'SKILL.md');
+      const destSkillDir = path.join(destSkillsDir, skillName);
+      if (entries.length > 0) {
+        this._copyDir(srcSkillDir, destSkillDir, true);
+        const staleMd = path.join(destSkillDir, 'SKILL.md');
+        if (fs.existsSync(staleMd)) fs.rmSync(staleMd, { force: true });
+      } else if (fs.existsSync(destSkillDir)) {
+        fs.rmSync(destSkillDir, { recursive: true, force: true });
       }
       installed.push(skillName);
     }
@@ -96,10 +94,8 @@ export class AntigravityProvider extends BaseProvider {
     // Cleanup stale skills from previous installation
     for (const stale of readSkillsManifest(targetProviderDir)) {
       if (!installed.includes(stale)) {
-        if (isGlobal) {
-          const staleMd = path.join(destSkillsDir, `${stale}.md`);
-          if (fs.existsSync(staleMd)) fs.rmSync(staleMd, { force: true });
-        }
+        const staleMd = path.join(destSkillsDir, `${stale}.md`);
+        if (fs.existsSync(staleMd)) fs.rmSync(staleMd, { force: true });
         const staleDir = path.join(destSkillsDir, stale);
         if (fs.existsSync(staleDir)) fs.rmSync(staleDir, { recursive: true, force: true });
       }
@@ -130,17 +126,14 @@ export class AntigravityProvider extends BaseProvider {
     const destSkillsDir = isGlobal ? providerDir : path.join(providerDir, 'skills');
     let n = 0;
     for (const name of readSkillsManifest(providerDir)) {
-      if (isGlobal) {
-        const mdFile = path.join(destSkillsDir, `${name}.md`);
-        if (fs.existsSync(mdFile)) {
-          fs.rmSync(mdFile, { force: true });
-          n++;
-        }
+      const mdFile = path.join(destSkillsDir, `${name}.md`);
+      if (fs.existsSync(mdFile)) {
+        fs.rmSync(mdFile, { force: true });
+        n++;
       }
       const dir = path.join(destSkillsDir, name);
       if (fs.existsSync(dir)) {
         fs.rmSync(dir, { recursive: true, force: true });
-        if (!isGlobal) n++;
       }
     }
     if (n) console.log(`    Removed ${n} native skill(s) from ${destSkillsDir}`);

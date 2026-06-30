@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { BaseProvider, type ConvertedSkill } from './base.js';
 import {
   parseFrontmatter, isProviderAllowed, toGeminiToml,
-  resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs,
+  resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs, bundleFlatSkill,
 } from '../converter.js';
 
 const GEMINI_MD_START = '<!-- hailykit-managed-start -->';
@@ -115,13 +115,20 @@ export class GeminiProvider extends BaseProvider {
       if (!entry.isDirectory()) continue;
       const skillMd = path.join(skillsDir, entry.name, 'SKILL.md');
       if (!fs.existsSync(skillMd)) continue;
-      let content = fs.readFileSync(skillMd, 'utf8');
-      if (!isProviderAllowed(parseFrontmatter(content), this.name)) continue;
-      content = resolveModel(content, this.name);
-      content = resolveModelRefs(content, this.name);
+      const raw = fs.readFileSync(skillMd, 'utf8');
+      if (!isProviderAllowed(parseFrontmatter(raw), this.name)) continue;
+
+      const srcSkillDir = path.join(skillsDir, entry.name);
+      const bundled = bundleFlatSkill(srcSkillDir, (text) => {
+        let content = text;
+        content = resolveModel(content, this.name);
+        content = resolveModelRefs(content, this.name);
+        return content;
+      });
+
       const outDir = path.join(targetProviderDir, 'skills');
       fs.mkdirSync(outDir, { recursive: true });
-      fs.writeFileSync(path.join(outDir, `${entry.name}.md`), content, 'utf8');
+      fs.writeFileSync(path.join(outDir, `${entry.name}.md`), bundled, 'utf8');
     }
   }
 

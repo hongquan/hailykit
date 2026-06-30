@@ -416,3 +416,43 @@ export function toClineMd(name: string, description: string, body: string): stri
   const desc = JSON.stringify(description || '');
   return `---\nname: ${name}\ndescription: ${desc}\n---\n\n${body}\n`;
 }
+
+/**
+ * Convert a directory-based skill (SKILL.md plus supporting markdown files in subdirectories
+ * such as references/) into a single flat markdown file suitable for providers that only
+ * support flat markdown files (e.g., Gemini CLI, Antigravity).
+ *
+ * @param srcSkillDir    - Absolute path to the source skill directory containing SKILL.md.
+ * @param resolveContent - Callback to resolve provider-specific syntax (refs, models) on each markdown file.
+ */
+export function bundleFlatSkill(srcSkillDir: string, resolveContent: (raw: string) => string): string {
+  const skillMd = path.join(srcSkillDir, 'SKILL.md');
+  const baseContent = resolveContent(fs.readFileSync(skillMd, 'utf8'));
+
+  const mdFiles: { relPath: string; absPath: string }[] = [];
+  const collect = (dir: string, relPrefix = '') => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryRel = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
+      const entryAbs = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        collect(entryAbs, entryRel);
+      } else if (entry.name.endsWith('.md') && entry.name !== 'SKILL.md') {
+        mdFiles.push({ relPath: entryRel, absPath: entryAbs });
+      }
+    }
+  };
+  collect(srcSkillDir);
+
+  if (mdFiles.length === 0) {
+    return baseContent;
+  }
+
+  let bundled = baseContent.replace(/\s+$/, '');
+  mdFiles.sort((a, b) => a.relPath.localeCompare(b.relPath));
+  for (const { relPath, absPath } of mdFiles) {
+    const subContent = resolveContent(fs.readFileSync(absPath, 'utf8')).trim();
+    bundled += `\n\n---\n\n# Reference: ${relPath}\n\n${subContent}`;
+  }
+
+  return bundled + '\n';
+}
