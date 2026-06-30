@@ -79,15 +79,11 @@ export class AntigravityProvider extends BaseProvider {
 
       fs.writeFileSync(path.join(destSkillsDir, `${skillName}.md`), bundled, 'utf8');
 
-      const entries = fs.readdirSync(srcSkillDir).filter(e => e !== 'SKILL.md');
       const destSkillDir = path.join(destSkillsDir, skillName);
-      if (entries.length > 0) {
-        this._copyDir(srcSkillDir, destSkillDir, true);
-        const staleMd = path.join(destSkillDir, 'SKILL.md');
-        if (fs.existsSync(staleMd)) fs.rmSync(staleMd, { force: true });
-      } else if (fs.existsSync(destSkillDir)) {
+      if (fs.existsSync(destSkillDir)) {
         fs.rmSync(destSkillDir, { recursive: true, force: true });
       }
+      this._copyNonMdOnly(srcSkillDir, destSkillDir);
       installed.push(skillName);
     }
 
@@ -149,27 +145,25 @@ export class AntigravityProvider extends BaseProvider {
     return `/${prefix}-${name}`;
   }
 
-  private _copyDir(src: string, dest: string, skipSkillMd = false): void {
-    fs.mkdirSync(dest, { recursive: true });
+  private _copyNonMdOnly(src: string, dest: string): boolean {
+    let copied = false;
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-      if (skipSkillMd && entry.name === 'SKILL.md') continue;
+      if (entry.name.startsWith('.')) continue;
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
       if (entry.isDirectory()) {
-        this._copyDir(srcPath, destPath, false);
-      } else if (entry.name.endsWith('.md')) {
-        // Resolve {skill:x:y} → /hc:cook plus model tiers/placeholders in all markdown files.
-        let content = resolveSkillRefs(
-          fs.readFileSync(srcPath, 'utf8'),
-          (p, n) => this.skillRef(p, n),
-        );
-        content = resolveModel(content, this.name);
-        content = resolveModelRefs(content, this.name);
-        fs.writeFileSync(destPath, content, 'utf8');
-      } else {
+        if (this._copyNonMdOnly(srcPath, destPath)) {
+          copied = true;
+        }
+      } else if (!entry.name.endsWith('.md')) {
+        if (!copied && !fs.existsSync(dest)) {
+          fs.mkdirSync(dest, { recursive: true });
+        }
         fs.copyFileSync(srcPath, destPath);
+        copied = true;
       }
     }
+    return copied;
   }
 
   // Not used — installSkills is fully overridden above.
