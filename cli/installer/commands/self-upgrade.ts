@@ -74,10 +74,13 @@ export function selfUpgradeCliIfNeeded(
 
   const hailyHome = resolveHailyHome();
 
-  // Safety guard: never overwrite the workspace dist/ (dev/test scenario).
-  // When running from a workspace build, __dirname is <workspace>/dist/ — skip.
-  const workspaceDist = path.resolve(__dirname);
-  if (path.resolve(hailyHome, 'dist') === workspaceDist) return false;
+  // Safety guard: skip when running directly from inside HAILYKIT_HOME
+  // (i.e. this is already the installed binary — don't clobber ourselves).
+  // When running from a workspace build, __dirname is <workspace>/dist/installer/commands,
+  // which is NOT inside hailyHome.
+  const resolvedHome = path.resolve(hailyHome);
+  const resolvedDir = path.resolve(__dirname);
+  if (resolvedDir.startsWith(resolvedHome + path.sep) || resolvedDir === resolvedHome) return false;
 
   // Verify hailyHome looks like a real install (contains dist/bin.js).
   const homeBinJs = path.join(hailyHome, 'dist', 'bin.js');

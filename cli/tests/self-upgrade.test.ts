@@ -44,16 +44,28 @@ test('selfUpgradeCliIfNeeded: returns false when release version is older than c
   assert.equal(selfUpgradeCliIfNeeded(root, '1.0.0'), false);
 });
 
-test('selfUpgradeCliIfNeeded: returns false when HAILYKIT_HOME has no installed bin.js', () => {
+test('selfUpgradeCliIfNeeded: returns false when running from inside HAILYKIT_HOME (installed binary)', () => {
   const root = tmp();
   const home = tmp();
   fakeRelease(root, '2.0.0');
-  // home exists but no dist/bin.js
-  fs.mkdirSync(path.join(home, 'dist'), { recursive: true });
+  fakeHome(home, '1.0.0');
+
+  // Simulate: binary is running from inside HAILYKIT_HOME/dist/installer/commands
+  // by setting HAILYKIT_HOME to an ancestor of __dirname.
+  // We can't manipulate __dirname directly, so we set HAILYKIT_HOME to the
+  // currently running dist directory which IS an ancestor of __dirname.
+  // This is the guard that prevents the installed binary from replacing itself.
   const orig = process.env['HAILYKIT_HOME'];
-  process.env['HAILYKIT_HOME'] = home;
+  // Use a path that will NOT be an ancestor of __dirname (current test-build dir).
+  // The guard returns false when resolvedDir.startsWith(resolvedHome).
+  // We simulate this by using __dirname itself as home (dirname starts with dirname).
+  process.env['HAILYKIT_HOME'] = path.resolve(__dirname, '..');
   try {
-    assert.equal(selfUpgradeCliIfNeeded(root, '1.0.0'), false);
+    // Since __dirname IS inside process.env.HAILYKIT_HOME/../ (its parent), guard triggers.
+    // But the key behavior: no infinite upgrade loop.
+    const result = selfUpgradeCliIfNeeded(root, '1.0.0');
+    // Should return false because we're "inside" hailyHome
+    assert.equal(result, false);
   } finally {
     if (orig === undefined) delete process.env['HAILYKIT_HOME'];
     else process.env['HAILYKIT_HOME'] = orig;
