@@ -10,6 +10,7 @@ import { CrushProvider } from '../installer/providers/crush';
 import { KimiProvider } from '../installer/providers/kimi';
 import { OpenCodeProvider } from '../installer/providers/opencode';
 import { ZedProvider } from '../installer/providers/zed';
+import { AntigravityProvider } from '../installer/providers/antigravity';
 import { toCrushMd, toKimiMd } from '../installer/converter';
 import {
   escapeTomlMultiline, toCodexSlug, buildAgentConfigEntry, deriveSandboxMode,
@@ -106,6 +107,52 @@ test('GeminiProvider.uninstall removes commands, skills, agents subdirectories a
   assert.ok(!fs.existsSync(path.join(target, 'agents')));
   const gemini = fs.readFileSync(path.join(target, 'GEMINI.md'), 'utf8');
   assert.ok(!gemini.includes('hailykit-managed-start'));
+});
+
+test('AntigravityProvider.installSkills: global vs project installation and manifest handling', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const skillDir = path.join(claude, 'skills', 'hc-test');
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    '---\nname: hc-test\ndescription: Test\n---\n\nTest body.',
+  );
+
+  const provider = new AntigravityProvider();
+
+  // Mock globalDir() to point to a temporary test directory
+  const testGlobalDir = path.join(root, 'global_workflows');
+  (provider as any).globalDir = () => testGlobalDir;
+
+  // 1. Global install
+  const countGlobal = provider.installSkills(claude, testGlobalDir);
+  assert.equal(countGlobal, 1);
+  // Expecting: testGlobalDir/hc-test/SKILL.md (flat folders, direct children of testGlobalDir)
+  assert.ok(fs.existsSync(path.join(testGlobalDir, 'hc-test', 'SKILL.md')));
+  const manifestGlobal = JSON.parse(fs.readFileSync(path.join(testGlobalDir, 'hailykit-installed-skills.json'), 'utf8'));
+  assert.deepEqual(manifestGlobal, ['hc-test']);
+
+  // 2. Project install
+  const testProjectDir = path.join(root, 'project');
+  const countProject = provider.installSkills(claude, testProjectDir);
+  assert.equal(countProject, 1);
+  // Expecting: testProjectDir/skills/hc-test/SKILL.md
+  assert.ok(fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test', 'SKILL.md')));
+  const manifestProject = JSON.parse(fs.readFileSync(path.join(testProjectDir, 'hailykit-installed-skills.json'), 'utf8'));
+  assert.deepEqual(manifestProject, ['hc-test']);
+
+  // 3. Uninstall
+  fs.writeFileSync(path.join(testGlobalDir, '.hailykit-meta.json'), '{}');
+  fs.writeFileSync(path.join(testProjectDir, '.hailykit-meta.json'), '{}');
+
+  provider.uninstall(testGlobalDir);
+  assert.ok(!fs.existsSync(path.join(testGlobalDir, 'hc-test')));
+  assert.ok(!fs.existsSync(path.join(testGlobalDir, 'hailykit-installed-skills.json')));
+
+  provider.uninstall(testProjectDir);
+  assert.ok(!fs.existsSync(path.join(testProjectDir, 'skills', 'hc-test')));
+  assert.ok(!fs.existsSync(path.join(testProjectDir, 'hailykit-installed-skills.json')));
 });
 
 test('CodexProvider skill copy resolves {model:ultra} placeholders', () => {

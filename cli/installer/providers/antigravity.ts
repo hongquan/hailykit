@@ -2,7 +2,22 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { resolveSkillRefs, resolveModel, resolveModelRefs } from '../converter.js';
+import { resolveSkillRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed } from '../converter.js';
+
+const SKILLS_MANIFEST = 'hailykit-installed-skills.json';
+const SAFE_SKILL_DIR_RE = /^[a-z][a-z0-9-]*$/;
+
+function readSkillsManifest(providerDir: string): string[] {
+  try {
+    const raw: unknown = JSON.parse(
+      fs.readFileSync(path.join(providerDir, SKILLS_MANIFEST), 'utf8'));
+    return Array.isArray(raw)
+      ? raw.filter((n): n is string => typeof n === 'string' && SAFE_SKILL_DIR_RE.test(n))
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Antigravity provider.
@@ -42,20 +57,65 @@ export class AntigravityProvider extends BaseProvider {
     const srcSkillsDir = path.join(extractedClaudeDir, 'skills');
     if (!fs.existsSync(srcSkillsDir)) return 0;
 
-    const destSkillsDir = path.join(targetProviderDir, 'skills');
+    const isGlobal = targetProviderDir === this.globalDir();
+    const destSkillsDir = isGlobal ? targetProviderDir : path.join(targetProviderDir, 'skills');
     fs.mkdirSync(destSkillsDir, { recursive: true });
 
-    let count = 0;
-    for (const skillName of fs.readdirSync(srcSkillsDir)) {
+    const installed: string[] = [];
+    for (const skillName of fs.readdirSync(srcSkillsDir).sort()) {
       const srcSkillDir = path.join(srcSkillsDir, skillName);
       const skillMd = path.join(srcSkillDir, 'SKILL.md');
       if (!fs.existsSync(skillMd)) continue;
 
+      const parsed = parseFrontmatter(fs.readFileSync(skillMd, 'utf8'));
+      if (!isProviderAllowed(parsed, this.name)) continue;
+
       const destSkillDir = path.join(destSkillsDir, skillName);
       this._copyDir(srcSkillDir, destSkillDir);
-      count++;
+      installed.push(skillName);
     }
-    return count;
+
+    // Cleanup stale skills from previous installation
+    for (const stale of readSkillsManifest(targetProviderDir)) {
+      if (!installed.includes(stale)) {
+        fs.rmSync(path.join(destSkillsDir, stale), { recursive: true, force: true });
+      }
+    }
+
+    if (installed.length === 0) {
+      fs.rmSync(path.join(targetProviderDir, SKILLS_MANIFEST), { force: true });
+      return 0;
+    }
+
+    fs.mkdirSync(targetProviderDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(targetProviderDir, SKILLS_MANIFEST),
+      JSON.stringify(installed, null, 2) + '\n',
+      'utf8',
+    );
+
+    return installed.length;
+  }
+
+  override uninstall(providerDir: string): void {
+    const meta = path.join(providerDir, '.hailykit-meta.json');
+    if (!fs.existsSync(meta)) {
+      console.log('    Not installed (no .hailykit-meta.json found)');
+      return;
+    }
+    const isGlobal = providerDir === this.globalDir();
+    const destSkillsDir = isGlobal ? providerDir : path.join(providerDir, 'skills');
+    let n = 0;
+    for (const name of readSkillsManifest(providerDir)) {
+      const dir = path.join(destSkillsDir, name);
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+        n++;
+      }
+    }
+    if (n) console.log(`    Removed ${n} native skill(s) from ${destSkillsDir}`);
+    fs.rmSync(path.join(providerDir, SKILLS_MANIFEST), { force: true });
+    super.uninstall(providerDir);
   }
 
   // Antigravity reads rules from the same SKILL.md context system — no separate rules file needed.
