@@ -447,11 +447,14 @@ export function bundleFlatSkill(srcSkillDir: string, resolveContent: (raw: strin
     return baseContent;
   }
 
+  const skillName = path.basename(srcSkillDir);
+  const hailyHome = process.env['HAILYKIT_HOME'] || path.join(os.homedir(), '.hailykit');
+
   let bundled = baseContent.replace(/\s+$/, '');
   mdFiles.sort((a, b) => a.relPath.localeCompare(b.relPath));
-  for (const { relPath, absPath } of mdFiles) {
-    const subContent = resolveContent(fs.readFileSync(absPath, 'utf8')).trim();
-    bundled += `\n\n---\n\n# Reference: ${relPath}\n\n${subContent}`;
+  for (const { relPath } of mdFiles) {
+    const centralRefPath = path.join(hailyHome, 'kit', 'skills', skillName, relPath);
+    bundled += `\n\n---\n\n# Reference: ${relPath}\n> [!IMPORTANT]\n> To view detailed instructions for this section, run the \`view_file\` (or \`read_file\`) tool on:\n> \`${centralRefPath}\``;
   }
 
   return bundled + '\n';

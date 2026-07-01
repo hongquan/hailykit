@@ -138,7 +138,7 @@ test('AntigravityProvider.installSkills: global vs project installation and mani
   assert.ok(fs.existsSync(globalMdPath));
   const globalContent = fs.readFileSync(globalMdPath, 'utf8');
   assert.ok(globalContent.includes('# Reference: references/detail.md'));
-  assert.ok(globalContent.includes('Detailed reference documentation.'));
+  assert.ok(globalContent.includes('view_file'));
   const manifestGlobal = JSON.parse(fs.readFileSync(path.join(testGlobalDir, 'hailykit-installed-skills.json'), 'utf8'));
   assert.deepEqual(manifestGlobal, ['hc-test']);
 

@@ -3,15 +3,22 @@
 All notable changes to this project will be documented in this file.
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.14] (2026-07-01)
+
+### 🚀 Improvements
+
+- installer: implement Lazy Reference Loading for flat skill providers (Antigravity & Gemini CLI), reducing flat skill file sizes by ~90% (~15KB vs ~150KB) and referencing central catalog files in ~/.hailykit/kit/skills/
+- installer: automatically sync central catalog (~/.hailykit/kit) during installation and self-upgrades
+
 ---
 
-## [1.10.10] (2026-06-30)
+## [1.10.13] (2026-07-01)
 
 ### 🚀 Improvements
 
 - hc-review: simplification scan, add ceiling + trigger markers
 - installer: add cline provider
-- installer: self-upgrade CLI binary when a newer release is detected (re-run prompt)
+- installer: self-upgrade CLI binary when a newer release is detected
 
 ### 🐛 Bug Fixes
 

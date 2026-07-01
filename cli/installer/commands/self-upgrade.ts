@@ -97,6 +97,27 @@ export function selfUpgradeCliIfNeeded(
     fs.copyFileSync(releasePkg, homePkg);
   }
 
+  const releaseKit = path.join(extractedRoot, 'kit');
+  syncCentralKitDir(releaseKit);
+
   console.log(`  ✓ CLI updated to ${releaseVersion} — re-run the command to continue.\n`);
   return true;
+}
+
+/**
+ * Synchronize the central HailyKit catalog (~/.hailykit/kit) with the extracted kit directory
+ * so that lazy reference pointers in flat skills can always read the latest documentation.
+ */
+export function syncCentralKitDir(extractedKitDir: string): void {
+  if (!fs.existsSync(extractedKitDir)) return;
+  const hailyHome = resolveHailyHome();
+  const destKit = path.join(hailyHome, 'kit');
+  const resolvedDest = path.resolve(destKit);
+  const resolvedSrc = path.resolve(extractedKitDir);
+  if (resolvedDest === resolvedSrc || resolvedSrc.startsWith(resolvedDest + path.sep)) return;
+  fs.mkdirSync(hailyHome, { recursive: true });
+  if (fs.existsSync(destKit)) {
+    fs.rmSync(destKit, { recursive: true, force: true });
+  }
+  fs.cpSync(extractedKitDir, destKit, { recursive: true });
 }

@@ -7,7 +7,7 @@ import { mergeClaudeDir } from '../merger.js';
 import { loadModelMapOverrides } from '../converter.js';
 import { setupVenv } from '../venv.js';
 import { resolveProviders } from '../providers/index.js';
-import { selfUpgradeCliIfNeeded } from './self-upgrade.js';
+import { selfUpgradeCliIfNeeded, syncCentralKitDir } from './self-upgrade.js';
 
 function readCurrentVersion(): string {
   try {
@@ -55,6 +55,8 @@ export async function cmdInstall(options: InstallOptions): Promise<void> {
 
     // Self-upgrade the CLI binary if the release ships a newer version.
     if (selfUpgradeCliIfNeeded(root, readCurrentVersion())) return;
+
+    syncCentralKitDir(extractedKitDir);
 
     // Must run before any agent conversion — resolveModel reads the merged map.
     loadModelMapOverrides(extractedKitDir);
