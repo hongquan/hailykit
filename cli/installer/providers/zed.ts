@@ -46,9 +46,24 @@ export class ZedProvider extends BaseProvider {
   get name(): string { return 'zed'; }
   get label(): string { return 'Zed'; }
 
-  globalDir(): string { return path.join(os.homedir(), '.zed'); }
+  globalDir(): string {
+    if (process.platform === 'win32') {
+      const appData = process.env['APPDATA'] ?? path.join(os.homedir(), 'AppData', 'Roaming');
+      return path.join(appData, 'Zed');
+    }
+    const xdgConfig = process.env['XDG_CONFIG_HOME'] ?? path.join(os.homedir(), '.config');
+    return path.join(xdgConfig, 'zed');
+  }
+
   protected _projectDirName(): string { return '.zed'; }
   hooksSupported(): boolean { return false; }
+
+  private _getSkillsRoot(providerDir: string): string {
+    if (path.basename(providerDir) === '.zed') {
+      return path.join(path.dirname(providerDir), '.agents', 'skills');
+    }
+    return path.join(os.homedir(), '.agents', 'skills');
+  }
 
   /** Zed native skills are invoked via /skill-name. */
   protected skillRef(prefix: string, name: string): string {
@@ -59,7 +74,7 @@ export class ZedProvider extends BaseProvider {
     const srcSkillsDir = path.join(extractedClaudeDir, 'skills');
     if (!fs.existsSync(srcSkillsDir)) return 0;
 
-    const skillsRoot = path.join(path.dirname(targetProviderDir), '.agents', 'skills');
+    const skillsRoot = this._getSkillsRoot(targetProviderDir);
     const installed: string[] = [];
 
     for (const skillName of fs.readdirSync(srcSkillsDir).sort()) {
@@ -122,7 +137,7 @@ export class ZedProvider extends BaseProvider {
 
   /** Remove natively installed skills (via manifest) before standard cleanup. */
   uninstall(providerDir: string): void {
-    const skillsRoot = path.join(path.dirname(providerDir), '.agents', 'skills');
+    const skillsRoot = this._getSkillsRoot(providerDir);
     let n = 0;
     for (const name of readSkillsManifest(providerDir)) {
       const dir = path.join(skillsRoot, name);
@@ -147,10 +162,11 @@ export class ZedProvider extends BaseProvider {
 
     fs.mkdirSync(targetProviderDir, { recursive: true });
     fs.writeFileSync(
-      path.join(targetProviderDir, 'hailykit-rules.md'),
+      path.join(targetProviderDir, 'AGENTS.md'),
       parts.join('\n\n---\n\n') + '\n',
       'utf8',
     );
+    fs.rmSync(path.join(targetProviderDir, 'hailykit-rules.md'), { force: true });
   }
 
   installAgents(extractedClaudeDir: string, targetProviderDir: string): void {

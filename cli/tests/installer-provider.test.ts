@@ -278,6 +278,21 @@ test('ZedProvider.uninstall removes manifest-listed native skills', () => {
   assert.ok(!fs.existsSync(path.join(target, 'hailykit-installed-skills.json')));
 });
 
+test('ZedProvider.installRules writes AGENTS.md instruction file', () => {
+  const root = tmp();
+  const claude = path.join(root, 'claude');
+  const rulesDir = path.join(claude, 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+  fs.writeFileSync(path.join(rulesDir, '01-base.md'), 'Rule 1: Use {skill:hc-test}.');
+
+  const target = path.join(root, '.zed');
+  new ZedProvider().installRules(claude, target);
+
+  const agentsMd = fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8');
+  assert.match(agentsMd, /Rule 1: Use \/hc-test\./);
+  assert.ok(!fs.existsSync(path.join(target, 'hailykit-rules.md')));
+});
+
 // ---------------------------------------------------------------------------
 // CodexProvider
 // ---------------------------------------------------------------------------
