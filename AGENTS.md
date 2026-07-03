@@ -36,3 +36,4 @@ Read before acting on a relevant task:
 - [skill-template.md](docs/skill-template.md) — canonical skill section order and constraint callout syntax
 - [system-architecture.md](docs/system-architecture.md) — architecture + directory map
 - [tech-stack.md](docs/tech-stack.md) — NDJSON stdio protocol, tool wire format
+- [token-overhead.md](docs/token-overhead.md) — kit content injection cost by class, measured before/after compression, reproduce command
