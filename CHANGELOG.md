@@ -5,6 +5,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.12.5] (2026-07-04)
+
+### 🚀 Improvements
+
+- hl-write: add IMPORT mode for continuing existing manuscripts
+- hl-write: add prose-craft knowledge and style-stats script
+- skills: add WebFetch fallback guidance for blocked pages
+- cli: add prose-compression tool and overhead measurement script
+- agents: add output contracts to reduce narrative token cost
+- rules: add output economy guidance for terse responses
+- kit: compress rules and standards prose for token efficiency
+
+---
+
 ## [1.12.0] (2026-07-03)
 
 ### 🚀 Improvements
