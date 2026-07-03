@@ -7,18 +7,11 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🚀 Improvements
 
-- installer: upgrade Zed provider (`zed`) for full native support with modern Zed AI features (global config path `~/.config/zed` / `%APPDATA%\Zed`, native skill catalog in `~/.agents/skills/`, and instruction loading via `AGENTS.md`)
-
----
-
-## [1.10.14] (2026-07-01)
-
-### 🚀 Improvements
-
 - hc-review: simplification scan, add ceiling + trigger markers
 - installer: add cline provider
 - installer: self-upgrade CLI binary when a newer release is detected
 - installer: implement Lazy Reference Loading for flat skill providers
+- installer: upgrade Zed provider
 
 ### 🐛 Bug Fixes
 
