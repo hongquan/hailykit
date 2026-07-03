@@ -5,6 +5,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.12.6] (2026-07-04)
+
+### 🐛 Fixes
+
+- haily-git-manager: add tag protocol with verified SHA sequencing
+- haily-project-manager: add evidence grounding to prevent fabricated claims
+- hc-ship: verify release commit before tagging in step 13
+
+---
+
 ## [1.12.5] (2026-07-04)
 
 ### 🚀 Improvements
