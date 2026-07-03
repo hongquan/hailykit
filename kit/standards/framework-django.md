@@ -70,7 +70,7 @@ for post in Post.objects.select_related('author'):
 Class-based views (CBV) for CRUD, function-based (FBV) for one-off endpoints.
 
 - **DRF (Django REST Framework)** for APIs — `ModelViewSet` + `Serializer` covers 80% of cases
-- **Django Ninja** is a modern alternative — FastAPI-style with type hints, async support
+- **Django Ninja** is modern alternative — FastAPI-style with type hints, async support
 - Plain Django views for HTML responses (admin, server-rendered pages)
 
 ```python
@@ -86,7 +86,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 ## Auth
 
-- Django's built-in auth covers session-based auth out of the box
+- Django's built-in auth covers session-based auth out of box
 - **djangorestframework-simplejwt** for JWT in DRF APIs
 - **django-allauth** for social OAuth (Google, GitHub, etc.) + email verification
 - **django-otp** for 2FA
@@ -96,7 +96,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 - Per-view: `permission_classes = [IsAuthenticated, IsOwner]` in DRF
 - Per-object: implement `has_object_permission()` in custom permission class
-- Use **django-guardian** for row-level permissions if the built-in model isn't enough
+- Use **django-guardian** for row-level permissions if built-in model isn't enough
 
 ## Settings
 
@@ -110,7 +110,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 - `python manage.py makemigrations` then `migrate` — never edit migration files by hand for normal changes
 - Squash migrations periodically (`squashmigrations`) to keep history manageable
-- **Always test migrations on a staging copy of prod data** before applying to prod
+- **Always test migrations on staging copy of prod data** before applying to prod
 - Use `RunPython` with `reverse_code` for data migrations — make them reversible
 
 ## Caching
@@ -149,7 +149,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 - N+1 queries (use `select_related` / `prefetch_related`)
 - Forgetting `auto_now_add` vs `auto_now` — first is "set once", second is "update each save".
-  `auto_now_add` / `auto_now` make the field read-only on save — avoid them if you need to manually set timestamps (e.g., in tests or import scripts).
+  `auto_now_add` / `auto_now` make field read-only on save — avoid them if you need to manually set timestamps (e.g., in tests or import scripts).
 - Not running `collectstatic` in production — broken admin styles
 - `DEBUG=True` in production — leaks settings + stack traces
 

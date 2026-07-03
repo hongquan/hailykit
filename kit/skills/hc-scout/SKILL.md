@@ -1,6 +1,6 @@
 ---
 name: hc-scout
-description: "Parallel codebase discovery before implementation. Splits the repo into segments and spawns one Explore subagent per segment simultaneously. Reports project type, relevant modules, patterns, in-flight plans, and public APIs. Supports ext (broad parallel scouting), --pack (repomix dump), and --graph (knowledge graph)."
+description: "Parallel codebase discovery before implementation. Splits the repo into segments and spawns one Explore subagent per segment. Reports project type, relevant modules, patterns, in-flight plans, and public APIs. Supports ext (broad parallel scouting), --pack (repomix dump), and --graph (knowledge graph)."
 when_to_use: "Invoke when locating code, mapping dependencies, or discovering relevant files before making changes."
 user-invocable: true
 argument-hint: "[target] [ext] [--quick] [--contracts] [--pack] [--graph] [--deps <module> [--owner <org>]]"

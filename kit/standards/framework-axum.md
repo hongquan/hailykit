@@ -4,7 +4,7 @@ Detected via `axum` in `Cargo.toml` `[dependencies]`.
 
 ## What Axum Is
 
-Axum is the Tokio team's web framework — modern, ergonomic, built on `hyper` + `tower`. The de-facto default for new Rust web servers as of 2026.
+Axum is the Tokio team's web framework — modern, ergonomic, built on `hyper` + `tower`. De-facto default for new Rust web servers as of 2026.
 
 ## When to Use
 
@@ -77,7 +77,7 @@ async fn get_user(
 }
 ```
 
-**Extractors are the magic** — `Path`, `Query`, `Json`, `State`, `Headers`, etc. all impl `FromRequestParts` / `FromRequest`.
+**Extractors are magic** — `Path`, `Query`, `Json`, `State`, `Headers`, etc. all impl `FromRequestParts` / `FromRequest`.
 
 ## State
 
@@ -145,7 +145,7 @@ let app = Router::new()
     );
 ```
 
-`ServiceBuilder` is the recommended way to stack middleware — applies in the order written.
+`ServiceBuilder` is recommended way to stack middleware — applies in order written.
 
 ## Custom Middleware
 
@@ -229,7 +229,7 @@ async fn test_health() {
 }
 ```
 
-`.oneshot()` from Tower processes a single request without binding a socket — fast tests.
+`.oneshot()` from Tower processes single request without binding socket — fast tests.
 
 ## Best Practices
 
@@ -238,7 +238,7 @@ async fn test_health() {
 - Implement `IntoResponse` for your error type — `?` propagation in handlers
 - Layer middleware via `ServiceBuilder` — order matters (outer → inner)
 - Use `tracing` + `tower-http::trace::TraceLayer` — get request logging for free
-- `tokio::spawn` for fire-and-forget async work — don't block the handler
+- `tokio::spawn` for fire-and-forget async work — don't block handler
 - Configure `tokio::main` with worker threads matching CPU: `#[tokio::main(flavor = "multi_thread", worker_threads = 8)]`
 
 ## Common Pitfalls

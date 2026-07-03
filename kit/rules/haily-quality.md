@@ -4,17 +4,17 @@
 
 ## 1. Code Implementation
 
-- Delegate to the `haily-planner` agent to create an implementation plan with TODO tasks in `.agents/`.
+- Delegate to the `haily-planner` agent to create implementation plan with TODO tasks in `.agents/`.
 - During planning, run multiple `haily-researcher` agents in parallel on distinct topics; they report back to `haily-planner`.
-- Write clean, maintainable code following architectural patterns and the spec; handle edge cases + errors.
+- Write clean, maintainable code following architectural patterns and spec; handle edge cases + errors.
 - Update existing files directly — no parallel "enhanced" copies.
-- After creating/modifying a code file, run the compile/typecheck command to catch errors.
+- After creating/modifying code file, run the compile/typecheck command to catch errors.
 
 ## 2. Testing
 
 - Delegate to the `haily-tester` agent: comprehensive unit tests, high coverage, error scenarios, performance.
 - Tests verify the FINAL code that will be reviewed and merged.
-- **Never** ignore failing tests or use fake data / mocks / shortcuts to pass the build or CI.
+- **Never** ignore failing tests or use fake data / mocks / shortcuts to pass build or CI.
 - Fix failures per recommendations, re-run `haily-tester`, and only finish when all tests pass.
 
 ## 3. Code Quality
@@ -29,10 +29,10 @@
 
 ## 5. Debugging
 
-- On a reported bug or CI failure, delegate to the `haily-debugger` agent and read its report.
-- Implement the fix, then re-run the `haily-tester` agent. If tests fail, fix per recommendations and repeat from Step 3.
+- On reported bug or CI failure, delegate to the `haily-debugger` agent and read its report.
+- Implement fix, then re-run the `haily-tester` agent. If tests fail, fix per recommendations and repeat from Step 3.
 
 ## 6. Visual Explanations
 
-When the user asks to "explain"/"visualize" or a topic has 3+ interacting components, use `{skill:hl-visualize}`:
-`--explain` (ASCII + Mermaid walkthrough) · `--diagram` (architecture/data flow) · `--slides` (step-by-step) · `--ascii` (terminal-only). Add `--html` for a self-contained browser page (also supports `--diff [ref]`, `--plan-review`, `--recap [timeframe]`). Visuals save to the plan folder (`## Plan Context`) or `.agents/visuals/`. See `coding.md` → Visual Aids.
+When user asks to "explain"/"visualize" or topic has 3+ interacting components, use `{skill:hl-visualize}`:
+`--explain` (ASCII + Mermaid walkthrough) · `--diagram` (architecture/data flow) · `--slides` (step-by-step) · `--ascii` (terminal-only). Add `--html` for self-contained browser page (also supports `--diff [ref]`, `--plan-review`, `--recap [timeframe]`). Visuals save to plan folder (`## Plan Context`) or `.agents/visuals/`. See `coding.md` → Visual Aids.

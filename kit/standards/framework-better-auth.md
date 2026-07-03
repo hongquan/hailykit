@@ -32,7 +32,7 @@ export const auth = betterAuth({
 
 ## Database
 
-Built-in adapters: **Prisma**, **Drizzle**, **Kysely**, **MongoDB**. Pick the one your project already uses.
+Built-in adapters: **Prisma**, **Drizzle**, **Kysely**, **MongoDB**. Pick one your project already uses.
 
 ```ts
 // Drizzle
@@ -170,8 +170,8 @@ export async function middleware(req: NextRequest) {
 
 - Forgetting `BETTER_AUTH_SECRET` in prod env → cookie verification breaks silently
 - `BETTER_AUTH_URL` mismatched with actual deploy URL → OAuth redirect failures
-- Not running `generate` + `migrate` after adding a plugin → missing tables
-- Mounting the handler at the wrong path → 404 on `/api/auth/*`
+- Not running `generate` + `migrate` after adding plugin → missing tables
+- Mounting handler at wrong path → 404 on `/api/auth/*`
 - Using JWT mode without revocation strategy → can't kick compromised sessions
 
 ## Implementation Checklist

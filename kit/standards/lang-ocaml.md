@@ -1,6 +1,6 @@
 # OCaml Standards
 
-OCaml is a multi-paradigm (functional-first) language with strong static types + powerful type inference. Industrial users: Jane Street, Discord (backend), Facebook (Flow, infer), Tezos, Coq. Detected via `dune-project` or `*.opam`.
+OCaml is multi-paradigm (functional-first) language with strong static types + powerful type inference. Industrial users: Jane Street, Discord (backend), Facebook (Flow, infer), Tezos, Coq. Detected via `dune-project` or `*.opam`.
 
 ## Toolchain
 
@@ -256,7 +256,7 @@ let () =
 - **Use dune** for everything — modern standard
 - **Format with `ocamlformat`** — set rules in `.ocamlformat`
 - **Modules over classes** — OCaml has objects but they're rarely used
-- **Prefer immutable data** — use `mutable` only when you have a reason
+- **Prefer immutable data** — use `mutable` only when you have reason
 - **Labeled args** for readability: `~name`, `~id`
 - **Newtype via `private`** abstract types: `module Id : sig type t val of_int : int -> t end`
 - **Effects** (OCaml 5) over Lwt for new code (when ecosystem catches up)

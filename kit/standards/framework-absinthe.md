@@ -4,7 +4,7 @@ Detected via `:absinthe` in `mix.exs` — auto-injected as **extra**.
 
 ## What Absinthe Is
 
-Absinthe is the production-grade GraphQL toolkit for Elixir — schema definition, query execution, subscriptions over Phoenix Channels, dataloader for N+1 prevention.
+Absinthe is production-grade GraphQL toolkit for Elixir — schema definition, query execution, subscriptions over Phoenix Channels, dataloader for N+1 prevention.
 
 ## When to Use
 
@@ -123,7 +123,7 @@ defmodule MyApp.Blog do
 end
 ```
 
-Now `resolve: dataloader(MyApp.Blog)` batches all `posts -> comments` lookups into a single query. **Critical for performance.**
+Now `resolve: dataloader(MyApp.Blog)` batches all `posts -> comments` lookups into single query. **Critical for performance.**
 
 ## Router
 
@@ -137,7 +137,7 @@ scope "/api" do
 end
 ```
 
-GraphiQL gives you a local IDE for exploring the schema at `/graphiql` in dev.
+GraphiQL gives you local IDE for exploring schema at `/graphiql` in dev.
 
 ## Subscriptions
 

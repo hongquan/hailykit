@@ -13,7 +13,7 @@ Keep these current in `./docs`:
 
 ## Update Triggers
 
-The `haily-project-manager` agent MUST update the docs above when: a phase status changes (e.g. In Progress → Complete) · a major feature ships · a significant bug/security patch lands · timeline or scope shifts · an external dependency or breaking change occurs.
+The `haily-project-manager` agent MUST update docs above when: phase status changes (e.g. In Progress → Complete) · major feature ships · significant bug/security patch lands · timeline or scope shifts · external dependency or breaking change occurs.
 
 **Protocol:** read current state first → keep version + formatting consistent → verify links/dates/cross-refs after → confirm updates match actual implementation progress.
 
@@ -38,7 +38,7 @@ Save plans in `.agents/` (gitignored — never ships). Folder name from the `## 
 - Stale (>90 days, no active plan): delete
 - >20 reports in one plan: consolidate older ones into `consolidated-summary.md`
 
-`haily-project-manager` triggers archival when closing a plan.
+`haily-project-manager` triggers archival when closing plan.
 
 ### plan.md
 

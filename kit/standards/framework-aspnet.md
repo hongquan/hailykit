@@ -91,7 +91,7 @@ public record CreateUserDto(
 public record UserDto(int Id, string Email, string Name, DateTime CreatedAt);
 ```
 
-For complex validation, **FluentValidation** is the better fit:
+For complex validation, **FluentValidation** is better fit:
 
 ```csharp
 public class CreateUserValidator : AbstractValidator<CreateUserDto>

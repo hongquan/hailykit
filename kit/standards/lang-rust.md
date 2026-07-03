@@ -21,13 +21,13 @@ pub fn get_user(user_id: &str) -> Result<Option<User>, UserError>
 ```
 
 - `///` for all public items (functions, structs, enums, traits, modules)
-- `//!` at the top of `lib.rs` or `mod.rs` for crate/module-level documentation
+- `//!` at top of `lib.rs` or `mod.rs` for crate/module-level documentation
 - Include `# Errors`, `# Panics`, `# Safety` sections only when they apply — omit empty sections
-- Private items: comment only when the intent is non-obvious
+- Private items: comment only when intent is non-obvious
 
 ### SAFETY (MANDATORY for unsafe)
 `// SAFETY:` comment is **required** immediately before every `unsafe` block.
-Explain the invariant being upheld — the compiler cannot check this:
+Explain invariant being upheld — compiler cannot check this:
 ```rust
 // SAFETY: ptr is non-null and properly aligned — guaranteed by the allocator contract in new()
 let val = unsafe { *ptr };
@@ -42,7 +42,7 @@ No `unsafe` block without a `// SAFETY:` comment. Ever.
 Always add inline reason for `#[allow(...)]` attributes.
 
 ### unwrap / expect
-Prefer `expect` over `unwrap` with a message that states the invariant:
+Prefer `expect` over `unwrap` with message that states invariant:
 ```rust
 // States WHY this can never fail, not just what it is
 let port = env::var("PORT").expect("PORT must be set in environment");
@@ -51,8 +51,8 @@ config.parse().expect("config was validated at startup — parse cannot fail her
 
 ## Key Idioms
 
-- Lifetime annotations: comment the semantic meaning when names alone (`'a`, `'b`) are ambiguous
+- Lifetime annotations: comment semantic meaning when names alone (`'a`, `'b`) are ambiguous
 - Prefer `thiserror` for library error types; `anyhow` for application-level error propagation
-- `Arc<Mutex<T>>` — document the lock ordering when multiple mutexes exist (prevents deadlock)
-- Prefer `?` over `unwrap` in fallible functions; reserve `unwrap` only for truly infallible cases with a comment
-- Feature flags: document which features enable which code paths in the crate-level `//!` comment
+- `Arc<Mutex<T>>` — document lock ordering when multiple mutexes exist (prevents deadlock)
+- Prefer `?` over `unwrap` in fallible functions; reserve `unwrap` only for truly infallible cases with comment
+- Feature flags: document which features enable which code paths in crate-level `//!` comment

@@ -4,7 +4,7 @@ Detected via `:ecto` or `:ecto_sql` in `mix.exs` — auto-injected as **extra**,
 
 ## What Ecto Is
 
-Ecto is Elixir's database toolkit — it's an **adapter, query builder, schema mapper, and migration runner**, not a traditional ORM. There are no lazy-loading objects, no "save this object" magic. Everything is explicit functions.
+Ecto is Elixir's database toolkit — it's an **adapter, query builder, schema mapper, and migration runner**, not traditional ORM. There are no lazy-loading objects, no "save this object" magic. Everything is explicit functions.
 
 Components:
 - `Ecto.Repo` — your gateway to the DB
@@ -80,7 +80,7 @@ Common functions:
 - `unique_constraint/2` — maps DB unique index to changeset error
 - `foreign_key_constraint/2` — maps FK violation to changeset error
 - `cast_assoc/3` — nested changesets for has_many/has_one
-- `put_assoc/3` — replace an associated record
+- `put_assoc/3` — replace associated record
 
 ## Queries
 
@@ -178,11 +178,11 @@ mix ecto.reset           # drop + create + migrate + seed
 
 ## Soft Deletes / Timestamps
 
-Ecto doesn't have soft-delete built in — use a `deleted_at` field + a query default. Libraries like `paper_trail` or `phoenix_swoosh_delete` can help.
+Ecto doesn't have soft-delete built in — use a `deleted_at` field + query default. Libraries like `paper_trail` or `phoenix_swoosh_delete` can help.
 
 ## Best Practices
 
-- **Repo at the boundary** — only contexts call `Repo.*`, never controllers/LiveViews
+- **Repo at boundary** — only contexts call `Repo.*`, never controllers/LiveViews
 - One changeset per use case (register vs profile edit vs admin edit) — don't reuse `changeset/2` for everything
 - `unique_constraint` + DB unique index — both required for race-safe uniqueness
 - Always `preload` — never iterate associations without it
@@ -191,7 +191,7 @@ Ecto doesn't have soft-delete built in — use a `deleted_at` field + a query de
 
 ## Performance Tips
 
-- `select: %{...}` to fetch only needed fields — avoid full struct load when you only need a count
+- `select: %{...}` to fetch only needed fields — avoid full struct load when you only need count
 - `Repo.stream/2` for batch processing — doesn't load full result in memory
 - `Repo.aggregate(query, :count, :id)` instead of `Repo.all(query) |> length()`
 - `prepare: :unnamed` for one-off queries (skips prepared statement cache)
@@ -199,7 +199,7 @@ Ecto doesn't have soft-delete built in — use a `deleted_at` field + a query de
 
 ## Common Pitfalls
 
-- Mutating a schema struct directly → no DB update; must go through changeset + `Repo.update`
+- Mutating schema struct directly → no DB update; must go through changeset + `Repo.update`
 - Forgetting `unique_constraint` after creating DB unique index → ugly raw error instead of changeset error
 - N+1: accessing assoc field without preload → `Ecto.Association.NotLoaded` error
 - Using `Repo.insert(%User{...})` without changeset → bypasses validation

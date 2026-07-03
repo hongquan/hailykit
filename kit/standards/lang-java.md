@@ -16,7 +16,7 @@ public User getUser(String userId) throws NotFoundException
 ```
 
 - Javadoc required on every public class, method, and non-trivial field
-- Document EVERY checked exception with `@throws` — they are part of the contract
+- Document EVERY checked exception with `@throws` — they are part of contract
 - Document unchecked exceptions that callers should reasonably handle
 - Use `{@link Type#method}` for cross-references — survives renames via IDE refactor
 - Package-level docs go in `package-info.java`
@@ -24,7 +24,7 @@ public User getUser(String userId) throws NotFoundException
 ### Inline Comments
 - `// TODO(owner): issue-ref` — assignee + ticket required
 - `// FIXME(owner): issue-ref` — known broken, must include ticket
-- `@SuppressWarnings("...")` must have an inline reason comment
+- `@SuppressWarnings("...")` must have inline reason comment
 
 ```java
 @SuppressWarnings("unchecked") // reason: cast validated by isInstance() above

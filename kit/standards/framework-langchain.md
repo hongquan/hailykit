@@ -9,7 +9,7 @@ Detected via `langchain` or `langgraph` in `requirements.txt` / `pyproject.toml`
 
 ## Modern Stack (2026)
 
-The ecosystem has split into focused packages:
+Ecosystem has split into focused packages:
 
 ```bash
 pip install langchain langchain-openai langchain-anthropic langgraph langsmith
@@ -25,7 +25,7 @@ pip install langchain langchain-openai langchain-anthropic langgraph langsmith
 
 ## LCEL — LangChain Expression Language
 
-Compose chains with the pipe operator:
+Compose chains with pipe operator:
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -97,7 +97,7 @@ tools = [get_weather, search_db]
 model_with_tools = model.bind_tools(tools)
 ```
 
-Tool docstrings + type hints become the function spec the model sees. Be specific.
+Tool docstrings + type hints become function spec model sees. Be specific.
 
 ## RAG (Retrieval-Augmented Generation)
 
@@ -200,11 +200,11 @@ Now every invoke is traced — see prompts, model calls, latencies, costs in the
 - **Prefer LCEL over deprecated `LLMChain`, `SequentialChain`** — legacy patterns, breaking changes coming
 - **Stream user-facing responses** — UX win
 - **Structured output** for any data extraction — beats regex/json.loads on free text
-- **Type hints + docstrings on tools** — model uses these as the function spec
+- **Type hints + docstrings on tools** — model uses these as function spec
 - **LangSmith tracing in dev + prod** — without it, agent debugging is impossible
 - For agents, **prefer LangGraph over `AgentExecutor`** — explicit state, easier to debug
 - Pin LLM provider versions — model behavior drifts; pin `claude-opus-4-7` not "claude-latest"
-- Cache embeddings — re-embedding the same docs is waste
+- Cache embeddings — re-embedding same docs is waste
 
 ## Common Pitfalls
 
@@ -213,11 +213,11 @@ Now every invoke is traced — see prompts, model calls, latencies, costs in the
 - Treating tools like REST endpoints (returning huge JSON) → model context bloat
 - Not retrying on rate limits / timeouts → silent failures in prod
 - Mixing sync + async in same chain → "RuntimeError: This event loop is already running"
-- Forgetting `RunnableLambda` wrapper when piping a plain function — LCEL needs Runnables
+- Forgetting `RunnableLambda` wrapper when piping plain function — LCEL needs Runnables
 
 ## Cost Management
 
-- **Cache LLM calls** at the prompt level (LangChain supports Redis cache)
+- **Cache LLM calls** at prompt level (LangChain supports Redis cache)
 - Use **smaller models** for simple steps (router, formatter), reserve Opus for hard reasoning
 - Truncate context aggressively — chat history > 50 turns becomes wasteful
 - Stream + show partial results → users abort sooner, fewer wasted completions

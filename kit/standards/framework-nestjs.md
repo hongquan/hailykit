@@ -25,7 +25,7 @@ Feature-modules over technical layers — every feature gets its own module with
 ## Core Patterns
 
 - **Dependency Injection** is mandatory — never `new SomeService()`, always inject via constructor
-- One service = one responsibility; split when a service exceeds 200 lines
+- One service = one responsibility; split when service exceeds 200 lines
 - Controllers stay thin — they validate input via DTOs, delegate to services, return DTOs
 - Services contain business logic — they never touch `req`/`res` directly
 
@@ -53,7 +53,7 @@ app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: t
 
 ## Database
 
-- **TypeORM** or **Prisma** are the two mature choices
+- **TypeORM** or **Prisma** are two mature choices
 - Prisma preferred for new projects — better type safety, simpler migrations
 - TypeORM if you need decorator-driven entity definitions to match Nest's style
 - Repository pattern: inject `@InjectRepository(User)` (TypeORM) or `PrismaService`
@@ -93,9 +93,9 @@ app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: t
 
 ## Testing
 
-- **Jest** is the default — `@nestjs/testing` provides `Test.createTestingModule`
+- **Jest** is default — `@nestjs/testing` provides `Test.createTestingModule`
 - Unit tests: mock service dependencies with `useValue` or `useFactory`
-- E2E tests: spin up the full app with `request(app.getHttpServer())`
+- E2E tests: spin up full app with `request(app.getHttpServer())`
 - Aim for 70%+ unit coverage on services; controllers tested via E2E
 
 ## Security

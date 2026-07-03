@@ -1,6 +1,6 @@
 ---
 name: hl-brainstorm
-description: "Brainstorm solutions with structured trade-off analysis. Default mode auto-selects the right persona and edge dimensions from the problem context. Explicit persona flags for targeted consultation. --debate for adversarial multi-persona review. --edges for 12-dimension edge case analysis."
+description: "Brainstorm solutions with structured trade-off analysis. Default mode auto-selects persona and edge dimensions from the problem context. Explicit persona flags for targeted consultation. --debate for adversarial multi-persona review. --edges for 12-dimension edge case analysis."
 when_to_use: "Invoke before choosing among unclear technical options, or to get an expert lens on a specific question."
 user-invocable: true
 argument-hint: "[topic] [--architect|--scientist|--social-scientist|--philosopher|--economist|--strategist|--creative-director|--manager|--devil] [--debate] [--edges]"

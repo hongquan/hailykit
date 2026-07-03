@@ -4,7 +4,7 @@ Detected via `Microsoft.NET.Sdk.BlazorWebAssembly` SDK or `Microsoft.AspNetCore.
 
 ## Blazor Render Modes (.NET 8+)
 
-Blazor 8+ unified the model — one project can mix modes per component:
+Blazor 8+ unified model — one project can mix modes per component:
 
 | Mode | Where it runs | Use for |
 |---|---|---|
@@ -229,7 +229,7 @@ private async Task<string> Prompt(string message)
 }
 ```
 
-For non-trivial JS: define an isolated JS module + import via `IJSObjectReference`. Keeps JS scoped.
+For non-trivial JS: define isolated JS module + import via `IJSObjectReference`. Keeps JS scoped.
 
 ## Lifecycle
 
@@ -255,7 +255,7 @@ For non-trivial JS: define an isolated JS module + import via `IJSObjectReferenc
 </Virtualize>
 ```
 
-Only renders visible rows + a buffer.
+Only renders visible rows + buffer.
 
 ## SignalR (Real-time)
 

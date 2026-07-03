@@ -4,7 +4,7 @@ Detected via `SwiftUI` references in `Package.swift` or `.xcodeproj`. Apple's de
 
 ## Core Concepts
 
-SwiftUI is **declarative + reactive**: describe what the UI should look like for any given state; the framework figures out what to draw.
+SwiftUI is **declarative + reactive**: describe what the UI should look like for any given state; framework figures out what to draw.
 
 ```swift
 import SwiftUI
@@ -188,7 +188,7 @@ Form {
 }
 ```
 
-`$email` = binding. Without `$`, you'd pass the value not the writable reference.
+`$email` = binding. Without `$`, you'd pass value not writable reference.
 
 ## Modifiers (Chained)
 
@@ -201,7 +201,7 @@ Text("Hello")
     .shadow(radius: 4)
 ```
 
-Each modifier returns a new view. Order matters: `.padding().background()` ≠ `.background().padding()`.
+Each modifier returns new view. Order matters: `.padding().background()` ≠ `.background().padding()`.
 
 ## Animation
 
@@ -248,7 +248,7 @@ Button("Save") { /* ... */ }
     .accessibilityHint("Saves the form")
 ```
 
-VoiceOver works out of the box for most views — refine with labels/hints/traits.
+VoiceOver works out of box for most views — refine with labels/hints/traits.
 
 ## Best Practices
 
@@ -256,7 +256,7 @@ VoiceOver works out of the box for most views — refine with labels/hints/trait
 - `@Observable` + MV pattern over MVVM ceremony in SwiftUI
 - `.task` over `onAppear { Task { ... } }` — cancellation built in
 - Always test in dark mode + dynamic type (Larger Accessibility Sizes)
-- Use **Previews** liberally — they catch UI bugs faster than running the app
+- Use **Previews** liberally — they catch UI bugs faster than running app
 - `LazyVStack` / `LazyHStack` / `LazyVGrid` for long lists
 - Move expensive computations out of `body` — `body` runs often, on every state change
 

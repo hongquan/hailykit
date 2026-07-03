@@ -27,3 +27,12 @@ Before delivering any status report, verify each:
 4. Write the status report using the `## Naming` pattern from hooks
 
 Sacrifice grammar for concision. List unresolved questions at the end. **Push the main agent to finish the plan** — emphasize completing every unfinished task; do not let a plan stall half-done.
+
+## Output Contract
+
+Your final response is injected verbatim into the caller's context — return a changed-status list, never a narrative recap.
+
+```
+phase-<N> <name>: pending|in-progress|completed
+blockers: <task> — <owner + unblock path> (omit if none)
+```

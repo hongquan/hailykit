@@ -4,12 +4,12 @@ Detected via `rocket` in `Cargo.toml` `[dependencies]`.
 
 ## What Rocket Is
 
-Rocket is the most ergonomic Rust web framework — attribute-macro routing, type-safe everywhere, batteries included (forms, templates, sessions, cookies). Pre-1.0 history had a "nightly Rust only" stigma; modern Rocket (0.5+) works on stable.
+Rocket is most ergonomic Rust web framework — attribute-macro routing, type-safe everywhere, batteries included (forms, templates, sessions, cookies). Pre-1.0 history had a "nightly Rust only" stigma; modern Rocket (0.5+) works on stable.
 
 ## When to Use
 
 - Want maximum ergonomics + minimal boilerplate (auto-derive routes, parameters, etc.)
-- Type-safe form handling out of the box
+- Type-safe form handling out of box
 - Templating (Tera / Handlebars) included
 - Smaller team / project — DX wins over raw perf
 
@@ -128,7 +128,7 @@ impl<'r> FromRequest<'r> for User {
 fn me(user: User) -> Json<User> { Json(user) }    // Auth enforced by extractor
 ```
 
-Add `User` as a handler arg — Rocket auto-runs the guard. Failure = 401 returned automatically.
+Add `User` as handler arg — Rocket auto-runs guard. Failure = 401 returned automatically.
 
 ## Forms
 
@@ -162,7 +162,7 @@ fn me(cookies: &CookieJar<'_>) -> Option<String> {
 }
 ```
 
-`add_private` encrypts the cookie — set `secret_key` in `Rocket.toml` (generate with `openssl rand -base64 32`).
+`add_private` encrypts cookie — set `secret_key` in `Rocket.toml` (generate with `openssl rand -base64 32`).
 
 ## Database (rocket_db_pools)
 
@@ -258,7 +258,7 @@ fn test_index() {
 ## Best Practices
 
 - Use **request guards** for auth + extracted state — type-safe, declarative
-- `#[launch]` for the entry point, `#[get/post/...]` for routes — embrace the macro DSL
+- `#[launch]` for entry point, `#[get/post/...]` for routes — embrace macro DSL
 - Manage state via `.manage()` — `&State<T>` extractor in handlers
 - `Json<T>` extractor + `#[derive(Deserialize)]` — body validation via Serde
 - Use **`Rocket.toml`** for config (dev/prod profiles); secrets via env vars

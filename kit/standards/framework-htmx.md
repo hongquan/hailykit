@@ -4,9 +4,9 @@ Detected via `htmx.org` in `package.json` deps.
 
 ## What htmx Is
 
-A small (~14KB) JS library that lets you write **interactive HTML without writing JavaScript**. Add attributes like `hx-get`, `hx-post`, `hx-swap` and your server responses (HTML fragments) update the page.
+A small (~14KB) JS library that lets you write **interactive HTML without writing JavaScript**. Add attributes like `hx-get`, `hx-post`, `hx-swap` and your server responses (HTML fragments) update page.
 
-Embraces **HATEOAS** — Hypertext As The Engine Of Application State. Server returns HTML; client just renders it.
+Embraces **HATEOAS** — Hypertext As The Engine Of Application State. Server returns HTML; client renders it.
 
 ## When to Use
 
@@ -23,7 +23,7 @@ Embraces **HATEOAS** — Hypertext As The Engine Of Application State. Server re
 <script src="https://unpkg.com/htmx.org@2"></script>
 ```
 
-Or self-host the file. ~14KB minified.
+Or self-host file. ~14KB minified.
 
 ## Core Attributes
 
@@ -89,7 +89,7 @@ Or self-host the file. ~14KB minified.
 
 ## Out-of-Band Swaps
 
-Update multiple parts of the page from one response:
+Update multiple parts of page from one response:
 
 ```html
 <!-- Server response: -->
@@ -101,7 +101,7 @@ Both `#primary` (via `hx-target`) AND `#notifications` (via OOB) get updated.
 
 ## Server Response Conventions
 
-Server returns **HTML fragments**, not JSON. The response replaces / merges with the DOM.
+Server returns **HTML fragments**, not JSON. Response replaces / merges with the DOM.
 
 ```html
 <!-- POST /todos -->
@@ -112,7 +112,7 @@ Server returns **HTML fragments**, not JSON. The response replaces / merges with
 </li>
 ```
 
-Inspect `Hx-Request: true` header on the server to detect htmx calls (vs full page loads) and return only the fragment.
+Inspect `Hx-Request: true` header on server to detect htmx calls (vs full page loads) and return only fragment.
 
 ## Special Response Headers
 
@@ -147,7 +147,7 @@ Server returns:
 </form>
 ```
 
-Re-renders the entire form with validation messages. No JS state to manage.
+Re-renders entire form with validation messages. No JS state to manage.
 
 ## Loading States
 
@@ -168,7 +168,7 @@ Re-renders the entire form with validation messages. No JS state to manage.
 
 ## Hyperscript (Optional Companion)
 
-For tiny interactivity that doesn't need a server roundtrip:
+For tiny interactivity that doesn't need server roundtrip:
 
 ```html
 <script src="https://unpkg.com/hyperscript.org"></script>
@@ -179,7 +179,7 @@ For tiny interactivity that doesn't need a server roundtrip:
 
 Hyperscript is htmx's official scripting language — natural language, no JS needed for simple toggles.
 
-Or just use **Alpine.js** for richer client-side state:
+Or use **Alpine.js** for richer client-side state:
 ```html
 <div x-data="{ open: false }">
     <button @click="open = !open">Toggle</button>
@@ -189,7 +189,7 @@ Or just use **Alpine.js** for richer client-side state:
 
 ## Testing
 
-htmx is just HTML — test via Playwright, Cypress, or even Selenium:
+htmx is HTML — test via Playwright, Cypress, or even Selenium:
 
 ```ts
 // Playwright

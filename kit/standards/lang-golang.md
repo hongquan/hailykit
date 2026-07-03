@@ -3,15 +3,15 @@
 ## Comments
 
 ### godoc (exported symbols only)
-First sentence is the summary rendered by `go doc`. Must start with the symbol name:
+First sentence is summary rendered by `go doc`. Must start with symbol name:
 ```go
 // GetUser retrieves a user by ID. Returns nil when the user is soft-deleted.
 // Returns ErrNotFound when userId does not exist in the store.
 func GetUser(ctx context.Context, userID string) (*User, error)
 ```
 
-- Unexported symbols: minimal comments; only add when the behavior is non-obvious
-- Package-level comment goes in `doc.go` or at the top of the primary file: `// Package auth provides ...`
+- Unexported symbols: minimal comments; only add when behavior is non-obvious
+- Package-level comment goes in `doc.go` or at top of primary file: `// Package auth provides ...`
 - Struct fields: comment fields with non-obvious zero-value semantics or units
   ```go
   type Config struct {
@@ -20,7 +20,7 @@ func GetUser(ctx context.Context, userID string) (*User, error)
   ```
 
 ### Goroutine and Channel Ownership
-Document who owns a channel and who is responsible for closing it:
+Document who owns channel and who is responsible for closing it:
 ```go
 // results is owned by the producer goroutine; closed when all items are sent.
 // Consumers must not close it.

@@ -4,7 +4,7 @@ Detected via `bevy` in `Cargo.toml` `[dependencies]`.
 
 ## What Bevy Is
 
-Bevy is a data-driven game engine in Rust — modern ECS (Entity-Component-System), parallel by default, plugin-based, free and open source (MIT/Apache-2). Used for games, simulations, visualizations, custom editors.
+Bevy is data-driven game engine in Rust — modern ECS (Entity-Component-System), parallel by default, plugin-based, free and open source (MIT/Apache-2). Used for games, simulations, visualizations, custom editors.
 
 ## Setup
 
@@ -48,9 +48,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 ## ECS Mental Model
 
-- **Entity** = a unique ID (no data)
+- **Entity** = unique ID (no data)
 - **Component** = data attached to an entity (`struct Position { ... }`)
-- **System** = a function that queries entities + their components, mutates them
+- **System** = function that queries entities + their components, mutates them
 - **Resource** = global singleton data (`struct GameState { ... }`)
 
 Systems are scheduled — Bevy figures out which can run in parallel based on what they access (read vs write).
@@ -100,7 +100,7 @@ fn damage_player(
 }
 ```
 
-`Query<...>` declares what data the system reads/writes. Bevy parallelizes non-conflicting systems automatically.
+`Query<...>` declares what data system reads/writes. Bevy parallelizes non-conflicting systems automatically.
 
 ## Resources (Singletons)
 
@@ -147,7 +147,7 @@ fn on_player_death(mut events: EventReader<PlayerDied>) {
 .add_event::<PlayerDied>()
 ```
 
-Events are the canonical way for systems to communicate without direct coupling.
+Events are canonical way for systems to communicate without direct coupling.
 
 ## States (Game Phases)
 
@@ -200,7 +200,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 ```
 
-`Handle<T>` is a cheap clone reference — store it in components. Assets are loaded async; check `AssetEvent` to react.
+`Handle<T>` is cheap clone reference — store it in components. Assets are loaded async; check `AssetEvent` to react.
 
 ## UI (bevy_ui)
 
@@ -244,7 +244,7 @@ Bevy UI is flexbox-like — declarative. For complex UI, consider `bevy_egui` (i
 
 ## Common Pitfalls
 
-- Borrowing the same `World` mutably twice in one system → panic at runtime
+- Borrowing same `World` mutably twice in one system → panic at runtime
 - `Query::single()` when zero/multiple entities match → panic; use `get_single()` returning Result
 - Forgetting `time.delta_seconds()` in movement → frame-rate-dependent speed
 - Hot-reloading shaders without restarting → state drift

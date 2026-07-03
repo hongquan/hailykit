@@ -4,16 +4,16 @@ Detected via `:broadway` in `mix.exs` — auto-injected as **extra**.
 
 ## What Broadway Is
 
-Broadway is Elixir's data ingestion / pipeline framework. It handles the hard parts of high-throughput streaming consumers: backpressure, batching, parallel processing, graceful shutdowns, telemetry.
+Broadway is Elixir's data ingestion / pipeline framework. It handles hard parts of high-throughput streaming consumers: backpressure, batching, parallel processing, graceful shutdowns, telemetry.
 
 Connectors (producers) for: Amazon SQS, Google Cloud Pub/Sub, Kafka, RabbitMQ, Redis Streams, NATS.
 
 ## When to Use
 
-- Process events from a message queue (Kafka, SQS, RabbitMQ) — millions/day
+- Process events from message queue (Kafka, SQS, RabbitMQ) — millions/day
 - Batch-friendly ingestion (group N messages, write together)
 - Need built-in retries + dead-letter queues
-- Want telemetry + observability for the pipeline
+- Want telemetry + observability for pipeline
 
 Not for: one-off jobs (use Oban), pub/sub between Elixir processes (use Phoenix.PubSub).
 
@@ -23,7 +23,7 @@ Not for: one-off jobs (use Oban), pub/sub between Elixir processes (use Phoenix.
 [Producer] → [Processor 1, Processor 2, ...] → [Batcher] → [BatchProcessor 1, ...]
 ```
 
-Each stage is a separate process pool (configurable concurrency). Backpressure flows backwards — if batchers are slow, producers slow down too.
+Each stage is separate process pool (configurable concurrency). Backpressure flows backwards — if batchers are slow, producers slow down too.
 
 ## Basic Pipeline
 
@@ -114,14 +114,14 @@ def handle_failed(messages, _context) do
 end
 ```
 
-`Message.failed/2` marks the message as failed — Broadway nacks it (returns to queue with the source's retry policy).
+`Message.failed/2` marks message as failed — Broadway nacks it (returns to queue with the source's retry policy).
 
 ## Batching Logic
 
 - `batch_size`: max messages before sending to batcher
 - `batch_timeout`: max ms to wait if `batch_size` not reached
 - Multiple batchers for different downstream targets (DB, S3, search index)
-- Route messages to the right batcher with `Message.put_batcher/2`
+- Route messages to right batcher with `Message.put_batcher/2`
 
 Typical batching strategy: `batch_size: 100, batch_timeout: 5_000` — batches up to 100 messages or every 5 seconds, whichever first.
 
@@ -153,7 +153,7 @@ Wire to Prometheus / DataDog for dashboards: throughput, latency, failure rate, 
 
 ## Performance Tuning
 
-- Producer concurrency: usually 1 (the source handles fan-out); raise for Kafka with many partitions
+- Producer concurrency: usually 1 (source handles fan-out); raise for Kafka with many partitions
 - Processor concurrency: based on per-message work — 10-100 is typical
 - Batcher batch_size: tune to DB capacity — 50-500 inserts/transaction is sweet spot for Postgres
 - Memory: each message lives in BEAM until acked — don't load huge payloads

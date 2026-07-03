@@ -128,12 +128,12 @@ shopify theme publish --theme=123   # set theme as published
 ## OAuth + Session Tokens
 
 Embedded apps use **session tokens** (JWT) over OAuth-only:
-- Frontend gets a token from App Bridge: `getSessionToken(app)`
+- Frontend gets token from App Bridge: `getSessionToken(app)`
 - Send as `Authorization: Bearer <token>` to your backend
 - Backend verifies via `@shopify/shopify-api` Node SDK
-- Exchange session token for an offline access token on first install
+- Exchange session token for offline access token on first install
 
-Never store API keys in client code. Use env vars + your backend as the credential vault.
+Never store API keys in client code. Use env vars + your backend as credential vault.
 
 ## Webhooks
 
@@ -150,7 +150,7 @@ Never store API keys in client code. Use env vars + your backend as the credenti
 
 ## Billing
 
-- `appSubscriptionCreate` GraphQL mutation creates a subscription
+- `appSubscriptionCreate` GraphQL mutation creates subscription
 - Returns confirmation URL — redirect merchant to approve
 - Webhook `app_subscriptions/update` for lifecycle events
 - Use **usage-based** billing for variable pricing (per-API-call, per-email-sent)

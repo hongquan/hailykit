@@ -51,7 +51,7 @@ return Response.redirect(session.checkout_url);
 
 ## No-Code Links
 
-Each product has a permanent checkout URL: `https://www.creem.io/payment/prod_xyz`. Use in:
+Each product has permanent checkout URL: `https://www.creem.io/payment/prod_xyz`. Use in:
 - README badges
 - Social bio links
 - Email footers
@@ -79,7 +79,7 @@ await creem.cancelSubscription({ id: subscriptionId, cancel_at_period_end: true 
 
 ## License Keys (Software Activation)
 
-Creem's standout feature. Configure on product → Creem auto-generates and emails a key on purchase.
+Creem's standout feature. Configure on product → Creem auto-generates and emails key on purchase.
 
 **Activate** (on customer's device/app):
 ```ts
@@ -148,7 +148,7 @@ No code required — splits happen automatically on each transaction.
 
 ## Storefront
 
-Each Creem org gets a public storefront at `creem.io/{org_slug}` listing all active products. Customize branding in Dashboard → Storefront. Good for indie sellers who don't have their own marketing site yet.
+Each Creem org gets public storefront at `creem.io/{org_slug}` listing all active products. Customize branding in Dashboard → Storefront. Good for indie sellers who don't have their own marketing site yet.
 
 ## Testing
 

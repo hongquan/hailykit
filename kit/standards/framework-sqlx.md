@@ -4,11 +4,11 @@ Detected via `sqlx` in `Cargo.toml` `[dependencies]` — auto-injected as **extr
 
 ## What SQLx Is
 
-SQLx is an async, pure-Rust SQL toolkit with **compile-time checked queries**. Not an ORM — you write SQL, SQLx verifies it against a real database at build time.
+SQLx is async, pure-Rust SQL toolkit with **compile-time checked queries**. Not an ORM — you write SQL, SQLx verifies it against real database at build time.
 
 ## Supported Databases
 
-PostgreSQL, MySQL, MariaDB, SQLite. Each driver is a feature flag.
+PostgreSQL, MySQL, MariaDB, SQLite. Each driver is feature flag.
 
 ## Setup
 
@@ -72,7 +72,7 @@ let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
     .await?;
 ```
 
-**`query!` and `query_as!` macros validate against the live DB** at compile time. Catch SQL typos, type mismatches, missing columns BEFORE running.
+**`query!` and `query_as!` macros validate against live DB** at compile time. Catch SQL typos, type mismatches, missing columns BEFORE running.
 
 ## Fetch Variants
 
@@ -129,7 +129,7 @@ Versions tracked in `_sqlx_migrations` table. Filenames: `<timestamp>_<name>.sql
 
 ## Compile-Time Checking
 
-The killer feature. `query!`/`query_as!` macros connect to the DB at build time:
+Killer feature. `query!`/`query_as!` macros connect to the DB at build time:
 
 ```rust
 let user = sqlx::query_as!(
@@ -182,7 +182,7 @@ let post = sqlx::query_as!(
 let tags = &post.metadata.tags;
 ```
 
-Note the `as "name: Type"` syntax — sometimes needed to help the type checker.
+Note the `as "name: Type"` syntax — sometimes needed to help type checker.
 
 ## Dynamic Queries (Builder)
 
@@ -217,7 +217,7 @@ Single round-trip for N inserts — much faster than loop.
 
 ## Best Practices
 
-- Pool one instance for the whole app — clone the `PgPool`/`MySqlPool` handle
+- Pool one instance for whole app — clone the `PgPool`/`MySqlPool` handle
 - Use `query!` / `query_as!` macros — compile-time safety beats runtime debugging
 - Configure `DATABASE_URL` in `.env` for local dev; `cargo sqlx prepare` for CI
 - Transactions for multi-statement logical units
@@ -240,7 +240,7 @@ Single round-trip for N inserts — much faster than loop.
 - `prepare_cached` on hot queries — caches plan
 - Index columns used in `WHERE` + `ORDER BY` — SQLx doesn't auto-index
 - Use Postgres-specific types: `BIGINT` not `INTEGER` for IDs (avoids overflow at scale)
-- Connection pool size = `2 × cores` is a reasonable default; tune based on DB load
+- Connection pool size = `2 × cores` is reasonable default; tune based on DB load
 - Use `EXPLAIN ANALYZE` on slow queries — SQLx can't optimize bad SQL
 
 ## Resources

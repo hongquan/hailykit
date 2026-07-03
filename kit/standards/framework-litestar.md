@@ -4,8 +4,8 @@ Detected via `litestar` in `requirements.txt` / `pyproject.toml` / `Pipfile`.
 
 ## What Litestar Is
 
-Litestar (formerly Starlite) is a modern, async-first ASGI framework — competitor to FastAPI with stronger opinions:
-- **Dependency injection** as a first-class system (not just a function decorator)
+Litestar (formerly Starlite) is modern, async-first ASGI framework — competitor to FastAPI with stronger opinions:
+- **Dependency injection** as first-class system (not just a function decorator)
 - **Plugin architecture** with built-in adapters (SQLAlchemy, Piccolo, Tortoise)
 - Built-in OpenAPI, JWT, OAuth2 password flow
 - DTO layer separates HTTP schemas from DB models cleanly
@@ -129,7 +129,7 @@ db_config = SQLAlchemyAsyncConfig(
 app = Litestar(plugins=[SQLAlchemyPlugin(config=db_config)])
 ```
 
-Inject `AsyncSession` via DI; the plugin handles connection lifecycle.
+Inject `AsyncSession` via DI; plugin handles connection lifecycle.
 
 ## Validation
 
@@ -208,7 +208,7 @@ async def logging_middleware(scope, receive, send):
 app = Litestar(middleware=[DefineMiddleware(logging_middleware)])
 ```
 
-Or use the abstract class `AbstractMiddleware` for class-based middleware.
+Or use abstract class `AbstractMiddleware` for class-based middleware.
 
 ## Testing
 

@@ -15,7 +15,7 @@ Closest analog: SQLx in Rust. Or PgTyped in TypeScript.
 - Need compile-time guarantees that your SQL matches your schema
 - Like to read/write SQL fluently
 
-Trade-off: every query is a separate function. Dynamic queries (e.g. variable WHERE clauses) need a query builder on top.
+Trade-off: every query is separate function. Dynamic queries (e.g. variable WHERE clauses) need query builder on top.
 
 ## Setup
 
@@ -62,7 +62,7 @@ CREATE TABLE posts (
 CREATE INDEX idx_posts_user_id ON posts(user_id);
 ```
 
-sqlc reads schema to understand types — pair with **golang-migrate** or **goose** for actually running migrations.
+sqlc reads schema to understand types — pair with **golang-migrate** or **goose** for running migrations.
 
 ## Queries
 
@@ -94,10 +94,10 @@ DELETE FROM users WHERE id = $1;
 SELECT COUNT(*) FROM users WHERE created_at > $1;
 ```
 
-The annotation tells sqlc what to generate:
+Annotation tells sqlc what to generate:
 - `:one` — returns single row + error
 - `:many` — returns slice + error
-- `:exec` — returns just error
+- `:exec` — returns error
 - `:execrows` — returns `sql.Result` (affected rows)
 - `:batchexec`, `:batchone`, `:batchmany` — batched (Postgres)
 
@@ -183,7 +183,7 @@ if err != nil { return err }
 return tx.Commit(ctx)
 ```
 
-`queries.WithTx(tx)` returns a new `*Queries` bound to the transaction.
+`queries.WithTx(tx)` returns new `*Queries` bound to transaction.
 
 ## Joins + Custom Types
 
@@ -211,7 +211,7 @@ SELECT id, body FROM posts WHERE id = $1;
 -- if `body TEXT` is nullable → field becomes *string
 ```
 
-Without the option, nullable columns use `sql.NullString` / `sql.NullInt64` / etc. — clunky but explicit.
+Without option, nullable columns use `sql.NullString` / `sql.NullInt64` / etc. — clunky but explicit.
 
 ## Dynamic Queries
 
@@ -258,7 +258,7 @@ Cursor-based pagination scales better than `OFFSET` for large tables.
 - Schema file out of sync with actual DB → sqlc can't infer types correctly
 - Using `:one` when query might return zero rows → returns `pgx.ErrNoRows`; handle it
 - Heavy column lists in `SELECT *` → sqlc generates wide struct; explicit columns are clearer
-- Trying to do dynamic WHERE with sqlc → use a query builder for those, sqlc for static queries
+- Trying to do dynamic WHERE with sqlc → use query builder for those, sqlc for static queries
 
 ## Resources
 

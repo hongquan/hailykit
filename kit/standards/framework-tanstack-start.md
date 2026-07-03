@@ -168,7 +168,7 @@ export const Route = createAPIFileRoute('/api/chat')({
 ## Key Rules
 
 - `routeTree.gen.ts` is auto-generated — never edit, commit as-is
-- Server functions are the primary mutation mechanism (no manual API routes needed)
+- Server functions are primary mutation mechanism (no manual API routes needed)
 - `useSuspenseQuery` over `useQuery` — eliminates `isLoading` conditional renders
 - Route loaders run on server; prefer them over `useEffect` data fetching
 - TanStack Form: prefer `onBlurAsync` over `onChangeAsync` for expensive validations

@@ -5,7 +5,7 @@ Detected via `hardhat.config.ts` or `hardhat.config.js`. JavaScript/TypeScript-b
 ## When to Use
 
 - TypeScript-heavy dev team — Hardhat plays well with TS toolchain
-- Need a rich plugin ecosystem (Hardhat plugins for almost everything)
+- Need rich plugin ecosystem (Hardhat plugins for almost everything)
 - Want to write deploy scripts + tests in JS/TS
 - Integration with frontend tooling (Next.js + ethers/viem)
 

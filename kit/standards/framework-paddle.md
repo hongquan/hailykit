@@ -9,7 +9,7 @@ Detected via `@paddle/paddle-node-sdk` or `@paddle/paddle-js` in `package.json` 
 - B2B SaaS with complex tax requirements (EU VAT, US sales tax, GST)
 - Need **inline checkout** (overlay or embedded) with Paddle branding
 
-**MoR difference vs Stripe:** Paddle is the seller of record — they handle all global tax compliance, chargebacks, fraud. You receive a single payout net of fees + tax. Slightly higher fees (~5% + $0.50) but zero tax overhead.
+**MoR difference vs Stripe:** Paddle is seller of record — they handle all global tax compliance, chargebacks, fraud. You receive single payout net of fees + tax. Slightly higher fees (~5% + $0.50) but zero tax overhead.
 
 ## Entity Hierarchy
 
@@ -144,7 +144,7 @@ Paddle auto-handles:
 - Compliant invoices in customer's language + currency
 - VAT MOSS reporting
 
-Just collect address — Paddle does the rest.
+Collect address — Paddle does rest.
 
 ## Testing
 

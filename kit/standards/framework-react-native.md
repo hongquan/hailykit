@@ -49,7 +49,7 @@
 - **Reanimated 3** for all custom animations — runs on UI thread, 60fps guaranteed
 - **Gesture Handler v2** for any touch interaction beyond `TouchableOpacity`
 - Avoid `LayoutAnimation` — limited control, no shared values
-- `useAnimatedStyle` + `useSharedValue` is the standard idiom
+- `useAnimatedStyle` + `useSharedValue` is standard idiom
 
 ## Platform Conventions
 

@@ -4,7 +4,7 @@ Detected via `celery` in `requirements.txt` / `pyproject.toml` / `Pipfile` — a
 
 ## What Celery Is
 
-Celery is Python's distributed task queue — the standard for background jobs in Django/Flask/FastAPI ecosystems. Broker-backed (Redis, RabbitMQ), supports scheduling, retries, chaining, monitoring.
+Celery is Python's distributed task queue — standard for background jobs in Django/Flask/FastAPI ecosystems. Broker-backed (Redis, RabbitMQ), supports scheduling, retries, chaining, monitoring.
 
 ## When to Use
 
@@ -61,7 +61,7 @@ def send_welcome_email(self, user_id: int):
 ```
 
 - `bind=True` — first arg is `self`, gives access to retry/state
-- `shared_task` — not tied to a specific app instance (works in Django + Flask)
+- `shared_task` — not tied to specific app instance (works in Django + Flask)
 - `max_retries` + `default_retry_delay` — auto-retry on raised exceptions
 
 ## Enqueue Tasks
@@ -114,7 +114,7 @@ app.conf.beat_schedule = {
 }
 ```
 
-Run beat (scheduler) as a separate process:
+Run beat (scheduler) as separate process:
 ```bash
 celery -A myapp beat --loglevel=info
 ```
@@ -206,7 +206,7 @@ async def get_result(task_id: str):
 ## Best Practices
 
 - **Idempotent tasks** — Celery can deliver same message twice (broker can fail mid-ack)
-- Pass **IDs, not objects** — task args are JSON-serialized; object state could be stale by the time task runs
+- Pass **IDs, not objects** — task args are JSON-serialized; object state could be stale by time task runs
 - Set `task_time_limit` — orphan tasks consume worker slots forever otherwise
 - Separate queues by SLA: `critical`, `default`, `slow`
 - Use `acks_late=True` + `task_reject_on_worker_lost=True` for tasks that MUST complete
@@ -220,7 +220,7 @@ async def get_result(task_id: str):
 - Storing task results without need → Redis memory bloat
 - Running beat from multiple machines → duplicate schedules
 - `delay()` in tests without `CELERY_TASK_ALWAYS_EAGER=True` → tests hang
-- Mixing prefork + asyncio in a task → event loop conflicts; use gevent pool or separate async framework
+- Mixing prefork + asyncio in task → event loop conflicts; use gevent pool or separate async framework
 
 ## Alternatives (When Celery is Overkill)
 

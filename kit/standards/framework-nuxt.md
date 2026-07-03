@@ -52,7 +52,7 @@ const { data } = await useFetch('/api/posts');
 | `useLazyFetch` | Like `useFetch` but doesn't block navigation |
 | `$fetch` | Programmatic fetch (no Vue reactivity) |
 
-Always pass a stable `key` to `useAsyncData` — otherwise hydration mismatch.
+Always pass stable `key` to `useAsyncData` — otherwise hydration mismatch.
 
 ## Server Routes (Nitro)
 

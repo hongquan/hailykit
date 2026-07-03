@@ -8,12 +8,12 @@ Starlette is the **ASGI foundation** that FastAPI is built on. Lightweight, asyn
 - You want less magic than FastAPI (no auto-OpenAPI, no pydantic-everywhere)
 - Custom server frameworks / WebSocket-heavy apps
 - Maximum performance with no per-request validation overhead
-- Educational use — understanding what FastAPI does under the hood
+- Educational use — understanding what FastAPI does under hood
 
 ## When NOT to Use
 
-- Building a typical CRUD API → FastAPI is faster to write and more featureful
-- Need OpenAPI / Swagger out of the box → use FastAPI
+- Building typical CRUD API → FastAPI is faster to write and more featureful
+- Need OpenAPI / Swagger out of box → use FastAPI
 - Mostly want pydantic validation → FastAPI
 
 ## Setup
@@ -207,7 +207,7 @@ async def handler(request):
     return JSONResponse({'ok': True}, background=tasks)
 ```
 
-Tasks run **after the response is sent** — non-blocking for the client.
+Tasks run **after response is sent** — non-blocking for client.
 
 ## Templates (Jinja2)
 
@@ -248,7 +248,7 @@ In handlers: `db = request.state.db`.
 
 ## Common Pitfalls
 
-- Building a full CRUD framework on top of Starlette → just use FastAPI/Litestar
+- Building full CRUD framework on top of Starlette → use FastAPI/Litestar
 - Forgetting `await` on `request.json()` / `request.body()` → returns coroutine
 - Not registering middleware in `Starlette(middleware=[...])` — adding after init doesn't work
 - WebSocket handlers without `accept()` first → connection closes immediately

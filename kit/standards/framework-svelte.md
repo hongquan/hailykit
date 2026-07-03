@@ -84,7 +84,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 ```
 
-Returned data is available in the page via `let { data } = $props();`. **Server load** can use DB/secrets; **universal load** (`+page.ts`) runs both places — keep it pure.
+Returned data is available in page via `let { data } = $props();`. **Server load** can use DB/secrets; **universal load** (`+page.ts`) runs both places — keep it pure.
 
 ## Form Actions
 
@@ -115,7 +115,7 @@ export const actions: Actions = {
 </form>
 ```
 
-`use:enhance` adds progressive enhancement — without JS, it's a regular form submission.
+`use:enhance` adds progressive enhancement — without JS, it's regular form submission.
 
 ## API Endpoints
 
@@ -174,7 +174,7 @@ export const counter = new CounterStore();
 - `$lib` for shared code, `$lib/server` for server-only (enforced at build)
 - `use:enhance` on forms for progressive enhancement
 - Type loads via generated `./$types` imports
-- Prefer **server actions** over API endpoints when the action ties to a page
+- Prefer **server actions** over API endpoints when action ties to page
 - `+page.server.ts` for DB calls; `+page.ts` only for fetch from public APIs
 - Snippet (`{#snippet name()}`) replaces slots for parametric reuse
 

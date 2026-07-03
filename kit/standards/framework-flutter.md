@@ -9,9 +9,9 @@
 
 ## State Management
 
-- **Riverpod 3** is the modern default — type-safe, compile-time DI, no `BuildContext` coupling
+- **Riverpod 3** is modern default — type-safe, compile-time DI, no `BuildContext` coupling
 - **Bloc** for teams that prefer explicit event-driven state
-- **Provider** for very small apps (Riverpod's older sibling, simpler API)
+- **Provider** for small apps (Riverpod's older sibling, simpler API)
 - Avoid `setState` outside of leaf widgets — leads to whole-tree rebuilds
 
 ```dart
@@ -34,7 +34,7 @@ return userAsync.when(
 - `const` everywhere possible — `const Text('hello')` skips rebuild
 - Split large widgets into smaller `const` widgets, not helper methods returning `Widget`
 - `StatelessWidget` by default; reach for `StatefulWidget` only when local state is unavoidable
-- Use `Builder` to scope `BuildContext` access deeper in the tree
+- Use `Builder` to scope `BuildContext` access deeper in tree
 
 ## Performance
 
@@ -53,7 +53,7 @@ return userAsync.when(
 
 ## Navigation
 
-- **go_router** is the official recommendation — declarative routes, deep links, type safety
+- **go_router** is official recommendation — declarative routes, deep links, type safety
 - Avoid raw `Navigator.push` for app-wide navigation — use named routes via go_router
 - Deep linking: configure `androidManifest.xml` + `Info.plist` with go_router's URL strategy
 
@@ -66,7 +66,7 @@ return userAsync.when(
 
 ## Networking
 
-- **dio** is the standard HTTP client — interceptors, retries, multipart, cancellation
+- **dio** is standard HTTP client — interceptors, retries, multipart, cancellation
 - **Retrofit** (`retrofit_generator`) — typed API clients via annotations
 - Use `freezed` for immutable response models + `json_serializable` for codegen
 
@@ -95,7 +95,7 @@ return userAsync.when(
 - Calling `setState` after `dispose()` — guard with `if (mounted)`
 - Building large widgets inline in `build()` — extract to const widgets
 - Forgetting `await` on async calls in tests — flakes intermittently
-- Using `print()` in production — use `debugPrint()` or a logger package
+- Using `print()` in production — use `debugPrint()` or logger package
 - Putting business logic in widget classes — keep widgets dumb, logic in providers/blocs
 
 ## Performance Budgets

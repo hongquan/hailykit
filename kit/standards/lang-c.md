@@ -19,10 +19,10 @@ int user_store_get(const user_store_t *store, const char *user_id, const user_t 
 
 - Document EVERY pointer parameter: ownership, nullability, lifetime, and aliasing constraints
 - Document return-code convention per project (0 = ok, negative errno, etc.) — be consistent
-- Headers carry the contract; `.c` files carry implementation notes only
+- Headers carry contract; `.c` files carry implementation notes only
 
 ### Lifetime, Ownership, Aliasing (MANDATORY)
-C has no ownership model — comments are the only contract.
+C has no ownership model — comments are only contract.
 ```c
 // Caller owns the returned buffer — must free() it.
 char *strdup_lower(const char *s);
@@ -140,5 +140,5 @@ int user_get(const struct user *u, const char **out_name);
 
 ## Layout
 - One module per `.h` + `.c` pair, named identically (`user_store.h` + `user_store.c`)
-- `static` for any function/variable not exported — minimize the public surface
+- `static` for any function/variable not exported — minimize public surface
 - Compile with `-Wall -Wextra -Wpedantic -Werror` and run under ASan/UBSan in CI

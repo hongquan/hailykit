@@ -1,6 +1,6 @@
 # Bash / Shell Scripting Standards
 
-Bash 4+ is the assumed baseline. For maximum portability, target POSIX `sh`. For modern features (associative arrays, `[[ ... ]]`, `mapfile`), Bash 4+ required.
+Bash 4+ is assumed baseline. For maximum portability, target POSIX `sh`. For modern features (associative arrays, `[[ ... ]]`, `mapfile`), Bash 4+ required.
 
 ## Shebang + Safety Flags
 
@@ -242,9 +242,7 @@ For complex CLIs, consider `argparse`-style libraries (e.g. `bashly`) or write i
 - Parsing `ls` output — fragile; use globs or `find -print0`
 - `read` without `-r` → backslashes get eaten
 - Using `#!/bin/sh` then using Bash features → fails on dash/ash
-- Mixing tabs + spaces in heredocs without `<<-` → indentation preserved literally
-
-## Testing
+- Mixing tabs + spaces in heredocs without `<<-` → indentation preserved ## Testing
 
 **bats** (Bash Automated Testing System):
 

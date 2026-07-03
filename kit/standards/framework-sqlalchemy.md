@@ -192,7 +192,7 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
-`autogenerate` diffs DB schema vs models — review the generated file (it's not always perfect).
+`autogenerate` diffs DB schema vs models — review generated file (it's not always perfect).
 
 ## Connection Pooling
 

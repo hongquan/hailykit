@@ -15,7 +15,7 @@
 | `xl:` | 1280px | Wide desktop |
 | `2xl:` | 1536px | Very wide |
 
-`max-lg:` syntax targets *below* a breakpoint. Container queries: wrap in `@container`, use `@md:` etc.
+`max-lg:` syntax targets *below* breakpoint. Container queries: wrap in `@container`, use `@md:` etc.
 
 ## Layout Essentials
 ```html

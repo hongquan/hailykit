@@ -69,7 +69,7 @@ public class UserController {
 }
 ```
 
-`@Valid` triggers Jakarta Bean Validation on the request body — auto-returns 400 with field errors.
+`@Valid` triggers Jakarta Bean Validation on request body — auto-returns 400 with field errors.
 
 ## Services (Business Logic)
 
@@ -298,7 +298,7 @@ class UserIntegrationTest {
 }
 ```
 
-**Testcontainers** is the de-facto way to integration-test against real services.
+**Testcontainers** is de-facto way to integration-test against real services.
 
 ## Best Practices
 

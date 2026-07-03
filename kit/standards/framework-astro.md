@@ -9,7 +9,7 @@ Detected via `astro` in `package.json` deps.
 - Multi-framework: use React + Vue + Svelte in same page
 - Static-first with selective SSR
 
-Not the best for highly interactive SPAs — use Next/Nuxt/SvelteKit instead.
+Not best for highly interactive SPAs — use Next/Nuxt/SvelteKit instead.
 
 ## Project Structure
 
@@ -118,7 +118,7 @@ export const prerender = false;
 npx astro add react vue svelte tailwind mdx sitemap
 ```
 
-Adds the integration + updates `astro.config.mjs` automatically.
+Adds integration + updates `astro.config.mjs` automatically.
 
 ## Best Practices
 

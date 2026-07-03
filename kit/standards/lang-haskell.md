@@ -4,10 +4,10 @@ Purely functional, lazy, strongly-typed. Detected via `*.cabal`, `stack.yaml`, `
 
 ## Toolchain
 
-- **GHC** — the compiler
+- **GHC** — compiler
 - **Cabal** — package manager + build tool (modern: cabal v2-commands)
 - **Stack** — alternative build tool with curated package sets (LTS)
-- **GHCup** — install all of the above
+- **GHCup** — install all of above
 
 Most teams pick **either Stack or Cabal**, not both:
 - **Cabal** for library development + flexibility
@@ -128,7 +128,7 @@ main = do
     putStrLn ("Hello, " ++ name)
 ```
 
-`do` is syntactic sugar for `>>=` (bind). It works for any monad, not just IO.
+`do` is syntactic sugar for `>>=` (bind). It works for any monad, not IO.
 
 ### Higher-Order Functions
 
@@ -216,7 +216,7 @@ main = hspec $ do
 - Using `String` (`[Char]`) in hot paths → use `Text`
 - Lazy lists holding huge memory unintentionally → use strict folds + bang patterns
 - Partial functions like `head []` → runtime crash; use `Data.Maybe`
-- Mixing IO and pure code without thinking — keep IO at the edges
+- Mixing IO and pure code without thinking — keep IO at edges
 - Hidden non-strict evaluation → space leaks; use `seq` / `deepseq`
 - Generalized type inference confusing in errors — add explicit signatures
 

@@ -92,6 +92,6 @@ lustre.component(init, update, view, on_attribute_change)
 
 - `update` must be a **pure function** — no side effects inline, return `Effect` instead
 - All state lives in `Model` — no local mutable state anywhere
-- `Msg` constructors are the only way to trigger state changes
+- `Msg` constructors are only way to trigger state changes
 - View functions are pure — same model always produces same HTML
 - Use `Model(..model, field: new_value)` spread syntax for updates (never mutate)

@@ -5,7 +5,7 @@ Detected via `github.com/labstack/echo` in `go.mod`. High-performance, minimalis
 ## When to Use
 
 - Want Express-like simplicity in Go
-- Need very fast routing (radix tree-based)
+- Need fast routing (radix tree-based)
 - Prefer Echo's middleware/error model over Gin's
 
 vs Gin: similar performance, slightly different API style. Both excellent. Gin is more popular; Echo has cleaner error handling.
@@ -87,7 +87,7 @@ limitStr := c.QueryParam("limit")            // ?limit=10
 limit, _ := strconv.Atoi(limitStr)
 ```
 
-Use `c.Bind(&query)` to auto-parse query strings into a struct via tags:
+Use `c.Bind(&query)` to auto-parse query strings into struct via tags:
 ```go
 type ListQuery struct {
     Page  int    `query:"page" validate:"min=1"`
@@ -98,7 +98,7 @@ type ListQuery struct {
 
 ## Validation
 
-Echo supports any validator; `go-playground/validator` is the common choice:
+Echo supports any validator; `go-playground/validator` is common choice:
 
 ```go
 import "github.com/go-playground/validator/v10"
@@ -203,7 +203,7 @@ func TestGetUser(t *testing.T) {
 
 ## Best Practices
 
-- **Return errors** from handlers — let the global handler format them
+- **Return errors** from handlers — let global handler format them
 - **Centralize error formatting** via `HTTPErrorHandler` override
 - **Group + middleware chains** for related routes
 - Use **`echo.NewHTTPError(code, msg)`** for client-facing errors
@@ -212,7 +212,7 @@ func TestGetUser(t *testing.T) {
 
 ## Common Pitfalls
 
-- Forgetting to return after a response → second response attempt panics
+- Forgetting to return after response → second response attempt panics
 - Using `c.Bind()` for query+body without specifying tags (`query:"..."` vs `json:"..."`) → wrong source
 - Skipping `e.Validator` setup but calling `c.Validate(...)` → runtime nil panic
 - Long-running handler without `context.Context` propagation → can't cancel

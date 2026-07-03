@@ -131,7 +131,7 @@ for batch_x, batch_y in dataloader:
     scaler.update()
 ```
 
-Mixed precision (FP16/BF16 forward, FP32 master weights) → 2-3x speedup on modern GPUs, half the memory.
+Mixed precision (FP16/BF16 forward, FP32 master weights) → 2-3x speedup on modern GPUs, half memory.
 
 ## Model Save / Load
 
@@ -196,7 +196,7 @@ dataloader = DataLoader(dataset, batch_size=64, sampler=sampler)
 
 Launch with `torchrun --nproc_per_node=8 train.py` for 8 GPUs.
 
-For very large models: **FSDP** (Fully Sharded Data Parallel) or libraries like **Accelerate** / **Lightning**.
+For large models: **FSDP** (Fully Sharded Data Parallel) or libraries like **Accelerate** / **Lightning**.
 
 ## Lightning + Accelerate (Higher-Level)
 
@@ -232,7 +232,7 @@ trainer.fit(model, dataloader)
 ## Common Pitfalls
 
 - Forgetting `optimizer.zero_grad()` → gradients accumulate, training explodes
-- Forgetting `.to(device)` on data → "Expected all tensors to be on the same device"
+- Forgetting `.to(device)` on data → "Expected all tensors to be on same device"
 - Mixing `model.train()` / `model.eval()` modes → dropout/batchnorm behavior wrong
 - Loading checkpoint trained on GPU, running on CPU → use `map_location` in `torch.load`
 - Large batch in eval → OOM; use `torch.no_grad()` + smaller eval batch

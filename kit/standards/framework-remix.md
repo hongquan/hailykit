@@ -107,7 +107,7 @@ export function ErrorBoundary() {
 }
 ```
 
-Bubbles up to nearest boundary — keeps the rest of the page interactive.
+Bubbles up to nearest boundary — keeps rest of page interactive.
 
 ## Resource Routes
 

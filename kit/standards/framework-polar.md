@@ -59,11 +59,11 @@ const checkout = await polar.checkouts.create({
 return Response.redirect(checkout.url);
 ```
 
-**Custom checkout** (embedded): use `@polar-sh/checkout` JS SDK — Polar provides a popup or inline flow you can theme.
+**Custom checkout** (embedded): use `@polar-sh/checkout` JS SDK — Polar provides popup or inline flow you can theme.
 
 ## Subscriptions
 
-Created automatically when a recurring product is purchased. Manage via webhooks + API:
+Created automatically when recurring product is purchased. Manage via webhooks + API:
 
 ```ts
 const sub = await polar.subscriptions.get({ id: subscriptionId });
@@ -81,11 +81,11 @@ await polar.subscriptions.revoke({ id: subscriptionId });
 
 ## Benefits (Automated Delivery)
 
-Polar's killer feature — configure benefits on a product, Polar grants them on purchase:
+Polar's killer feature — configure benefits on product, Polar grants them on purchase:
 
 - **GitHub repository access** — adds user to private repo
 - **Discord server role** — grants role in your Discord
-- **License keys** — generates and emails a key
+- **License keys** — generates and emails key
 - **File downloads** — grants signed-URL access to files
 - **Custom** — webhook fires, you grant whatever you want
 
@@ -183,9 +183,9 @@ export const POST = Webhooks({
 ## Best Practices
 
 - Store `polarCustomerId`, `polarSubscriptionId` in your DB linked to your user model
-- Treat webhooks as source of truth; your DB is a cache
+- Treat webhooks as source of truth; your DB is cache
 - Use `metadata` field in checkouts/subscriptions to round-trip your internal IDs
-- For benefits like GitHub access — verify the user's connected GitHub before purchase to avoid stranded payments
+- For benefits like GitHub access — verify user's connected GitHub before purchase to avoid stranded payments
 - Use **trial periods** for SaaS — Polar handles trial lifecycle automatically
 
 ## Common Pitfalls

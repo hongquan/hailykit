@@ -11,12 +11,12 @@ pub fn getUser(allocator: std.mem.Allocator, user_id: []const u8) ![]const u8 {
 ```
 
 - `///` for public declarations (functions, types, constants) — picked up by `zig build docs`
-- `//!` at the top of a file for module-level documentation
+- `//!` at top of file for module-level documentation
 - `//` for inline implementation notes
-- Document errors in the error set explicitly: list which conditions produce which error
+- Document errors in error set explicitly: list which conditions produce which error
 
 ### Allocator Ownership (MANDATORY)
-Zig has no GC — every allocation has an owner. State it.
+Zig has no GC — every allocation has owner. State it.
 ```zig
 /// Caller owns the returned slice. Free with `allocator.free(result)`.
 pub fn render(allocator: std.mem.Allocator, template: []const u8) ![]u8 { ... }
@@ -121,13 +121,13 @@ switch (result) {
 - Hidden allocators (globals, default-allocator helpers) — always pass explicitly
 - `catch unreachable` outside test code or proven-impossible paths
 - Ignoring error union returns (`_ = foo()`) — handle or propagate
-- Manual memory management when an arena or `std.ArrayList` fits
-- C-style enums when a tagged union models the data better
+- Manual memory management when arena or `std.ArrayList` fits
+- C-style enums when tagged union models data better
 
 ## Naming
 - Types/Structs/Unions/Enums: `PascalCase` (`User`, `ParseError`)
 - Functions/methods/variables: `camelCase` (`getUser`, `user_id` for params is also acceptable per project)
-- Constants: `snake_case` for local consts; `PascalCase` if it returns a type
+- Constants: `snake_case` for local consts; `PascalCase` if it returns type
 - Files: `snake_case.zig` (Zig ecosystem convention)
 - Test names: `test "what is being tested"` — natural language in quotes
 

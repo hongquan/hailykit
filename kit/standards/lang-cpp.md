@@ -21,7 +21,7 @@
 - Document ownership transfer explicitly — raw pointers, `unique_ptr`, `shared_ptr` carry different contracts
 
 ### Lifetime & Ownership (MANDATORY for raw pointers)
-Document who owns, who borrows, and how long the borrow is valid:
+Document who owns, who borrows, and how long borrow is valid:
 ```cpp
 // Returned pointer is non-owning; valid until the next call to refresh().
 const Config* current_config() const noexcept;
@@ -35,7 +35,7 @@ const Config* current_config() const noexcept;
 // SAFETY: ptr is non-null and aligned — invariant established by parse_header() above
 auto val = *reinterpret_cast<const int32_t*>(ptr);
 ```
-Any `reinterpret_cast`, `const_cast`, raw `memcpy` over typed memory, or manual lifetime extension requires a `// SAFETY:` line explaining the invariant.
+Any `reinterpret_cast`, `const_cast`, raw `memcpy` over typed memory, or manual lifetime extension requires a `// SAFETY:` line explaining invariant.
 
 ## Key Idioms
 
@@ -115,7 +115,7 @@ T abs_value(T x) noexcept { return x < 0 ? -x : x; }
 - Constants/macros: `SCREAMING_SNAKE_CASE`
 - Member variables: trailing `_` (`buffer_`, `size_`) — distinguishes from locals
 - Template parameters: `PascalCase` single word (`T`, `Iter`, `Container`)
-- Header guards: `PROJECT_PATH_FILE_HPP` or `#pragma once` (prefer the latter)
+- Header guards: `PROJECT_PATH_FILE_HPP` or `#pragma once` (prefer latter)
 
 ## Build & Headers
 - `.hpp` for C++ headers, `.h` only for C-compatible headers

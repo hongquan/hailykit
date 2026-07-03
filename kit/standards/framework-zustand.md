@@ -4,7 +4,7 @@ Detected via `zustand` in `package.json` — auto-injected as **extra**.
 
 ## What Zustand Is
 
-Tiny (1KB) state management library for React. **The de-facto choice** when `useState` + `useContext` aren't enough but Redux is overkill. No providers, no boilerplate, no actions/reducers ceremony.
+Tiny (1KB) state management library for React. **De-facto choice** when `useState` + `useContext` aren't enough but Redux is overkill. No providers, no boilerplate, no actions/reducers ceremony.
 
 ## Core API
 
@@ -157,7 +157,7 @@ const count = useStore((s) => s.count);                  // re-render on count c
 const increment = useStore((s) => s.increment);           // never changes
 ```
 
-Actions are stable references (no closure capture issues) — always destructure them at the call site.
+Actions are stable references (no closure capture issues) — always destructure them at call site.
 
 ## Outside React
 

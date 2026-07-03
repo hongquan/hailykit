@@ -4,7 +4,7 @@ Detected via `:oban` in `mix.exs` — auto-injected as **extra**.
 
 ## What Oban Is
 
-Oban is the de-facto background job queue for Elixir. Postgres-backed (uses `LISTEN/NOTIFY` for low-latency), no separate Redis/RabbitMQ needed. Production-grade: retries, backoff, scheduling, unique jobs, telemetry.
+Oban is de-facto background job queue for Elixir. Postgres-backed (uses `LISTEN/NOTIFY` for low-latency), no separate Redis/RabbitMQ needed. Production-grade: retries, backoff, scheduling, unique jobs, telemetry.
 
 ## Setup
 
@@ -59,7 +59,7 @@ defmodule MyApp.Workers.SendWelcomeEmail do
 end
 ```
 
-Return `:ok`, `{:ok, result}`, `{:error, reason}`, or `{:snooze, seconds}`. Raising an exception triggers retry per `max_attempts`.
+Return `:ok`, `{:ok, result}`, `{:error, reason}`, or `{:snooze, seconds}`. Raising exception triggers retry per `max_attempts`.
 
 ## Enqueue Jobs
 
@@ -87,7 +87,7 @@ end)
 |> Repo.transaction()
 ```
 
-**Atomic insert in transaction** is Oban's killer feature — the job ONLY enqueues if the user insert commits. No "user created but email never sent" race.
+**Atomic insert in transaction** is Oban's killer feature — job ONLY enqueues if user insert commits. No "user created but email never sent" race.
 
 ## Retries + Backoff
 
@@ -125,11 +125,11 @@ plugins: [
 ]
 ```
 
-Standard cron syntax. Jobs are inserted automatically at the scheduled time.
+Standard cron syntax. Jobs are inserted automatically at scheduled time.
 
 ## Testing
 
-Use Oban's testing helpers — they don't actually run jobs but assert they were enqueued:
+Use Oban's testing helpers — they don't run jobs but assert they were enqueued:
 
 ```elixir
 use Oban.Testing, repo: MyApp.Repo
@@ -160,7 +160,7 @@ Oban Pro adds: workflows (DAG of jobs), batches, smart pause, dynamic queues, en
 - Args should be **JSON-serializable IDs**, never full structs (DB row could change)
 - Use `unique` for dedup of likely-duplicate jobs (webhooks, reset emails)
 - Scope queues by SLA: fast critical jobs in one queue, slow batch in another
-- Insert jobs in the same transaction as the triggering DB write
+- Insert jobs in same transaction as triggering DB write
 - Set reasonable `max_attempts` (3-5 for transient, 1 for non-retryable)
 - Use telemetry events to monitor queue depth + processing time
 

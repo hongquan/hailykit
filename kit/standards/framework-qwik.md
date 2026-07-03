@@ -4,7 +4,7 @@ Detected via `@builder.io/qwik` or `@builder.io/qwik-city` in `package.json` dep
 
 ## What Qwik Is
 
-**Resumable** web framework — apps start instantly because they don't hydrate. Instead, the framework serializes the entire app state into the HTML and "resumes" execution on user interaction. JS is downloaded lazily on demand.
+**Resumable** web framework — apps start instantly because they don't hydrate. Instead, framework serializes entire app state into the HTML and "resumes" execution on user interaction. JS is downloaded lazily on demand.
 
 Performance claim: **O(1)** startup regardless of app size. Real apps see < 50ms time-to-interactive even for huge UIs.
 
@@ -15,7 +15,7 @@ Performance claim: **O(1)** startup regardless of app size. Real apps see < 50ms
 - Want React-like ergonomics with massive perf wins
 - Building globally-distributed sites on edge
 
-vs Next.js / Remix: those **hydrate** (re-run all components on client). Qwik **resumes** (no re-run; just attach event handlers as needed).
+vs Next.js / Remix: those **hydrate** (re-run all components on client). Qwik **resumes** (no re-run; attach event handlers as needed).
 
 ## Setup
 
@@ -45,7 +45,7 @@ export const Counter = component$(() => {
 });
 ```
 
-**The `$` suffix is critical** — it marks code that can be **lazily loaded**. The handler `onClick$` doesn't ship to the client until clicked.
+**The `$` suffix is critical** — it marks code that can be **lazily loaded**. Handler `onClick$` doesn't ship to client until clicked.
 
 | Suffix | Meaning |
 |---|---|
@@ -99,9 +99,9 @@ useVisibleTask$(() => {
 });
 ```
 
-`useTask$` is the equivalent of Solid's `createEffect` or React's `useEffect`.
+`useTask$` is equivalent of Solid's `createEffect` or React's `useEffect`.
 
-**`useVisibleTask$` is the only API that requires JS upfront** — use sparingly.
+**`useVisibleTask$` is only API that requires JS upfront** — use sparingly.
 
 ## Routing (Qwik City)
 
@@ -134,7 +134,7 @@ export default component$(() => {
 });
 ```
 
-`routeLoader$` runs **on the server**, ships JSON to the client. Loaders re-run on navigation.
+`routeLoader$` runs **on server**, ships JSON to client. Loaders re-run on navigation.
 
 ## Actions (Mutations)
 
@@ -209,7 +209,7 @@ Or use Tailwind, CSS Modules, vanilla-extract — all supported.
 - **`$` everywhere lazy code is fine** — components, handlers, tasks
 - **`routeLoader$`** for data on page load (runs on server, serialized to client)
 - **`routeAction$`** for form mutations — built-in validation via `zod$`
-- **Avoid `useVisibleTask$`** unless necessary — it's the one thing that bypasses lazy loading
+- **Avoid `useVisibleTask$`** unless necessary — it's one thing that bypasses lazy loading
 - **Lean on Forms** for state — they work without JS, get enhanced with it
 - **Pre-fetch** with `<Link prefetch>` for instant navigation
 - **Test on slow networks** — Qwik shines under poor connectivity

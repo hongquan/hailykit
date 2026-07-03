@@ -54,11 +54,11 @@ class UserController extends AbstractController
 }
 ```
 
-Attributes (`#[Route]`) are the modern way — older YAML routing still works but is discouraged for new code.
+Attributes (`#[Route]`) are modern way — older YAML routing still works but is discouraged for new code.
 
 ## Dependency Injection
 
-Symfony's DI container is the gold standard. Auto-wiring by type-hint:
+Symfony's DI container is gold standard. Auto-wiring by type-hint:
 
 ```php
 class UserService

@@ -101,7 +101,7 @@ final class User: Model, Content, @unchecked Sendable {
 }
 ```
 
-`Content` makes the model auto-codable for request/response bodies.
+`Content` makes model auto-codable for request/response bodies.
 
 ## Migrations
 

@@ -7,7 +7,7 @@ Detected via `express` in `package.json` deps.
 - Maximum library ecosystem compatibility (oldest, most middleware available)
 - Simple REST APIs with minimal abstraction
 - Compatibility with legacy Node.js code
-- Need very specific middleware behavior
+- Need specific middleware behavior
 
 **For new projects, strongly consider Fastify or Hono** — both faster, better TypeScript, modern async patterns. Express is in **maintenance mode** with infrequent releases.
 
@@ -149,7 +149,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
 ## Best Practices
 
 - Always use `helmet()` + `cors()` + body-parser limits
-- Validate **every** request body/query/params at the boundary
+- Validate **every** request body/query/params at boundary
 - Async handlers MUST handle rejections (`asyncHandler` wrapper or v5)
 - Centralize error handling in ONE global error middleware
 - Type `req.user` via module augmentation, don't use `as any`

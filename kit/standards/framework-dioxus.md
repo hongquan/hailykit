@@ -4,13 +4,13 @@ Detected via `dioxus` in `Cargo.toml` `[dependencies]`.
 
 ## What Dioxus Is
 
-Dioxus is a cross-platform Rust UI framework — single codebase compiles to **web (WASM)**, **desktop (WebView)**, **mobile (iOS/Android)**, **TUI**, and **fullstack with SSR**. Virtual DOM, React-like component model.
+Dioxus is cross-platform Rust UI framework — single codebase compiles to **web (WASM)**, **desktop (WebView)**, **mobile (iOS/Android)**, **TUI**, and **fullstack with SSR**. Virtual DOM, React-like component model.
 
 ## When to Use
 
 - Cross-platform apps (one codebase, multiple targets)
 - React/JSX-style ergonomics in Rust
-- Desktop + web + mobile from the same code
+- Desktop + web + mobile from same code
 - Don't need ultra-fine-grained reactivity (Leptos's strength)
 
 Trade-off vs Leptos: Dioxus is React-like (VDOM diff); Leptos is SolidJS-like (signals). Dioxus has wider platform coverage; Leptos has potentially better runtime perf for highly reactive UIs.

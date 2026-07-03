@@ -181,7 +181,7 @@ Run SQL on DataFrames — handy for team members more comfortable with SQL.
 
 ## Best Practices
 
-- **Default to lazy** for ETL pipelines — `pl.scan_*` + `.collect()` at the end
+- **Default to lazy** for ETL pipelines — `pl.scan_*` + `.collect()` at end
 - **Use expressions** (`pl.col(...)`) — readable + composable
 - **`with_columns()` for additions**, `select()` for replacements
 - **Parquet over CSV** — typed columns, much faster
@@ -201,11 +201,11 @@ Run SQL on DataFrames — handy for team members more comfortable with SQL.
 ## Performance Tips
 
 - **Lazy** > eager whenever possible
-- **`select()` early** to drop unused cols — projection pushdown helps the engine
+- **`select()` early** to drop unused cols — projection pushdown helps engine
 - **Filter early** for predicate pushdown
-- **Set `n_threads`** if working in a constrained env; default = all cores
+- **Set `n_threads`** if working in constrained env; default = all cores
 - **`scan_*` over `read_*`** — defers I/O until needed
-- For repeated queries on the same file: convert to parquet first, scan from there
+- For repeated queries on same file: convert to parquet first, scan from there
 
 ## Resources
 

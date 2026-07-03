@@ -93,7 +93,7 @@ fun Route.userRoutes() {
 }
 ```
 
-DSL-based — routes are just Kotlin functions composing into a tree.
+DSL-based — routes are Kotlin functions composing into tree.
 
 ## Serialization (kotlinx.serialization)
 
@@ -166,7 +166,7 @@ HOCON or YAML (3.0+). Env var substitution via `${?VAR}`.
 Ktor doesn't ship an ORM. Common picks:
 - **Exposed** (JetBrains) — type-safe SQL DSL
 - **Ktorm** — lighter, less magic
-- **JOOQ** — heavy but very capable
+- **JOOQ** — heavy but capable
 - **Hibernate / JPA** — works but feels un-Kotliny
 
 ```kotlin
@@ -190,7 +190,7 @@ transaction {
 
 ## Coroutines (Async I/O)
 
-Every Ktor handler runs in a coroutine — `suspend` everywhere:
+Every Ktor handler runs in coroutine — `suspend` everywhere:
 
 ```kotlin
 get("/users") {
@@ -217,15 +217,15 @@ class UserRoutesTest {
 }
 ```
 
-`testApplication { }` boots an in-memory Ktor server — no port binding, very fast.
+`testApplication { }` boots in-memory Ktor server — no port binding, fast.
 
 ## Best Practices
 
-- **DSL-based routing** is the way — embrace it
+- **DSL-based routing** is way — embrace it
 - Use **kotlinx.serialization** over Jackson — native, fast, no reflection
 - One module function per feature area — compose via `Application.module()`
 - `install(plugin) { }` for all framework features — never roll your own auth/cors/serialization
-- **Coroutines all the way** — never use `Thread.sleep` or blocking I/O in handler
+- **Coroutines all way** — never use `Thread.sleep` or blocking I/O in handler
 - Use `application.conf` for all config — code-as-default is brittle
 - Build native via Ktor's GraalVM support for fast startup
 

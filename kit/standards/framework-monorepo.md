@@ -5,7 +5,7 @@ Detected via presence of `turbo.json`, `nx.json`, or `pnpm-workspace.yaml`.
 ## When a Monorepo is Worth It
 
 - Multiple apps sharing a UI library, types, or config (web + admin + docs)
-- Microfrontends with a shared backend client
+- Microfrontends with shared backend client
 - Design system + consumer apps in one repo
 - Need build caching across CI runs
 
@@ -59,9 +59,9 @@ Internal dep in `apps/web/package.json`:
 { "dependencies": { "@repo/ui": "workspace:*" } }
 ```
 
-- `workspace:*` — always use the local version, never published
+- `workspace:*` — always use local version, never published
 - `workspace:^1.0.0` — local + SemVer range fallback for published consumers
-- `pnpm --filter web add lodash` — add to a specific package
+- `pnpm --filter web add lodash` — add to specific package
 - `pnpm --filter "./packages/*" build` — build all packages
 - `pnpm --filter ...web build` — build web + all its transitive deps
 
@@ -98,7 +98,7 @@ nx affected --target=build
 nx graph                  # visualize dep graph
 ```
 
-`nx.json` + per-project `project.json` files define targets. Generators are nx's killer feature — they enforce structure across the team.
+`nx.json` + per-project `project.json` files define targets. Generators are nx's killer feature — they enforce structure across team.
 
 ## Remote Caching
 
@@ -141,9 +141,9 @@ For PRs, filter to affected only:
 
 - **Versioning each internal package independently** — use `workspace:*`, version at app/release boundary only
 - **Building everything on every PR** — always use `--filter` (Turborepo) or `affected` (nx)
-- **Mixing pnpm and npm in the same workspace** — lockfile chaos
-- **Committing build artifacts** — let the cache handle reuse
-- **One giant `tsconfig.json` at the root** — each package needs its own with `references` for project refs
+- **Mixing pnpm and npm in same workspace** — lockfile chaos
+- **Committing build artifacts** — let cache handle reuse
+- **One giant `tsconfig.json` at root** — each package needs its own with `references` for project refs
 - **Hardcoded relative imports across packages** (`../../packages/ui/...`) — always import via workspace name (`@repo/ui`)
 
 ## Common Pitfalls

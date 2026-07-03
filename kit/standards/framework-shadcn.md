@@ -24,7 +24,7 @@ colors: { primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--prim
 ```
 - Use `darkMode: ["class"]` + `next-themes` ThemeProvider
 - Semantic naming: `destructive` not `red`, `muted` not `gray`
-- Pair every color with a foreground color; test contrast in both modes
+- Pair every color with foreground color; test contrast in both modes
 - Change theme by updating CSS variables in `globals.css`; use https://ui.shadcn.com/themes
 
 ## Adding Variants

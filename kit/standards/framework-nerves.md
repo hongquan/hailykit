@@ -4,7 +4,7 @@ Detected via `:nerves` in `mix.exs` deps.
 
 ## What Nerves Is
 
-Nerves is a framework for building **embedded Linux systems with Elixir**. Targets: Raspberry Pi, BeagleBone, custom hardware. You get the entire BEAM ecosystem (OTP supervision, hot-reload, Phoenix, LiveView) on devices.
+Nerves is framework for building **embedded Linux systems with Elixir**. Targets: Raspberry Pi, BeagleBone, custom hardware. You get entire BEAM ecosystem (OTP supervision, hot-reload, Phoenix, LiveView) on devices.
 
 Common use cases: IoT gateways, kiosks, signage, sensors, industrial controllers, robotics.
 
@@ -19,7 +19,7 @@ export MIX_TARGET=rpi4   # or rpi3, bbb, x86_64, etc.
 mix deps.get
 ```
 
-`MIX_TARGET` env var switches between **host** (your laptop) and **target** (the device) builds.
+`MIX_TARGET` env var switches between **host** (your laptop) and **target** (device) builds.
 
 ## Project Structure
 
@@ -51,7 +51,7 @@ mix burn
 mix upload my_device.local
 ```
 
-`mix firmware` produces a `.fw` file. `mix burn` writes it to an inserted SD card. `mix upload` deploys over SSH to an already-running device — incremental, fast.
+`mix firmware` produces a `.fw` file. `mix burn` writes it to inserted SD card. `mix upload` deploys over SSH to already-running device — incremental, fast.
 
 ## Target Config
 
@@ -77,7 +77,7 @@ config :vintage_net,
 
 ## Hardware I/O
 
-`circuits_gpio`, `circuits_i2c`, `circuits_spi`, `circuits_uart` are the standard libraries:
+`circuits_gpio`, `circuits_i2c`, `circuits_spi`, `circuits_uart` are standard libraries:
 
 ```elixir
 # GPIO blink LED
@@ -122,9 +122,9 @@ Yes, you can run a Phoenix server on a Pi:
 {:nerves_pack, "~> 0.7"},  # Bundle of common Nerves deps
 ```
 
-Use cases: local config UI on the device, status dashboard, REST API for external systems to query.
+Use cases: local config UI on device, status dashboard, REST API for external systems to query.
 
-LiveView works too — touchscreen kiosks with realtime data are a great fit.
+LiveView works too — touchscreen kiosks with realtime data are great fit.
 
 ## Application Supervision
 
@@ -145,7 +145,7 @@ defmodule MyDevice.Application do
 end
 ```
 
-**Supervision is critical on embedded** — a hardware glitch should restart one worker, not bring down the whole system.
+**Supervision is critical on embedded** — hardware glitch should restart one worker, not bring down whole system.
 
 ## Storage
 
@@ -179,7 +179,7 @@ Logs via `journalctl` (via `nerves_logging`) or `Logger.info` (shown in IEx + sa
 - Writing to read-only rootfs paths → silent fail; use `/data` or `/root`
 - Long blocking calls in GenServer hardware reader → BEAM scheduler unhappy
 - Not handling network disconnection → app crashes when WiFi drops
-- Bloated firmware (>200MB) → very slow OTA updates
+- Bloated firmware (>200MB) → slow OTA updates
 - Storing too much in flash → flash wear, eventual failure (use RAM buffer + periodic flush)
 
 ## Resources

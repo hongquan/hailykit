@@ -1,10 +1,10 @@
 # Gradio Standards
 
-Detected via `gradio` in Python deps — runs as primary framework when it's the app's purpose.
+Detected via `gradio` in Python deps — runs as primary framework when it's app's purpose.
 
 ## What Gradio Is
 
-Python lib for building ML demo UIs in minutes. Drop a Python function in, get a web UI with inputs/outputs auto-rendered. Sister to Streamlit but optimized for ML demos (image, audio, video inputs).
+Python lib for building ML demo UIs in minutes. Drop a Python function in, get web UI with inputs/outputs auto-rendered. Sister to Streamlit but optimized for ML demos (image, audio, video inputs).
 
 ## When to Use
 
@@ -33,7 +33,7 @@ demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 demo.launch()       # opens browser at localhost:7860
 ```
 
-`gr.Interface` is the magic — pass a function + spec of inputs/outputs, get a UI.
+`gr.Interface` is magic — pass function + spec of inputs/outputs, get a UI.
 
 ## Input/Output Components
 
@@ -209,7 +209,7 @@ client = Client("https://your-space.hf.space")
 result = client.predict("Hello", api_name="/predict")
 ```
 
-Use Gradio as a quick API server for ML models.
+Use Gradio as quick API server for ML models.
 
 ## Themes
 
@@ -228,7 +228,7 @@ Built-in themes: `Default`, `Soft`, `Monochrome`, `Glass`, `Citrus`. Or write yo
 
 ## Best Practices
 
-- **Use `gr.Blocks`** for anything beyond a single function — far more flexible
+- **Use `gr.Blocks`** for anything beyond single function — far more flexible
 - **`gr.ChatInterface`** for LLM apps — built-in history + streaming
 - **`yield`** for streaming outputs (text gen, progressive image processing)
 - **`examples=`** on Interface — users love clickable samples

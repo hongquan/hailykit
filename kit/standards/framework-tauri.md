@@ -114,7 +114,7 @@ Use events for streaming / progress / async notifications. Commands for request/
 
 ## Capabilities (Security)
 
-Tauri 2 uses **capabilities** — JSON files declaring which Rust APIs the frontend can call:
+Tauri 2 uses **capabilities** — JSON files declaring which Rust APIs frontend can call:
 
 ```json
 // src-tauri/capabilities/default.json
@@ -234,7 +234,7 @@ iOS requires Xcode + Apple Developer account for device deployment. Android requ
 
 - **Validate all inputs** in `#[tauri::command]` — they come from JS, treat as untrusted
 - Use **capabilities** to lock down which APIs frontend can call — default-deny
-- Async commands for I/O work — sync commands block the runtime
+- Async commands for I/O work — sync commands block runtime
 - Use `tokio::sync::Mutex` for shared mutable state (not `std::sync::Mutex` in async)
 - Emit events for streaming work (progress bars, log tails) — better UX than polling
 - Bundle frontend assets via Tauri's build pipeline — `frontendDist` points to your build output

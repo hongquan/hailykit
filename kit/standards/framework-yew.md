@@ -201,7 +201,7 @@ use yew::ServerRenderer;
 let html = ServerRenderer::<App>::new().render().await;
 ```
 
-Pair with Axum/Actix to serve the rendered HTML, then hydrate on the client. More setup than Leptos's batteries-included approach.
+Pair with Axum/Actix to serve rendered HTML, then hydrate on client. More setup than Leptos's batteries-included approach.
 
 ## Best Practices
 

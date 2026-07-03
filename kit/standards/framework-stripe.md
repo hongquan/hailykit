@@ -10,7 +10,7 @@ Detected via `stripe` in `package.json` deps (Node) or `stripe` in Python `requi
 - Enterprise PCI compliance requirements
 - Global card processing with high control
 
-Not the right pick for:
+Not right pick for:
 - Tax compliance / MoR (use Paddle, Polar, or Creem instead)
 - Vietnamese bank transfers (use SePay)
 
@@ -36,7 +36,7 @@ pip install stripe
 
 ## Checkout Sessions (Hosted Checkout)
 
-Easiest path — Stripe hosts the page:
+Easiest path — Stripe hosts page:
 
 ```ts
 import Stripe from 'stripe';
@@ -94,7 +94,7 @@ const subscription = await stripe.subscriptions.create({
 
 ## Webhooks (CRITICAL)
 
-Webhooks are the source of truth for payment status — never rely on success_url redirects alone (user might close the tab).
+Webhooks are source of truth for payment status — never rely on success_url redirects alone (user might close the tab).
 
 ```ts
 import Stripe from 'stripe';
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
 }
 ```
 
-**Idempotency:** Stripe may deliver the same event twice. Store `event.id` in DB; skip if already processed.
+**Idempotency:** Stripe may deliver same event twice. Store `event.id` in DB; skip if already processed.
 
 **Verify signature** — never skip. Without it, attackers can forge webhooks and grant themselves access.
 
@@ -158,7 +158,7 @@ For platforms where you charge customers and pay out to vendors:
 - Store Stripe IDs (`customer.id`, `subscription.id`) in your DB, not your DB ID in Stripe metadata only
 - Use **idempotency keys** on retried writes: `stripe.paymentIntents.create({...}, { idempotencyKey: 'order-123' })`
 - Subscription state: webhook is truth, your DB is cache — re-sync on mismatch
-- Test the dunning flow (failed renewal → retry → cancel) in staging
+- Test dunning flow (failed renewal → retry → cancel) in staging
 - Use **Stripe Tax** for automated tax — handles VAT/sales tax for you
 
 ## Common Pitfalls

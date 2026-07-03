@@ -1,6 +1,6 @@
 ---
 name: hc-debug
-description: "Root-cause analysis skill for bugs, test failures, CI/CD failures, performance regressions, and unexpected system behavior. Routes to 10 specialist techniques (systematic debugging, root-cause tracing, defense-in-depth, verification, investigation methodology, log/CI analysis, performance diagnostics, reporting, task management, frontend verification). Core mandate: investigate before fixing."
+description: "Root-cause analysis for bugs, test failures, CI/CD failures, performance regressions, and unexpected system behavior. Routes to 10 specialist techniques (systematic debugging, root-cause tracing, defense-in-depth, verification, investigation methodology, log/CI analysis, performance diagnostics, reporting, task management, frontend verification). Core mandate: investigate before fixing."
 when_to_use: "Invoke when investigating issues, diagnosing failures, or analyzing unexpected behavior."
 user-invocable: true
 argument-hint: "[issue description] [--frontend] [--profile artifact] [--trace trace-id]"

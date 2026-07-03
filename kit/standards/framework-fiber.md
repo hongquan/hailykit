@@ -196,10 +196,10 @@ func TestGetUser(t *testing.T) {
 
 ## Best Practices
 
-- **Return errors**, let the global handler format
+- **Return errors**, let global handler format
 - Use `c.Locals(key)` for request-scoped state (auth, request ID, etc.)
 - **`c.Context()`** to propagate cancellation to DB/external calls
-- **Built-in middleware** for the basics — don't reinvent
+- **Built-in middleware** for basics — don't reinvent
 - Use `fiber.NewError(code, msg)` for HTTP-level errors
 - Pin Fiber major version — v2 → v3 breaking changes
 
@@ -209,7 +209,7 @@ func TestGetUser(t *testing.T) {
 - Using `*http.Request` types directly → Fiber uses `fasthttp.Request` underneath
 - Importing middleware that assumes `net/http` → won't compile
 - Mutating shared state in `c.Locals()` across goroutines → race
-- Heavy CPU work in handler → blocks the fasthttp worker; offload via goroutine
+- Heavy CPU work in handler → blocks fasthttp worker; offload via goroutine
 - Forgetting to return after sending response → "headers already written"
 
 ## Migration from Express

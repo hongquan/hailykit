@@ -104,7 +104,7 @@ display(Markdown("# Heading"))
 display(Image(filename="img.png"))
 ```
 
-Last expression in a cell auto-displays. For multiple displays, use `display()` explicitly.
+Last expression in cell auto-displays. For multiple displays, use `display()` explicitly.
 
 ## Widgets (Interactive UI)
 
@@ -117,7 +117,7 @@ def filter_data(threshold=50):
     display(filtered)
 ```
 
-Drag a slider → notebook re-runs the function. Great for parameter exploration.
+Drag slider → notebook re-runs function. Great for parameter exploration.
 
 ## nbconvert (Export)
 
@@ -150,7 +150,7 @@ nbstripout --install         # configures git filters
 papermill input.ipynb output.ipynb -p threshold 75 -p date 2026-01-01
 ```
 
-Run a notebook with different parameters — useful for batch reports.
+Run notebook with different parameters — useful for batch reports.
 
 ## Refactoring to Modules
 
@@ -173,9 +173,9 @@ Edit `src/analysis.py` in your IDE; autoreload picks up changes without restart.
 
 ## Best Practices
 
-- **"Restart & Run All"** before committing or sharing — proves the notebook reproduces
+- **"Restart & Run All"** before committing or sharing — proves notebook reproduces
 - **Number sections with markdown headers** — Jupyter shows a TOC
-- **`%matplotlib inline`** at the top — consistent plot rendering
+- **`%matplotlib inline`** at top — consistent plot rendering
 - **Extract reusable code** to `.py` modules; import them — keep notebook for exploration only
 - **Pin versions** in `requirements.txt` or `environment.yml` — others can't reproduce on broken deps
 - **nbstripout** or **jupytext** for git sanity

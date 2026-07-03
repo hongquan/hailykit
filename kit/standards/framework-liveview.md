@@ -68,7 +68,7 @@ end
 <input value={@post.title} />
 ```
 
-`{...}` is the modern HEEx interpolation (Phoenix 1.7+). `<%= ... %>` is legacy EEx, still works.
+`{...}` is modern HEEx interpolation (Phoenix 1.7+). `<%= ... %>` is legacy EEx, still works.
 
 ## Forms with Changesets
 
@@ -109,7 +109,7 @@ end
 
 ## Streams (Large Collections)
 
-For lists that grow over time (chat, feeds, tables), use **streams** — they don't keep the full list in socket memory:
+For lists that grow over time (chat, feeds, tables), use **streams** — they don't keep full list in socket memory:
 
 ```elixir
 def mount(_, _, socket) do
@@ -133,7 +133,7 @@ end
 """
 ```
 
-Critical for memory: a 10k-item list as `assign` = 10k items in socket forever; as a stream = constant memory.
+Critical for memory: a 10k-item list as `assign` = 10k items in socket forever; as stream = constant memory.
 
 ## Function Components
 
@@ -166,7 +166,7 @@ end
 
 ## Live Components (Stateful Children)
 
-When a child component needs its own state:
+When child component needs its own state:
 
 ```elixir
 defmodule MyAppWeb.LikeButtonComponent do
@@ -193,7 +193,7 @@ end
 <.live_component module={LikeButtonComponent} id="like-#{@post.id}" />
 ```
 
-Note `phx-target={@myself}` — without it, the event goes to the parent LiveView.
+Note `phx-target={@myself}` — without it, event goes to parent LiveView.
 
 ## JS Hooks (When You Need Real JS)
 
@@ -213,7 +213,7 @@ let liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks });
 <input phx-hook="AutoFocus" id="my-input" />
 ```
 
-Hooks need a unique `id` to work.
+Hooks need unique `id` to work.
 
 ## Navigation
 
@@ -225,7 +225,7 @@ Hooks need a unique `id` to work.
 | `<.link navigate="/x">` | Client-side `push_navigate` link |
 | `<.link href="/x">` | Full page reload |
 
-Use `patch` when the same LiveView handles multiple URLs (e.g. tabs). Use `navigate` when switching to a different LiveView.
+Use `patch` when same LiveView handles multiple URLs (e.g. tabs). Use `navigate` when switching to different LiveView.
 
 ## Best Practices
 
@@ -234,7 +234,7 @@ Use `patch` when the same LiveView handles multiple URLs (e.g. tabs). Use `navig
 - Function components for stateless reuse, LiveComponents only when state needed
 - `to_form/1` + `phx-change` for realtime validation
 - `push_event/3` for sending data to JS hooks
-- Keep socket assigns small — they live for the connection duration
+- Keep socket assigns small — they live for connection duration
 
 ## Common Pitfalls
 

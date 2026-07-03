@@ -1,12 +1,12 @@
 # Julia Standards
 
-Julia is a high-level, high-performance dynamic language for technical computing — scientific computing, ML, data analysis, optimization. Detected via `Project.toml` + `Manifest.toml`.
+Julia is high-level, high-performance dynamic language for technical computing — scientific computing, ML, data analysis, optimization. Detected via `Project.toml` + `Manifest.toml`.
 
 ## Core Philosophy
 
 - **Just-in-time compiled** to native code via LLVM — close to C speed
-- **Multiple dispatch** is the central paradigm (not OOP, not pure FP)
-- **Numerical-first** — arrays, math, broadcasting are built into the language
+- **Multiple dispatch** is central paradigm (not OOP, not pure FP)
+- **Numerical-first** — arrays, math, broadcasting are built into language
 - **Two-language problem solver** — write prototypes and prod code in same language
 
 ## Project Structure
@@ -46,7 +46,7 @@ area(5.0)
 area(3.0, 4.0)
 ```
 
-The function called depends on the **types of ALL arguments** — not just the first (OOP).
+Function called depends on the **types of ALL arguments** — not the first (OOP).
 
 ## Common Idioms
 

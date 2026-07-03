@@ -1,12 +1,12 @@
 # JavaScript Standards (modern ES2022+, Node.js)
 
 > For TypeScript projects, see `lang-typescript.md` — this file covers
-> vanilla JS / Node.js where types aren't enforced by the compiler.
+> vanilla JS / Node.js where types aren't enforced by compiler.
 
 ## Comments
 
 ### JSDoc (exported symbols)
-Without TypeScript, JSDoc is the contract — type information matters more than usual.
+Without TypeScript, JSDoc is contract — type information matters more than usual.
 ```js
 /**
  * Why this function exists + non-obvious contract.
@@ -20,9 +20,9 @@ export async function getUser(userId, opts = {}) { /* ... */ }
 ```
 
 - Always JSDoc exported functions in vanilla JS — IDE autocompletion and runtime safety depend on it
-- `@param` types are required even when the name suggests the type (no compiler to enforce)
-- `@throws` for any domain error a caller is expected to handle
-- `// @ts-check` at the top of a file enables JSDoc-driven type checking in VS Code
+- `@param` types are required even when name suggests the type (no compiler to enforce)
+- `@throws` for any domain error caller is expected to handle
+- `// @ts-check` at top of file enables JSDoc-driven type checking in VS Code
 
 ### Anchor Comments
 - `// NOTE:` — non-obvious invariant

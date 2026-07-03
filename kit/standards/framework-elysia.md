@@ -9,7 +9,7 @@ Detected via `elysia` in `package.json` deps.
 - Plugin pattern with method chaining + complete type flow
 - API + WebSocket + GraphQL in one cohesive framework
 
-Runs on Node too via `@elysiajs/node`, but Bun is the target — best perf there.
+Runs on Node too via `@elysiajs/node`, but Bun is target — best perf there.
 
 ## Setup
 
@@ -46,7 +46,7 @@ new Elysia()
   );
 ```
 
-`t.*` is re-exported from TypeBox. `body` is fully typed in the handler.
+`t.*` is re-exported from TypeBox. `body` is fully typed in handler.
 
 ## Plugin System
 
@@ -75,7 +75,7 @@ new Elysia()
   });
 ```
 
-Per-route hooks via the options object — scoped to that route only.
+Per-route hooks via options object — scoped to that route only.
 
 ## Groups
 

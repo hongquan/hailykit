@@ -35,7 +35,7 @@ wsgi.py                    # Production entry: from app import create_app; app =
 
 ## App Factory Pattern
 
-Use a factory function — enables multiple configs (dev, prod, test) + cleaner imports:
+Use factory function — enables multiple configs (dev, prod, test) + cleaner imports:
 
 ```python
 # app/__init__.py
@@ -79,7 +79,7 @@ def create_user():
     return jsonify({'id': user.id}), 201
 ```
 
-Blueprints group related routes — register them in the factory.
+Blueprints group related routes — register them in factory.
 
 ## Configuration
 
@@ -100,7 +100,7 @@ class ProductionConfig(Config):
     # Production-only settings
 ```
 
-Set `FLASK_CONFIG=development` env var, factory picks the right class.
+Set `FLASK_CONFIG=development` env var, factory picks right class.
 
 ## Database (SQLAlchemy)
 
@@ -223,7 +223,7 @@ But Flask still runs sync at the WSGI layer — for serious async, use FastAPI/Q
 
 - App factory pattern + blueprints for organization
 - `flask shell` — auto-loads app context; great for debugging models
-- Use `current_app` instead of importing the app instance (avoids circular imports)
+- Use `current_app` instead of importing app instance (avoids circular imports)
 - Centralize DB session management — never `db.session.commit()` in helpers
 - Marshmallow/pydantic schemas for serialize + validate (don't dump model attrs directly)
 - Configure logging early in factory — don't rely on `print`
@@ -231,7 +231,7 @@ But Flask still runs sync at the WSGI layer — for serious async, use FastAPI/Q
 ## Common Pitfalls
 
 - `DEBUG=True` in production → interactive debugger exposed = code execution vulnerability
-- Circular imports between models + app → use the factory pattern
+- Circular imports between models + app → use factory pattern
 - Mutable default args in routes (`def foo(items=[])`) — Python footgun
 - Forgetting `db.session.commit()` after `db.session.add()` → silent data loss
 - Using `request.form` for JSON body → returns empty; use `request.get_json()`

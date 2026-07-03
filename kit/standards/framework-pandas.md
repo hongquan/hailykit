@@ -5,7 +5,7 @@ Detected via `pandas` in Python deps — auto-injected as **extra**.
 ## Core Concepts
 
 - **Series**: 1D labeled array (column)
-- **DataFrame**: 2D table (rows × columns) — the workhorse
+- **DataFrame**: 2D table (rows × columns) — workhorse
 - **Index**: row labels (default = integer position 0..n-1, but can be anything)
 
 ```python
@@ -171,7 +171,7 @@ When pandas hurts (>10M rows or out-of-memory):
 - **Polars** — Rust-backed, multi-threaded, dramatically faster (see `framework-polars.md`)
 - **DuckDB** — embedded analytical DB, SQL on parquet/CSV without loading into RAM
 - **Dask** — distributed pandas-like API
-- **Modin** — drop-in pandas replacement, uses Ray/Dask under the hood
+- **Modin** — drop-in pandas replacement, uses Ray/Dask under hood
 
 ```python
 # DuckDB on parquet

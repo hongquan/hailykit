@@ -14,11 +14,11 @@ export async function getUser(userId: string): Promise<User | null>
 ```
 
 - Omit JSDoc for internal/unexported functions when signature + name are self-documenting
-- `@param` descriptions: only write when the type alone is ambiguous (e.g., `string` that must match a specific format)
+- `@param` descriptions: only write when type alone is ambiguous (e.g., `string` that must match a specific format)
 - Always document `@throws` for functions that can throw domain errors
 
 ### Anchor Comments
-- `// NOTE:` — non-obvious invariant or constraint a reader must know
+- `// NOTE:` — non-obvious invariant or constraint reader must know
 - `// FIXME: owner/issue` — known broken behavior, must include ticket ref
 - `// TODO: owner/issue` — planned change, must include ticket ref
 - `// SAFETY:` — before non-null assertion (`!`) or type cast (`as`) that is NOT obvious; explain the invariant

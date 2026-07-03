@@ -99,7 +99,7 @@ app.use(async (c, next) => {
 
 ## RPC Mode (End-to-End Types)
 
-Hono can generate a typed client for your routes:
+Hono can generate typed client for your routes:
 
 ```ts
 // server.ts
@@ -138,7 +138,7 @@ app.get('/posts', async (c) => {
 });
 ```
 
-`c.env` is the runtime-provided bindings (Workers KV/D1/R2, environment vars).
+`c.env` is runtime-provided bindings (Workers KV/D1/R2, environment vars).
 
 ## Streaming Responses
 
@@ -173,7 +173,7 @@ Perfect for AI chat streaming (OpenAI/Anthropic/Gemini all support SSE).
 - Use `c.json()` / `c.text()` / `c.html()` — sets correct Content-Type automatically
 - Validate input with `@hono/zod-validator` — type-safe `c.req.valid()`
 - Group routes via `new Hono()` sub-apps + `app.route()` — keeps file structure clean
-- Use **RPC mode** when client + server share a repo — eliminates API drift
+- Use **RPC mode** when client + server share repo — eliminates API drift
 - Edge-compatible only: no Node `fs`, no native modules — use Web APIs
 
 ## Common Pitfalls

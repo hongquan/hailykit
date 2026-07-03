@@ -32,7 +32,7 @@ Always accept `CancellationToken` in async methods — propagate it through.
 
 ## Dependency Injection
 
-`Microsoft.Extensions.DependencyInjection` is the standard:
+`Microsoft.Extensions.DependencyInjection` is standard:
 
 ```csharp
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -60,7 +60,7 @@ var total = orders.Sum(o => o.Amount);
 var grouped = orders.GroupBy(o => o.UserId).ToDictionary(g => g.Key, g => g.Sum(o => o.Amount));
 ```
 
-`ToList()` / `ToArray()` materialize the query — without them, you're working with `IEnumerable<T>` (deferred execution).
+`ToList()` / `ToArray()` materialize query — without them, you're working with `IEnumerable<T>` (deferred execution).
 
 ## Pattern Matching
 
@@ -107,7 +107,7 @@ Enable via `<Nullable>enable</Nullable>` in csproj. Treat warnings as errors.
 
 - Use exceptions for **exceptional** cases, not control flow
 - Custom exception types per domain: `public class UserNotFoundException : Exception { ... }`
-- Don't catch `Exception` blindly — catch the specific type, or rethrow with `throw` (not `throw ex` — that loses stack trace)
+- Don't catch `Exception` blindly — catch specific type, or rethrow with `throw` (not `throw ex` — that loses stack trace)
 - `Result<T, E>` pattern via OneOf/ErrorOr libs if you prefer Rust-style error handling
 
 ## File Organization
@@ -126,7 +126,7 @@ Clean Architecture is dominant in C# enterprise: Domain → Application → Infr
 
 ## Testing
 
-- **xUnit** is the most common test framework (NUnit + MSTest also fine)
+- **xUnit** is most common test framework (NUnit + MSTest also fine)
 - **Moq** or **NSubstitute** for mocking
 - **FluentAssertions** for readable asserts
 - **TestContainers** for integration tests with real DBs/Redis/etc.

@@ -4,7 +4,7 @@ Detected via `:phoenix` in `mix.exs` deps.
 
 ## When to Use
 
-- Elixir-based web framework, the default for any Elixir webapp
+- Elixir-based web framework, default for any Elixir webapp
 - Built-in WebSocket support via Channels (scales to millions of connections)
 - LiveView for realtime UI without writing JS
 - High-concurrency APIs (BEAM scheduler handles 100k+ connections per node)
@@ -176,19 +176,19 @@ def handle_info({:new_msg, msg}, socket), do: {:noreply, push_event(socket, "msg
 
 ## Authentication
 
-`mix phx.gen.auth` generates a complete email/password auth flow (registration, login, password reset, email confirmation). Battle-tested — use it instead of rolling your own.
+`mix phx.gen.auth` generates complete email/password auth flow (registration, login, password reset, email confirmation). Battle-tested — use it instead of rolling your own.
 
 For OAuth: `ueberauth` + provider-specific strategies.
 
 ## Tasks & Background Jobs
 
-- **Oban** — Postgres-backed job queue, the standard. See `framework-oban.md`.
+- **Oban** — Postgres-backed job queue, standard. See `framework-oban.md`.
 - **Task.Supervisor** — for fire-and-forget async work
 - **GenServer** — for stateful workers
 
 ## Best Practices
 
-- Contexts as the public API; never call `Repo` from controllers/LiveViews
+- Contexts as public API; never call `Repo` from controllers/LiveViews
 - Pattern match in function heads — let it crash, then handle in supervisor
 - `with` statements for happy-path chains: `with {:ok, x} <- step1(), {:ok, y} <- step2(x), do: ...`
 - Pipelines (`|>`) over deeply nested calls
@@ -197,7 +197,7 @@ For OAuth: `ueberauth` + provider-specific strategies.
 
 ## Telemetry
 
-Phoenix emits telemetry events out of the box. Wire them to Prometheus / DataDog:
+Phoenix emits telemetry events out of box. Wire them to Prometheus / DataDog:
 
 ```elixir
 # lib/my_app_web/telemetry.ex

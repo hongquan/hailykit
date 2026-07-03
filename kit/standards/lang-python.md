@@ -18,13 +18,13 @@ def get_user(user_id: str) -> User | None:
 
 - Docstring required on every public module, class, function, and method
 - Always document `:raises:` — Python has no checked exceptions; callers depend on docstrings
-- Omit docstrings for private (`_prefixed`) functions when the signature + name are obvious
-- First line is a one-sentence summary, blank line, then full description
-- Fall back to Google style only when **both** are true: existing functions already use it **and** the project has no Sphinx setup (no `docs/conf.py`, no `sphinx` in `pyproject.toml`). If Sphinx is configured, always use reST.
-- Omit `:type` and `:rtype` directives when the function already has type annotations — Sphinx pulls them into the generated docs automatically
+- Omit docstrings for private (`_prefixed`) functions when signature + name are obvious
+- First line is one-sentence summary, blank line, then full description
+- Fall back to Google style only when **both** are true: existing functions already use it **and** project has no Sphinx setup (no `docs/conf.py`, no `sphinx` in `pyproject.toml`). If Sphinx is configured, always use reST.
+- Omit `:type` and `:rtype` directives when function already has type annotations — Sphinx pulls them into generated docs automatically
 
 ### Type Hints (MANDATORY for public API)
-Type hints are the contract — runtime can't enforce them, so be precise.
+Type hints are contract — runtime can't enforce them, so be precise.
 ```python
 from collections.abc import Iterable, Mapping
 from typing import Protocol
@@ -188,7 +188,7 @@ def by_name(u):
 ## Tooling
 - Format: `ruff format` (Black-compatible) — line length 100 unless project differs
 - Lint: `ruff check` — covers flake8, isort, pyupgrade, bugbear
-- Types: `mypy --strict` or `pyright`; `zuban` (Rust-based, 20–200× faster) is an option for greenfield projects — note AGPL-3.0 license (commercial use requires a paid license) and pre-1.0 API stability
+- Types: `mypy --strict` or `pyright`; `zuban` (Rust-based, 20–200× faster) is option for greenfield projects — note AGPL-3.0 license (commercial use requires a paid license) and pre-1.0 API stability
 - Tests: `pytest`, fixtures over setUp/tearDown, function-based test cases over class-based
 - Manage deps with `uv` or `pdm`; lock files committed
 

@@ -4,7 +4,7 @@ Detected via `leptos` in `Cargo.toml` `[dependencies]`.
 
 ## What Leptos Is
 
-Leptos is a Rust full-stack web framework — fine-grained reactivity (like SolidJS), compiled to WASM for the client, with optional SSR + isomorphic server functions.
+Leptos is a Rust full-stack web framework — fine-grained reactivity (like SolidJS), compiled to WASM for client, with optional SSR + isomorphic server functions.
 
 ## When to Use
 
@@ -82,7 +82,7 @@ count.update(|c| *c += 1);
 let value = count.get();
 ```
 
-Useful when passing as a single prop instead of `(read, write)` tuple.
+Useful when passing as single prop instead of `(read, write)` tuple.
 
 ## Server Functions (Isomorphic)
 
@@ -102,7 +102,7 @@ pub async fn get_user(id: u64) -> Result<User, ServerFnError> {
 let user = get_user(123).await?;
 ```
 
-Server fns compile out of the client WASM bundle. The client gets a thin RPC stub. Body is JSON-serialized via Serde.
+Server fns compile out of client WASM bundle. Client gets thin RPC stub. Body is JSON-serialized via Serde.
 
 ## Resources (Async Data)
 
@@ -217,11 +217,11 @@ cargo leptos build --release
 # - hashed CSS / images in target/site/
 ```
 
-Deploy as a normal Rust binary. Cloudflare Pages, Fly.io, Railway, AWS Lambda all work.
+Deploy as normal Rust binary. Cloudflare Pages, Fly.io, Railway, AWS Lambda all work.
 
 ## Best Practices
 
-- Use **signals + memos** sparingly — every signal is a reactive subscription point
+- Use **signals + memos** sparingly — every signal is reactive subscription point
 - `move ||` closures for view expressions — captures owner context properly
 - Server functions for ALL DB / external API calls — don't fetch from WASM directly
 - Use `Resource` for async data tied to reactive deps — gets refetching for free

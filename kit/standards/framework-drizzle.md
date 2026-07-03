@@ -70,7 +70,7 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 ```
 
-`$inferSelect` / `$inferInsert` give you TS types from the schema.
+`$inferSelect` / `$inferInsert` give you TS types from schema.
 
 ## DB Connection
 
@@ -130,7 +130,7 @@ const withPosts = await db
 
 ## Query Builder API (Alternative)
 
-Drizzle has TWO query styles. The `db.select()` style above is the **Core**. The newer **Query API** mimics Prisma:
+Drizzle has TWO query styles. The `db.select()` style above is the **Core**. Newer **Query API** mimics Prisma:
 
 ```ts
 const userWithPosts = await db.query.users.findFirst({
@@ -220,7 +220,7 @@ const adults = await db
     .where(sql`${users.age} >= 18`);
 ```
 
-`sql` is a tagged template — values are parameterized safely.
+`sql` is tagged template — values are parameterized safely.
 
 ## Best Practices
 

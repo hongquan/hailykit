@@ -30,7 +30,7 @@ onMounted(async () => {
 ## Reactivity Rules
 
 - `ref()` for primitives and object roots; access with `.value` in `<script>`, not in `<template>`
-- `reactive()` for objects when you don't need to reassign the root — no `.value` needed
+- `reactive()` for objects when you don't need to reassign root — no `.value` needed
 - `computed()` for derived values — cached, only re-runs when deps change
 - `shallowRef()` / `shallowReactive()` for large objects where only root changes matter
 

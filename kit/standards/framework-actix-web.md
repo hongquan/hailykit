@@ -4,15 +4,15 @@ Detected via `actix-web` in `Cargo.toml` `[dependencies]`.
 
 ## What Actix-web Is
 
-Actix-web is one of the oldest, fastest Rust web frameworks — consistently top of TechEmpower benchmarks. Actor-model influenced, mature, large library of community middleware.
+Actix-web is one of oldest, fastest Rust web frameworks — consistently top of TechEmpower benchmarks. Actor-model influenced, mature, large library of community middleware.
 
 ## When to Use
 
 - Performance-critical APIs (raw throughput matters)
 - Existing Actix codebase
-- Need actor model for stateful workers within the web server
+- Need actor model for stateful workers within web server
 
-For new projects, **Axum is often the better default** — simpler API, Tokio-team backed, better ecosystem alignment. Pick Actix when you have a specific perf reason.
+For new projects, **Axum is often better default** — simpler API, Tokio-team backed, better ecosystem alignment. Pick Actix when you have specific perf reason.
 
 ## Setup
 
@@ -232,7 +232,7 @@ async fn test_health() {
 - Implement `ResponseError` for custom errors — `?` propagation in handlers
 - Use scopes to group related routes + apply group-level middleware
 - Configure workers: `HttpServer::new(...).workers(N)` (default = CPU count)
-- Bind explicit address; for `0.0.0.0` in production behind a reverse proxy
+- Bind explicit address; for `0.0.0.0` in production behind reverse proxy
 - Compress responses with `Compress` middleware — saves bandwidth, minimal CPU cost
 
 ## Common Pitfalls

@@ -1,8 +1,8 @@
 # Skill Domain Routing
 
-Decision trees to pick the RIGHT skill by user intent within a domain.
+Decision trees to pick the RIGHT skill by user intent within domain.
 
-> **Auto-injected standards:** language/framework guidance (React, Next.js, NestJS, FastAPI, Django, Flutter, monorepos, …) is loaded by the session-init hook when the stack is detected — no skill to invoke. Rules live in `standards/framework-*-standards.md` and `standards/lang-*-standards.md`. Force-load one with `{skill:hc-lookup}`.
+> **Auto-injected standards:** language/framework guidance (React, Next.js, NestJS, FastAPI, Django, Flutter, monorepos, …) is loaded by session-init hook when stack is detected — no skill to invoke. Rules live in `standards/framework-*-standards.md` and `standards/lang-*-standards.md`. Force-load one with `{skill:hc-lookup}`.
 
 ## Frontend / UI
 
@@ -37,7 +37,7 @@ Build knowledge graph from topic/entities   → {skill:hl-mindmap} <topic>
 Extend existing graph with new entity/rel   → {skill:hl-mindmap} <file.json> <query>
 Deep technical research report              → {skill:hl-research} <topic>
 ```
-Disambiguate: want a persistent graph you can extend → `{skill:hl-mindmap}` · want a one-shot research report → `{skill:hl-research}`.
+Disambiguate: want persistent graph you can extend → `{skill:hl-mindmap}` · want one-shot research report → `{skill:hl-research}`.
 
 ## Writing / Content
 
@@ -46,7 +46,7 @@ Any authored document (report, article, essay, paper)   → {skill:hl-write} "de
 Story or book (short story, novel, non-fiction book)     → {skill:hl-write} "description"
 Resume a long-form work in progress                      → {skill:hl-write} <workspace-dir>
 ```
-Disambiguate: authored deliverable the user will read as prose (report, essay, story, book) → `{skill:hl-write}` · project/technical documentation from code → `{skill:hc-docs}` · a research report with no authored deliverable → `{skill:hl-research}`. References/sources can feed `{skill:hl-write}` directly as input files.
+Disambiguate: authored deliverable user will read as prose (report, essay, story, book) → `{skill:hl-write}` · project/technical documentation from code → `{skill:hc-docs}` · research report with no authored deliverable → `{skill:hl-research}`. References/sources can feed `{skill:hl-write}` directly as input files.
 
 ## Architecture & Specification
 
@@ -144,7 +144,7 @@ React Native, Flutter, Swift, Kotlin, Dart standards auto-inject when detected �
 
 ## Stack Auto-Injection (Reference)
 
-The session-init hook auto-loads these from `standards/` based on detection:
+Session-init hook auto-loads these from `standards/` based on detection:
 
 - **Languages (25):** typescript, javascript, python, golang, rust, java, kotlin, swift, dart, php, ruby, elixir, erlang, gleam, c, cpp, zig, csharp, lua, r, solidity, bash, julia, haskell, ocaml
 - **Primary framework (one):** next, nuxt, astro, remix, svelte, vue, tanstack-start, react, solidjs, qwik, htmx, react-native, nestjs, express, fastify, hono, elysia, litestar, fastapi, starlette, django, flask, streamlit, gradio, tauri, bevy, leptos, dioxus, yew, axum, actix-web, rocket, phoenix, nerves, lustre, flutter, swiftui, laravel, symfony, rails, spring-boot, quarkus, ktor, vapor, gin, echo, fiber, aspnet, blazor, hardhat, foundry, shopify
@@ -184,6 +184,6 @@ Major version upgrade (one package)     → {skill:hc-fix} deps major <package>
 
 ## Usage Notes
 
-- One skill per distinct intent. If a task spans domains ("build + deploy"), suggest the primary, mention the secondary.
-- Domain skills combine with the core loop: `{skill:hc-plan}` → domain skill → `{skill:hc-cook}`.
+- One skill per distinct intent. If task spans domains ("build + deploy"), suggest primary, mention secondary.
+- Domain skills combine with core loop: `{skill:hc-plan}` → domain skill → `{skill:hc-cook}`.
 - Unlisted skills are core-workflow (see `workflow.md`) or on-demand utilities (`{skill:hl-visualize}`, `{skill:hl-reasoning}`, `{skill:hl-brainstorm}`).

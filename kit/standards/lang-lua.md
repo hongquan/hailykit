@@ -6,7 +6,7 @@ Lua 5.1+ / LuaJIT — used in Neovim, Redis scripting, game scripting (Roblox, L
 
 ### Variables
 
-- `local` by default — globals are an anti-pattern
+- `local` by default — globals are anti-pattern
 - One declaration per line for clarity
 - `local x, y = 1, 2` for parallel assignment
 
@@ -80,7 +80,7 @@ for k, v in pairs(user) do print(k, v) end       -- map
 for i, v in ipairs(list) do print(i, v) end      -- array (in order)
 ```
 
-`pairs` iterates everything; `ipairs` only the array portion (stops at first nil).
+`pairs` iterates everything; `ipairs` only array portion (stops at first nil).
 
 ### Truthiness
 
@@ -210,7 +210,7 @@ require('lazy').setup({
 - **`local` everywhere** — globals cause subtle bugs + slow access
 - Use `assert()` for invariants — gives clear error messages
 - Return errors as `nil, "error message"` — caller checks with `if not result then`
-- Modules return a table — never expose raw values via `_G`
+- Modules return table — never expose raw values via `_G`
 - Use `pairs` only when iteration order doesn't matter; `ipairs` for arrays
 - Comment headers for module purpose; LDoc-style docstrings for functions
 

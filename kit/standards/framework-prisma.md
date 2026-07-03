@@ -4,7 +4,7 @@ Detected via `prisma` or `@prisma/client` in `package.json` — auto-injected as
 
 ## What Prisma Is
 
-Type-safe ORM for Node.js / TypeScript. Schema-first: you write a `.prisma` schema file → `prisma generate` produces a fully-typed client. Supports PostgreSQL, MySQL, SQLite, MongoDB, CockroachDB, SQL Server.
+Type-safe ORM for Node.js / TypeScript. Schema-first: you write a `.prisma` schema file → `prisma generate` produces fully-typed client. Supports PostgreSQL, MySQL, SQLite, MongoDB, CockroachDB, SQL Server.
 
 ## Setup
 
@@ -205,7 +205,7 @@ npx prisma db seed
 ## Best Practices
 
 - **Single `PrismaClient` instance** — instantiate once, reuse (don't `new PrismaClient()` per request)
-- For Next.js / hot-reload: use the global-singleton pattern to avoid leaked connections
+- For Next.js / hot-reload: use global-singleton pattern to avoid leaked connections
   ```ts
   const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
   export const prisma = globalForPrisma.prisma ?? new PrismaClient();

@@ -22,7 +22,7 @@ Default is Server Component — runs on server only, no client JS bundle, can `a
 
 Opt into client with `'use client'` directive — required for hooks, state, browser APIs, event handlers.
 
-**Rule:** push `'use client'` as far down the tree as possible. Keep server components at the top.
+**Rule:** push `'use client'` as far down tree as possible. Keep server components at top.
 
 ## Data Fetching & Caching
 

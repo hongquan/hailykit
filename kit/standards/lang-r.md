@@ -118,7 +118,7 @@ ggplot(df, aes(x = age, y = income, color = city)) +
   theme_minimal()
 ```
 
-`+` chains layers. `aes()` maps data columns to visual properties. ggplot is the standard for publication-quality plots.
+`+` chains layers. `aes()` maps data columns to visual properties. ggplot is standard for publication-quality plots.
 
 ## Statistical Models
 
@@ -184,7 +184,7 @@ testthat::test_dir("tests/testthat")
 ## Common Pitfalls
 
 - `T` and `F` are NOT reserved — can be reassigned! Use `TRUE` / `FALSE`
-- `stringsAsFactors = FALSE` was the default fix pre-R 4.0; now default is `FALSE`
+- `stringsAsFactors = FALSE` was default fix pre-R 4.0; now default is `FALSE`
 - 1-based indexing — off-by-one when porting from Python/JS
 - `data.frame()` auto-strips list columns; use `tibble()` to preserve
 - `library(x)` is fine in scripts; package code should use `requireNamespace("x")` + `x::function()`

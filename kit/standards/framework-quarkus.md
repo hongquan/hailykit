@@ -164,7 +164,7 @@ class UserResourceTest {
 }
 ```
 
-`@QuarkusTest` boots a real Quarkus instance — full integration tests are the default.
+`@QuarkusTest` boots real Quarkus instance — full integration tests are default.
 
 **Continuous Testing** in `quarkus dev` mode auto-runs affected tests on save.
 
@@ -181,7 +181,7 @@ class UserResourceTest {
 
 - Using libraries that don't have a Quarkus extension → may break native compilation
 - Reflection-heavy code without `@RegisterForReflection` → native build fails or crashes at runtime
-- Mixing Mutiny + blocking JDBC → blocks the reactive event loop
+- Mixing Mutiny + blocking JDBC → blocks reactive event loop
 - Configuration in code instead of `application.properties` → loses native-time injection benefits
 - Old Quarkus 2.x docs — 3.x has notable changes (Jakarta EE 10 namespace shift)
 

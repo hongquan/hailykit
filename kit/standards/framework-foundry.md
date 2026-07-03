@@ -7,7 +7,7 @@ Detected via `foundry.toml`. Rust-based, **blazingly fast** Solidity development
 - Want **fast** test execution (10-100x faster than Hardhat for compute-heavy tests)
 - Prefer writing **tests in Solidity** itself (no JS context switch)
 - Need built-in fuzz testing + invariant testing
-- Doing serious DeFi / protocol development — Foundry is the security-team favorite
+- Doing serious DeFi / protocol development — Foundry is security-team favorite
 
 Many teams: Hardhat for deploys + frontend integration, **Foundry for testing**.
 
@@ -256,7 +256,7 @@ Aim for >90% line coverage on critical contracts. **100% line coverage doesn't m
 - Forgetting `--broadcast` on `forge script` → simulates only, no actual deploy
 - Using `block.timestamp` in tests without `vm.warp` → unpredictable
 - Solidity tests slower than expected? Check `via_ir` setting — it slows compile, speeds runtime
-- `forge install` clones a submodule — commit `.gitmodules` + the submodule pin
+- `forge install` clones submodule — commit `.gitmodules` + submodule pin
 
 ## Foundry vs Hardhat Cheatsheet
 

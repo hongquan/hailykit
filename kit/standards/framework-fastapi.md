@@ -27,7 +27,7 @@ Routes thin, services contain logic, models = ORM, schemas = Pydantic.
 
 ## Pydantic Models
 
-Pydantic v2 is the standard. Separate request/response/DB schemas:
+Pydantic v2 is standard. Separate request/response/DB schemas:
 
 ```python
 from pydantic import BaseModel, EmailStr, ConfigDict
@@ -46,7 +46,7 @@ class UserRead(UserBase):
 
 ## Dependency Injection
 
-`Depends()` is the core idiom — composable, testable, type-safe:
+`Depends()` is core idiom — composable, testable, type-safe:
 
 ```python
 from typing import Annotated
@@ -67,7 +67,7 @@ async def get_user(id: int, db: DBSession) -> UserRead:
 
 - Use `async def` for I/O-bound endpoints (DB, HTTP calls)
 - Use `def` for CPU-bound work — FastAPI runs them in threadpool
-- Don't mix — `await` inside `def` is a syntax error
+- Don't mix — `await` inside `def` is syntax error
 - DB: prefer **SQLAlchemy 2.0 async** (`AsyncSession`) for production
 
 ## Database
@@ -111,7 +111,7 @@ settings = Settings()
 
 - `BackgroundTasks` for fire-and-forget after-response work (send email, log analytics)
 - **Celery** + **Redis** for serious queue workloads (retries, scheduling, fan-out)
-- **arq** as a lighter Redis-only alternative to Celery
+- **arq** as lighter Redis-only alternative to Celery
 
 ## Testing
 

@@ -71,7 +71,7 @@ mapping(address => uint256) public balances;
 struct User { string name; uint256 age; }
 ```
 
-`uint256` is the default size — smaller types (uint8/32/64) don't save gas in storage unless packed in a struct.
+`uint256` is default size — smaller types (uint8/32/64) don't save gas in storage unless packed in struct.
 
 ## Storage vs Memory vs Calldata
 
@@ -147,7 +147,7 @@ contract MyToken is ERC20, Ownable {
 }
 ```
 
-OpenZeppelin contracts are the de-facto safe baseline — never roll your own ERC20/ERC721/ERC1155.
+OpenZeppelin contracts are de-facto safe baseline — never roll your own ERC20/ERC721/ERC1155.
 
 ## Security — OWASP for Smart Contracts
 
@@ -175,7 +175,7 @@ Use OpenZeppelin's `ReentrancyGuard` modifier for any function transferring ETH.
 
 ### Integer Overflow
 
-Solidity 0.8+ has **built-in overflow checks** — reverts on overflow. Don't disable with `unchecked { }` unless you have a specific reason.
+Solidity 0.8+ has **built-in overflow checks** — reverts on overflow. Don't disable with `unchecked { }` unless you have specific reason.
 
 ### Access Control
 

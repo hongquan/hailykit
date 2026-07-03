@@ -49,7 +49,7 @@ app.post('/users', {
 });
 ```
 
-Serialization is **2x faster** when you provide a response schema — Fastify uses `fast-json-stringify`.
+Serialization is **2x faster** when you provide response schema — Fastify uses `fast-json-stringify`.
 
 ## Type Providers
 
@@ -89,7 +89,7 @@ export default fp(async (fastify) => {
 app.register(import('./plugins/db'));
 ```
 
-`fastify-plugin` removes the encapsulation so `decorate` is visible upstream. Without it, decorators are scoped to children only.
+`fastify-plugin` removes encapsulation so `decorate` is visible upstream. Without it, decorators are scoped to children only.
 
 ## Hooks (Lifecycle)
 
@@ -100,7 +100,7 @@ app.addHook('onResponse', async (req, reply) => { /* metrics */ });
 app.addHook('onError', async (req, reply, err) => { /* error logging */ });
 ```
 
-Per-route hooks via the route options object — scoped, don't leak.
+Per-route hooks via route options object — scoped, don't leak.
 
 ## Auth Pattern
 
@@ -122,7 +122,7 @@ app.get('/profile', {
 
 ## Validation Errors
 
-Fastify returns a structured 400 automatically when schema validation fails. Customize:
+Fastify returns structured 400 automatically when schema validation fails. Customize:
 
 ```ts
 app.setErrorHandler((err, req, reply) => {
@@ -154,14 +154,14 @@ app.setErrorHandler((err, req, reply) => {
 - Register heavy plugins once at app boot, not per request
 - Use **child loggers** (`req.log`) — they include `reqId` automatically
 - Return values from handlers, don't call `reply.send()` unless needed (e.g. status code change)
-- For streaming responses, return the stream directly
+- For streaming responses, return stream directly
 - Pin Fastify major version — minor releases sometimes change defaults
 
 ## Common Pitfalls
 
 - Forgetting `fastify-plugin` wrapper → decorators don't propagate
-- Not setting `trustProxy: true` behind a load balancer → wrong `req.ip`
-- Calling `reply.send()` and returning a value → double response
+- Not setting `trustProxy: true` behind load balancer → wrong `req.ip`
+- Calling `reply.send()` and returning value → double response
 - Adding validation manually instead of via schema → loses serialization speedup
 - Sync handlers when async work is happening → use `async` handlers
 

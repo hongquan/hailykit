@@ -38,7 +38,7 @@ streamlit run app.py
 
 ## Core Mental Model
 
-**The entire script re-runs top to bottom on every interaction.** Streamlit caches widget values via their position/key. Don't think "events" — think "stateful re-render".
+**Entire script re-runs top to bottom on every interaction.** Streamlit caches widget values via their position/key. Don't think "events" — think "stateful re-render".
 
 ```python
 import streamlit as st
@@ -86,7 +86,7 @@ toggle = st.toggle("Enable feature")
 file = st.file_uploader("Upload CSV", type=['csv'])
 ```
 
-Each widget returns its current value — read it after the widget call.
+Each widget returns its current value — read it after widget call.
 
 ## Caching (Critical for Performance)
 
@@ -121,7 +121,7 @@ if st.button('Add'):
 st.write(st.session_state.history)
 ```
 
-Persists across reruns within the same user session.
+Persists across reruns within same user session.
 
 ## Charts
 
@@ -150,7 +150,7 @@ st.pyplot(fig)
 
 ## Forms (Batched Inputs)
 
-By default, every widget change reruns the script. Forms batch inputs until submit:
+By default, every widget change reruns script. Forms batch inputs until submit:
 
 ```python
 with st.form("user_form"):
@@ -185,7 +185,7 @@ my_app/
     └── 3_⚙️_Settings.py     # /Settings
 ```
 
-Streamlit auto-creates a sidebar nav from the `pages/` folder. Use emojis + numbers for ordering.
+Streamlit auto-creates sidebar nav from the `pages/` folder. Use emojis + numbers for ordering.
 
 ## Authentication
 
@@ -213,7 +213,7 @@ Streamlit Community Cloud has OAuth (Google, GitHub) built-in for hosted apps. F
 ## Common Pitfalls
 
 - Forgetting cache → every interaction recomputes everything → slow
-- Mutating `st.session_state` inside a cached function → cache thinks input hasn't changed
+- Mutating `st.session_state` inside cached function → cache thinks input hasn't changed
 - Using module-level globals for state → lost on rerun
 - File upload + heavy processing without progress bar → users think app is frozen
 - Long-running tasks in main thread → consider async + `st.status` for progress

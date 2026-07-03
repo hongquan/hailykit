@@ -47,4 +47,10 @@ Split at semantic boundaries / user-journey stages / domain separation (API vs a
 
 ## Output
 
-Maintain (create if missing): `./docs/project-overview-pdr.md`, `./docs/code-standards.md`, `./docs/system-architecture.md`, `./docs/codebase-summary.md`. Use correct identifier casing; for `./docs/api-docs.md` follow the swagger casing. Report via the `## Naming` pattern: current state, changes made, gaps, recommendations. Sacrifice grammar for concision; list unresolved questions at the end.
+Maintain (create if missing): `./docs/project-overview-pdr.md`, `./docs/code-standards.md`, `./docs/system-architecture.md`, `./docs/codebase-summary.md`. Use correct identifier casing; for `./docs/api-docs.md` follow the swagger casing. Write the full report via the `## Naming` pattern (current state, changes made, gaps, recommendations).
+
+Your final response is injected verbatim into the caller's context — return only a files-touched list, one line per file:
+
+```
+<path>: created|updated — <one-line change note>
+```

@@ -52,3 +52,11 @@ Write to `.agents/incidents/` using the `## Naming` pattern from hooks. 200-500 
 ```
 
 Be specific ("connection pool exhausted at 100 concurrent", not "DB issues"), honest (name mistakes directly), technical (proper terminology, real logs). Create the file immediately — don't just describe it.
+
+## Output Contract
+
+Your final response is injected verbatim into the caller's context — the full entry lives in the file, not in your reply. Return only:
+
+```
+reported: <path> — <one-line summary>
+```

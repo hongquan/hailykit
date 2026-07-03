@@ -4,7 +4,7 @@ Detected via `transformers` in Python deps — auto-injected as **extra**.
 
 ## What It Is
 
-The de-facto library for transformer models — BERT, GPT-2/Neo/J, Llama, Mistral, Whisper, CLIP, Stable Diffusion (via diffusers), and 500k+ community models on the Hub.
+De-facto library for transformer models — BERT, GPT-2/Neo/J, Llama, Mistral, Whisper, CLIP, Stable Diffusion (via diffusers), and 500k+ community models on the Hub.
 
 ## Setup
 
@@ -16,7 +16,7 @@ pip install datasets peft bitsandbytes sentencepiece tokenizers safetensors
 
 ## Quick Inference (Pipelines)
 
-The fastest path to using a model:
+Fastest path to using model:
 
 ```python
 from transformers import pipeline
@@ -77,7 +77,7 @@ text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(text)
 ```
 
-`Auto*` classes load the right class for the model (e.g. `AutoModelForCausalLM` → `LlamaForCausalLM`).
+`Auto*` classes load right class for the model (e.g. `AutoModelForCausalLM` → `LlamaForCausalLM`).
 
 ## Chat Templates
 
@@ -94,7 +94,7 @@ inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 outputs = model.generate(**inputs, max_new_tokens=256)
 ```
 
-Each model has its own template (Llama vs Mistral vs Phi differ). The tokenizer handles it.
+Each model has its own template (Llama vs Mistral vs Phi differ). Tokenizer handles it.
 
 ## Quantization (Run Bigger Models on Smaller GPUs)
 
@@ -115,7 +115,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
-4-bit quantization → 70B model runs on a single 48GB GPU instead of needing 140GB.
+4-bit quantization → 70B model runs on single 48GB GPU instead of needing 140GB.
 
 For prod: **GGUF / llama.cpp** for CPU inference, **vLLM** / **TGI** for GPU serving.
 
@@ -154,7 +154,7 @@ trainer = Trainer(
 trainer.train()
 ```
 
-LoRA adds tiny "adapter" layers — fine-tune 7B models on a single 24GB GPU.
+LoRA adds tiny "adapter" layers — fine-tune 7B models on single 24GB GPU.
 
 ## Datasets
 
@@ -180,7 +180,7 @@ ds = ds.shuffle(seed=42)
 ds = ds.train_test_split(test_size=0.1)
 ```
 
-`datasets` is a separate library from `transformers` — pip install together.
+`datasets` is separate library from `transformers` — pip install together.
 
 ## Embeddings (Sentence Transformers)
 
@@ -192,7 +192,7 @@ embeddings = model.encode(["Hello world", "Another sentence"])
 # embeddings.shape == (2, 384)
 ```
 
-For RAG: pair with a vector DB (Pinecone, Qdrant, pgvector, Chroma).
+For RAG: pair with vector DB (Pinecone, Qdrant, pgvector, Chroma).
 
 ## Hub: Save + Load Models
 
@@ -233,7 +233,7 @@ image = pipe("A photo of an astronaut riding a horse").images[0]
 image.save("output.png")
 ```
 
-Same API style as `transformers`. For SDXL / Flux / video, swap the model name.
+Same API style as `transformers`. For SDXL / Flux / video, swap model name.
 
 ## Production Inference
 
@@ -271,7 +271,7 @@ response = client.text_generation("Tell me a joke", max_new_tokens=100)
 - Forgetting `add_generation_prompt=True` in chat template → model can't tell it's its turn
 - Slow generation → enable `model.generation_config.do_sample` only when needed; greedy is faster
 - Old transformers version + new model → upgrade transformers regularly
-- License violations — read the model card; many "open weights" models have commercial restrictions (Llama 3 community license, etc.)
+- License violations — read model card; many "open weights" models have commercial restrictions (Llama 3 community license, etc.)
 
 ## Resources
 

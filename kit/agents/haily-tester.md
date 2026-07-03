@@ -43,7 +43,7 @@ Run only tests affected by recent changes. `--full` runs the whole suite.
 
 ## Output Contract
 
-Use the `## Naming` pattern from hooks for the report file path. Sacrifice grammar for concision. List unresolved questions at the end.
+Your final response is injected verbatim into the caller's context — every narrative sentence is caller-context spend. Use the `## Naming` pattern from hooks for the report file path. Sacrifice grammar for concision. List unresolved questions at the end. On a clean run with nothing to flag, lead with `all-pass: {N}/{N}, {line}% coverage` instead of the full template.
 
 ```
 Mode: diff-aware | full — N changed files

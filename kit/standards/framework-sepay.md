@@ -14,7 +14,7 @@ Detected via `sepay` in deps, `sepay.config.js` / `sepay.config.json` in repo ro
 
 ## Core Concept
 
-Most Vietnamese e-commerce uses **bank transfer + manual reconciliation**: customer transfers money with a memo like "DH123" → seller checks bank statement → matches to order DH123. Slow, error-prone.
+Most Vietnamese e-commerce uses **bank transfer + manual reconciliation**: customer transfers money with memo like "DH123" → seller checks bank statement → matches to order DH123. Slow, error-prone.
 
 SePay automates this:
 1. Customer scans VietQR with their banking app
@@ -61,7 +61,7 @@ Display the QR + amount + memo in your checkout UI. User scans, bank app auto-fi
 
 ## Reconciliation Webhooks
 
-SePay fires a webhook when a matching transfer hits your linked bank account:
+SePay fires webhook when matching transfer hits your linked bank account:
 
 ```ts
 import crypto from 'crypto';

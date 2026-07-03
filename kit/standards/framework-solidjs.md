@@ -4,14 +4,14 @@ Detected via `solid-js` or `solid-start` in `package.json` deps.
 
 ## What SolidJS Is
 
-Fine-grained reactive UI framework — JSX syntax like React, but **no virtual DOM, no re-renders**. Components run once; updates happen at the granular signal/derivation level. Fastest UI framework in most benchmarks.
+Fine-grained reactive UI framework — JSX syntax like React, but **no virtual DOM, no re-renders**. Components run once; updates happen at granular signal/derivation level. Fastest UI framework in most benchmarks.
 
 ## When to Use
 
 - Performance-critical UIs (animation, charts, dashboards)
 - Like React's JSX but want truly fast updates
 - Want predictable rendering without React's gotchas (`useMemo`, `useCallback` ceremony)
-- Greenfield projects open to a smaller ecosystem than React
+- Greenfield projects open to smaller ecosystem than React
 
 vs **React**: SolidJS is 3-10x faster, smaller, but ecosystem is smaller. JSX is similar but semantics differ (no re-renders!).
 
@@ -41,7 +41,7 @@ function Counter() {
 }
 ```
 
-**Critical:** `count()` is a function call, not a value access. This is how Solid tracks reactivity.
+**Critical:** `count()` is function call, not value access. This is how Solid tracks reactivity.
 
 ```tsx
 const [user, setUser] = createSignal({ name: "Alice", age: 30 });
@@ -171,7 +171,7 @@ state.user.name;
 state.user.prefs.theme;
 ```
 
-Stores are reactive at every level — only the leaf that changed triggers updates.
+Stores are reactive at every level — only leaf that changed triggers updates.
 
 ## Solid Start (Full-Stack)
 
@@ -199,7 +199,7 @@ export default function UserPage() {
 }
 ```
 
-`"use server"` makes a function run server-only. Routing is file-based.
+`"use server"` makes function run server-only. Routing is file-based.
 
 ## Forms
 
@@ -269,9 +269,9 @@ test("counter increments", () => {
 
 - **Always call signals as functions**: `count()`, not `count`
 - **`<For>` over `.map()`** in JSX — better reconciliation
-- **`<Show>` over `&&` / ternaries** — true conditional removal, not just hidden
+- **`<Show>` over `&&` / ternaries** — true conditional removal, not hidden
 - **Stores for nested objects** — `createStore` over multiple `createSignal`s
-- **Server functions** (`"use server"`) in Solid Start — keep DB code off the client
+- **Server functions** (`"use server"`) in Solid Start — keep DB code off client
 - **Avoid destructuring props** — breaks reactivity:
   ```tsx
   function MyComp(props: { name: string }) {
@@ -284,9 +284,9 @@ test("counter increments", () => {
 ## Common Pitfalls
 
 - **Destructuring props** — breaks reactivity (props are getters under the hood)
-- Forgetting `()` on signal access — passes the function, not the value
+- Forgetting `()` on signal access — passes function, not value
 - Using React patterns directly — `useMemo`, `useState` don't exist; equivalents work differently
-- Mutating signal values directly — `count = 5` is just a JS assignment, no reactivity; use `setCount(5)`
+- Mutating signal values directly — `count = 5` is a JS assignment, no reactivity; use `setCount(5)`
 - Using `array.map` for lists — works but doesn't key properly; use `<For>` for performance
 - Effects without cleanup — leaks timers / event listeners
 

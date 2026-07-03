@@ -45,7 +45,7 @@ Rails.application.routes.draw do
 end
 ```
 
-`resources` generates the full REST suite. Use `only:` / `except:` to limit.
+`resources` generates full REST suite. Use `only:` / `except:` to limit.
 
 ## Controllers (Thin!)
 

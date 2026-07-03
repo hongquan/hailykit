@@ -1,6 +1,6 @@
 # Skill Workflow Routing
 
-Typical skill sequences for multi-step work. Flow chains show order; the tables give the skill to actually invoke.
+Typical skill sequences for multi-step work. Flow chains show order; tables give skill to invoke.
 
 ## Core Development
 
@@ -91,7 +91,7 @@ Flow: `scout → debug → brainstorm → plan`
 
 ## Thinking Spectrum
 
-Increasing depth — match the level to the problem:
+Increasing depth — match level to problem:
 
 | Skill | Role | When |
 |-------|------|------|

@@ -1,12 +1,12 @@
 # Gin Standards
 
-Detected via `github.com/gin-gonic/gin` in `go.mod`. The most popular Go web framework.
+Detected via `github.com/gin-gonic/gin` in `go.mod`. Most popular Go web framework.
 
 ## When to Use
 
 - High-performance Go HTTP APIs
-- Want a more ergonomic alternative to `net/http`
-- Need middleware composition + route grouping out of the box
+- Want more ergonomic alternative to `net/http`
+- Need middleware composition + route grouping out of box
 
 For minimal projects, `chi` or stdlib `net/http` (Go 1.22+ has tree-based routing) are also great.
 
@@ -120,7 +120,7 @@ r.Use(AuthMiddleware())
 api := r.Group("/api", AuthMiddleware())
 ```
 
-`c.Abort()` stops the middleware chain; `c.Next()` continues.
+`c.Abort()` stops middleware chain; `c.Next()` continues.
 
 ## Dependency Injection
 
@@ -276,7 +276,7 @@ Drain in-flight requests on SIGTERM.
 
 - Using `gin.H{}` for typed responses → loose types; prefer struct + JSON tags
 - Forgetting `return` after `c.JSON(400, ...)` → handler continues, writes again
-- `c.Bind*` (vs `ShouldBind*`) auto-aborts the chain → unexpected when you wanted to handle
+- `c.Bind*` (vs `ShouldBind*`) auto-aborts chain → unexpected when you wanted to handle
 - Not passing context to DB calls → can't cancel hung queries
 - Putting business logic in handlers → extract to services
 - Using `gin.Default()` in production without understanding what it adds
