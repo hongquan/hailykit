@@ -54,6 +54,10 @@ Soft caps per section, enforced by the rules above rather than a raw token count
 - Act summaries are generated once, when an act closes, and reused for every subsequent unit's context package until the next act closes — not recomputed per unit.
 - Act close also triggers the **style extraction** pass (`references/review-passes.md` § Act-close style extraction): emergent prose rules appended to `bible/style.md § Emergent rules`, which then reach every later unit through style.md's always-inject rule — no separate SELECT entry needed.
 
+## IMPORT units
+
+A unit imported via `references/import-mode.md` (ledger row `complete (imported)`) is selected, ordered, and budgeted **identically** to an ordinary `complete` unit — its summary lives in `summaries/unit-NN.md` in the same format, its prose is a normal previous-unit-tail source, and it participates in alias-grep and rollup exactly like any Build-authored unit. No separate code path exists for imported units past Recon.
+
 ## Resume protocol
 
 Context state is never cached across a session boundary. After resume reconciliation (`references/workspace-schema.md`) completes, the next unit's context package is rebuilt from disk exactly as if freshly computed: alias-grep runs fresh against the current `outline.md`/bible/summaries, act rollups are recomputed only if a new act boundary was crossed, and the previous-unit tail is re-read from the last `complete` unit's manuscript file.

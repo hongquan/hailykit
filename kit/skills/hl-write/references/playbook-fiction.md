@@ -54,6 +54,8 @@ Use Hero's Journey only as an optional overlay when the genre is fantasy or myth
 
 **Rolling outline (works >30 units):** past ~30 planned units, a fully detailed single outline over-commits to beats the story will have outgrown by the time it reaches them. Detail per-unit beats for the current act only; later acts stay as skeletons (title, goal, estimated unit count, the beat %-anchors they must land). When an act closes, expand the next act's skeleton into per-unit beats — a lightweight Checkpoint (auto-proceed in `--auto` when the expansion stays within the approved skeleton's goal and beat anchors). The approved macro shape (three-act + beat %-anchors) never changes without a full outline-revision Checkpoint.
 
+**Imported works (`references/import-mode.md`):** `outline.md` is reverse-engineered from the imported chapters' summaries, with every imported unit's beat marked `(imported)` so structural review can distinguish reconstructed beats from planner-authored ones. Continuation beats are then planned forward from `bible/plot.md § Open Threads`, and the rolling-outline rule above applies unchanged once the continuation itself grows past 30 units.
+
 **Mandatory "research":** comp titles — real, verifiable published books, never invented for pitch copy; the genre convention/word-count target; a series/worldbuilding bible. The bible is mandatory for the novel track — Build does not begin without one seeded from the approved outline.
 
 **Fabrication risks:** fake comp titles in pitch or query copy; worldbuilding, timeline, or magic-system rule violations across chapters — the fiction analog of factual fabrication, caught by cross-chapter continuity checks rather than citation checks.

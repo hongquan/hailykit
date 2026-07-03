@@ -20,6 +20,7 @@ Layout, file contracts, and lifecycle rules for an `hl-write` workspace. Both tr
 ├── summaries/unit-NN.md        # 150–300 words; act-NN.md rollups past the flat threshold
 ├── manuscript/unit-NN-<slug>.md
 ├── ledger.md                   # unit status rows, budget counters, resume pointer
+├── contradictions.md           # IMPORT only (references/import-mode.md): source-internal contradictions, unresolved
 └── appendix/                   # generated at Ship
 ```
 
@@ -50,6 +51,7 @@ Written once at Route (minimal scaffold — marker + `ledger.md` only; the rest 
 - **Collision check (Route):** target dir exists without a valid marker → refuse to adopt it, auto-suffix (`-2`, `-3`, …) until a free or already-valid path is found.
 - **Resume validation (SA2):** RESUME reads the marker first; missing fields or an unsupported `version` refuses resume outright — never falls back to treating the directory as fresh.
 - `track` is the only field mutated after creation (short→long promotion, below).
+- **IMPORT sets no new field.** An imported workspace's marker is created at Route exactly like `NEW`'s (`track: "long-form"` from the start — a novel always is, per `references/playbook-fiction.md`). Provenance (which units came from an existing manuscript vs. were authored by Build) lives on the **ledger row**, not the marker — see the imported ledger states below. A workspace-wide `imported: true` field would be state with no reader: every consumer that cares about provenance already reads per-unit ledger rows.
 
 ## Per-file contracts
 
@@ -59,12 +61,14 @@ Written once at Route (minimal scaffold — marker + `ledger.md` only; the rest 
 | `brief.md` | Orchestrator (Recon, post-Checkpoint) | all stages | replace-on-revision (pre-Build only) |
 | `research/*.md` | Orchestrator + `haily-researcher` (Recon) | `haily-writer`, `haily-editor` fact-check pass | append new sources; existing notes immutable |
 | `outline.md` | Orchestrator (Draft, post-Checkpoint) | `haily-writer` (beat), `haily-editor` (structural pass) | replace-on-revision (pre-Build only) |
-| `bible/characters.md`, `world.md`, `plot.md`, `glossary.md` | Orchestrator, seeded at Draft, updated only at unit merge | `haily-writer`, `haily-editor` | append/amend at merge; never mid-unit |
-| `bible/style.md` | Orchestrator (Draft; `## Emergent rules` appends at act close) | `haily-writer`, `haily-editor` | voice profile immutable — drift is a finding, not a silent edit; `## Emergent rules` is append-only, act-tagged, sourced from editor extraction (`references/review-passes.md` § Act-close style extraction), consolidated when past ~15 rules |
+| `bible/characters.md`, `world.md`, `glossary.md` | Orchestrator, seeded at Draft, updated only at unit merge | `haily-writer`, `haily-editor` | append/amend at merge; never mid-unit |
+| `bible/plot.md` | Orchestrator, seeded at Draft, updated only at unit merge; `§ Open Threads` derived once at IMPORT foundation reconstruction | `haily-writer`, `haily-editor` | append/amend at merge; never mid-unit. `§ Open Threads` (IMPORT only): amend-at-merge — a continuation unit that pays off or advances a thread updates its entry; never silently deleted |
+| `bible/style.md` | Orchestrator (Draft; `## Emergent rules` appends at act close); **IMPORT: primary voice profile + first `## Emergent rules` batch written once at foundation reconstruction, from Import Style Seeding** | `haily-writer`, `haily-editor` | voice profile immutable — drift is a finding, not a silent edit; `## Emergent rules` is append-only, consolidated when past ~15 rules, tagged either act-number (ordinary Build, sourced from `references/review-passes.md` § Act-close style extraction) or `[imported]` (IMPORT foundation reconstruction, sourced from `kit/agents/haily-editor.md` § Import Style Seeding — taboos omitted, no review occurred) |
 | `bible/timeline.md` | Orchestrator ONLY, at merge | `haily-writer`, `haily-editor` (context) | append-only fact text; status-tag flip on supersede |
 | `summaries/unit-NN.md` | Orchestrator, at merge, from the writer's returned summary | context assembly, `haily-editor` Verify sweep | write-once |
-| `manuscript/unit-NN-<slug>.md` | `haily-writer` directly (Write/Edit) | `haily-editor` (Read, confined to workspace), orchestrator (Ship assembly) | writer owns during Build; frozen after merge |
-| `ledger.md` | Orchestrator ONLY | orchestrator (resume), context assembly (status) | row-level, see lifecycle below |
+| `manuscript/unit-NN-<slug>.md` | `haily-writer` directly (Write/Edit); **IMPORT: orchestrator copies frozen source prose verbatim** | `haily-editor` (Read, confined to workspace), orchestrator (Ship assembly) | writer owns during Build; frozen after merge — **imported prose is frozen from the moment it lands, never edited by any agent** |
+| `ledger.md` | Orchestrator ONLY | orchestrator (resume), context assembly (status) | row-level, see lifecycle below; IMPORT adds workspace-level `import_total`/`import_frozen` counters (below) |
+| `contradictions.md` | Orchestrator ONLY, appended during the IMPORT extraction loop | user, at the import brief Checkpoint | append-only; never merged into `bible/`, never auto-resolved |
 | `appendix/` | Orchestrator, at Ship, generated from `bible/` | — | generated, never hand-edited |
 
 Neither `haily-writer` nor `haily-editor` has ledger or bible write access — both agents propose (canon delta) or report (findings); only the orchestrator merges.
@@ -109,6 +113,19 @@ unit-12: status=in-progress | words=0 | canon=+0 | tokens_est=0
 - Row closes `blocked` when a Critical finding survives 3 review rounds, `haily-editor` returns `ESCALATE` (stall detector), or an `--auto` run hits an unresolved retcon — the row retains the outstanding findings summary so a human doesn't have to re-run review to see why.
 - `blocked` is terminal until a user decision; resume never silently retries a blocked unit (F3).
 
+### Imported ledger states (`references/import-mode.md`)
+
+Two additional states, used only by IMPORT, inserted before the normal `in-progress`/`complete`/`blocked` set ever applies to a given unit:
+
+```
+imported (pending-extraction)   # row opens the moment frozen prose lands in manuscript/ — before extraction runs
+   → complete (imported)        # summary written + canon delta merged (same two conditions as ordinary `complete`)
+```
+
+The row-opens-before-work discipline (F1) is preserved: `imported (pending-extraction)` exists the instant prose is frozen, exactly as `in-progress` exists before `haily-writer` is invoked. A crash or budget halt between freezing and extraction always leaves a `pending-extraction` row, never a silent gap.
+
+**Workspace-level counters** (`ledger.md`, IMPORT only): `import_total` is set once, at the Chapter Mapping Checkpoint, to the confirmed unit count — it is never re-derived from the source directory afterward. `import_frozen` increments by one per unit as the freeze step completes. The pair guards freezing itself, which is a multi-step operation that a large single-file import can crash partway through: `import_frozen < import_total` means freezing is incomplete and resume continues freezing (using the already-confirmed mapping) before touching extraction at all; only `import_frozen == import_total` permits the extraction loop to run or resume.
+
 ## Resume reconciliation protocol
 
 1. **Validate the marker** (SA2) — required fields present, `version` supported; malformed/missing marker refuses RESUME outright.
@@ -117,6 +134,8 @@ unit-12: status=in-progress | words=0 | canon=+0 | tokens_est=0
 4. **Discard-or-adopt, never silent** — interactive mode presents each orphan via `AskUserQuestion` (discard and rewrite vs. adopt and re-review from round 1); `--auto` cannot choose, so it marks the unit `blocked` with reason `orphan-manuscript-on-resume` and continues.
 5. **Blocked stays blocked** — units already `blocked` before the crash surface identically after resume; reconciliation never clears a block on its own (F3).
 6. **Rebuild state from disk only** — once orphans are resolved, all in-memory context is reconstructed from `ledger.md` + `bible/` + `summaries/`; nothing survives a session boundary except what is written to files.
+
+**IMPORT branch (step 0, before step 3):** check `import_frozen` against `import_total` first. If `import_frozen < import_total`, freezing itself never finished — resume completes freezing (from the already-confirmed Chapter Mapping Checkpoint mapping) before any orphan detection runs, since orphan detection assumes freezing is done. Once `import_frozen == import_total`, proceed to step 3 with one addition: a manuscript file whose row is `imported (pending-extraction)` is **not an orphan** — it has a row, by construction (F1 above). Resume continues the extraction loop from it rather than offering discard-or-adopt; discard-or-adopt on frozen source prose would corrupt the import (the prose is the ground truth being reconstructed from, not a writer's draft to redo). Ordinary orphan detection (manuscript file, no `complete` row, not explained by a `pending-extraction` row) is unaffected and still applies to any non-import unit in the same workspace.
 
 ## Short→long promotion protocol (F5)
 
