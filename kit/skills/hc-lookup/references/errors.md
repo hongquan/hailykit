@@ -17,6 +17,11 @@
 - Empty content
 - Invalid URLs
 
+**403 / Bot-blocked / Empty body**
+- Bot wall (Cloudflare challenge, "Just a moment…") rejects the fetch
+- JS-rendered SPA returns a near-empty HTML shell
+- Host filters by User-Agent
+
 ## Fallback Chain
 
 ### For Topic-Specific Queries
@@ -49,6 +54,21 @@
    ↓ No repo
 4. Research agents
    Deploy multiple Researcher agents
+```
+
+### For Blocked or JS-Rendered Pages
+
+A 403, a challenge page, or a near-empty body on a URL that search results confirm exists means a bot wall or client-side rendering — not a dead link. Do not retry WebFetch verbatim.
+
+```
+1. Real browser via {skill:hc-browser}
+   agent-browser open <url> && agent-browser get text && agent-browser close
+   (one-time setup: npm install -g agent-browser && agent-browser install)
+   ↓ Still blocked (login wall)
+2. Source-specific tool
+   GitHub → gh api / raw.githubusercontent.com
+   ↓ No tool for this source
+3. WebSearch snippets covering the same claim (last resort)
 ```
 
 ## Timeout Handling

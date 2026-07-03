@@ -52,6 +52,7 @@ Multi-source research from scope definition to actionable report. **YAGNI · KIS
    - `--quick`: 2 searches (essential facts + community health)
    - *(default)*: 5 searches covering all angles
    - `--deep`: 8–10 searches; follow ≤2 highest-value leads (one hop)
+   - **Blocked fetch:** a 403/challenge page/empty body on a Tier 1–2 source is a bot wall or JS-rendered SPA, not a dry source — retry once via `{skill:hc-browser}` (`agent-browser open <url>` → `get text`) before treating the criterion as unmet.
    - **Sufficiency gate:** once every criterion has a Tier 1–2 source, STOP (don't run remaining angles). If a criterion stays dry/contradictory → run a bounded **inversion pass** (≤2–3 reverse queries, technique chosen by why forward failed — see protocol).
 
 3. **Synthesize** — identify patterns, pros/cons, maturity, security, compatibility; flag consensus vs. controversy. *(default + `--deep`)* For ≤3 highest-stakes or contested claims, run **active refutation**: search to *disprove* the claim, not re-confirm it. Tag each `VERIFIED` / `UNVERIFIED` / `CONTESTED`.

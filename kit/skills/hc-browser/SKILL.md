@@ -1,7 +1,7 @@
 ---
 name: hc-browser
 description: "AI-driven browser automation for long autonomous sessions."
-when_to_use: "Invoke when running AI-driven browser sessions or Browserbase cloud automation."
+when_to_use: "Invoke when running AI-driven browser sessions, Browserbase cloud automation, or reading a page that blocks plain fetch (403 bot wall, JS-rendered SPA returning an empty shell)."
 user-invocable: true
 argument-hint: "[url or task]"
 metadata:
@@ -14,6 +14,8 @@ metadata:
 Context-efficient browser automation via `agent-browser`. Uses "snapshot + refs" — 93% less context than Playwright MCP (~280 chars/snapshot vs 8K+).
 
 **Use instead of `{skill:hc-debug}` when:** long autonomous sessions, context-constrained workflows, video recording, cloud browsers (Browserbase), multi-tab handling, or self-verifying build loops.
+
+**Use as a WebFetch fallback when:** a page returns 403, a bot-wall challenge ("Just a moment…"), or a near-empty body because content is JS-rendered — a real browser renders what plain fetch cannot. See the read-only pattern below. Login-walled content stays out of scope.
 
 ## Setup
 
@@ -135,6 +137,13 @@ agent-browser highlight @e1 | mouse move 100 200 | mouse down | mouse up
 | `BROWSERBASE_PROJECT_ID` | Browserbase project ID |
 
 ## Common Patterns
+
+**Read a bot-blocked or JS-rendered page (WebFetch fallback):**
+```bash
+agent-browser open https://example.com/article && agent-browser wait --idle
+agent-browser get text
+agent-browser close
+```
 
 **Form submission:**
 ```bash
