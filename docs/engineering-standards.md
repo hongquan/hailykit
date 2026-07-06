@@ -150,6 +150,20 @@ and responds according to this matrix:
 | **Input Routing** | Acting on the detected input type: selecting the execution path, workflow file, or stage entry point | "Conflict Resolution" (for precedence) |
 | **Routing Precedence** | Priority order when multiple routing signals conflict (e.g., image file + task text override) | "Conflict Resolution" |
 
+### Standard Flags
+
+Skills do not need to offer these flags — but a skill that offers the underlying
+behavior MUST name it with the canonical flag, never a synonym. `scripts/check-skill-cross-refs.js`
+enforces this against each skill's `argument-hint:` line.
+
+| Canonical | Meaning | Do NOT use |
+|---|---|---|
+| `--quick` | Shallower/faster path: skip the heavier stages for small or well-understood work | `--fast`, `--shallow`, `--lite`, `--simple` |
+| `--deep` | Maximum-scrutiny path: more research, adversarial review, per-item depth | `--thorough`, `--exhaustive`, `--deep-dive` |
+| `--auto` | Autonomous execution: resolve checkpoints without pausing | `--yolo`, `--yes`, `--noninteractive`, `--unattended` |
+
+Interactive is the **default** execution mode — never add an `--interactive` flag for it. `--quick` and `--deep` are mutually exclusive (depth is one axis); `--auto` composes with either. A skill may add its own domain flags freely — the contract governs only these three shared axes.
+
 ### Build Stage
 
 | Term | Definition | Do NOT use |

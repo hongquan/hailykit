@@ -12,6 +12,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - hc-review: add --cross advisory stage after Simplification
 - hc-cook: forward --cross to the Verify review
 - model-map: add cline and ollama provider entries
+- standards: define canonical --quick/--deep/--auto flag vocabulary
+- ci: reject non-standard flag synonyms in skill argument-hints
 
 ## [1.12.7] (2026-07-06)
 

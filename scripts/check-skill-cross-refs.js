@@ -267,6 +267,49 @@ function checkModelMapJson() {
   return problems;
 }
 
+/**
+ * Non-standard flag synonyms → their canonical form. HailyKit skills express
+ * review depth with `--quick`/`--deep` and autonomous execution with `--auto`
+ * (interactive is the default, never a flag). A skill that reinvents these under
+ * another name fractures the vocabulary, so CI rejects the synonym. Only the
+ * `argument-hint:` line is scanned — the authoritative declaration of a skill's
+ * own flags — so external tool flags in prose/standards never false-positive.
+ */
+const BANNED_FLAG_SYNONYMS = {
+  '--fast': '--quick', '--shallow': '--quick', '--lite': '--quick', '--simple': '--quick',
+  '--thorough': '--deep', '--exhaustive': '--deep', '--deep-dive': '--deep',
+  '--yolo': '--auto', '--yes': '--auto', '--noninteractive': '--auto',
+  '--non-interactive': '--auto', '--unattended': '--auto',
+  '--interactive': '(interactive is the default — do not add a flag)',
+};
+
+/**
+ * Enforces the standard flag vocabulary across skill `argument-hint:` lines.
+ * Returns Array<{ file, problem }>.
+ */
+function checkFlagVocabulary() {
+  const skillsDir = path.join(claudeDir, 'skills');
+  const problems = [];
+  for (const filePath of findFiles(skillsDir, (entry) => entry === 'SKILL.md')) {
+    let content;
+    try {
+      content = readFileSync(filePath, 'utf8');
+    } catch {
+      continue; // unreadable files are reported by the registry pass
+    }
+    const hint = content.match(/^argument-hint:\s*(.+)$/m);
+    if (!hint) continue;
+    const rel = path.relative(repoRoot, filePath);
+    for (const [banned, canonical] of Object.entries(BANNED_FLAG_SYNONYMS)) {
+      const re = new RegExp(`(^|[^\\w-])${banned}([^\\w-]|$)`);
+      if (re.test(hint[1])) {
+        problems.push({ file: rel, problem: `argument-hint uses "${banned}" — use "${canonical}"` });
+      }
+    }
+  }
+  return problems;
+}
+
 function main() {
   const { registry, collisions } = buildSkillRegistry();
   const allRefs = collectCkReferences();
@@ -316,10 +359,20 @@ function main() {
     console.error('');
   }
 
+  const flagProblems = checkFlagVocabulary();
+  if (flagProblems.length > 0) {
+    hasErrors = true;
+    console.error('[X] Non-standard flag vocabulary:');
+    for (const { file, problem } of flagProblems) {
+      console.error(`  - ${file}: ${problem}`);
+    }
+    console.error('');
+  }
+
   if (!hasErrors) {
     const refCount = allRefs.length;
     const skillCount = registry.size;
-    console.log(`[OK] skill-cross-refs: ${skillCount} skill(s) registered, ${refCount} reference(s) checked (prefixes: hl/hc/hs) — all valid. Agent model tiers + model-map.json valid.`);
+    console.log(`[OK] skill-cross-refs: ${skillCount} skill(s) registered, ${refCount} reference(s) checked (prefixes: hl/hc/hs) — all valid. Agent model tiers + model-map.json + flag vocabulary valid.`);
     process.exit(0);
   }
 
