@@ -5,11 +5,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### ✨ Features
+## [1.12.7] (2026-07-06)
 
-- hc-plan / hc-cook: precedent mining in Recon — mine git history (`git log --grep` → `git show --stat`) for commits that did similar work; their file footprint becomes a blind-spot checklist, every finding cited by commit hash
-- hc-plan phase template + haily-implementor: real-time deviation log — Decisions / Deviations / Surprises logged live in the phase file (standing rule in the header survives context compaction); reversible plan divergences take the smallest reversible option and continue without pausing
-- Explore agent: pinned to `fast` tier (`model_max: medium`) so parallel codebase scouting no longer burns the session's top-tier model
+### 🚀 Improvements
+
+- hc-plan: add precedent mining to Codebase Analysis
+- hc-cook: add precedent mining to Recon stage
+- hc-plan: add real-time deviation log to phase template
+- haily-implementor: log deviations live in phase file
+- Explore agent: pin to fast model tier
+
+---
 
 ## [1.12.6] (2026-07-04)
 
