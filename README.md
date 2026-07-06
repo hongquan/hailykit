@@ -196,7 +196,7 @@ On install and upgrade, HailyKit merges deny rules into `~/.claude/settings.json
 
 ### Layer 2 — File-access guard (PreToolUse)
 
-`file-access-guard.cjs` intercepts every Bash, Glob, Grep, Read, Edit, and Write call:
+`haily-access.cjs` intercepts every Bash, Glob, Grep, Read, Edit, and Write call:
 
 **Hard-blocked** (operation cancelled):
 - TLS/SSH private keys: `.pem`, `.key`, `.p12`, `.pfx`, `id_rsa`, `id_ed25519`, `authorized_keys`
@@ -212,7 +212,7 @@ On install and upgrade, HailyKit merges deny rules into `~/.claude/settings.json
 
 ### Layer 3 — PII guard (UserPromptSubmit)
 
-`pii-guard.cjs` warns when a prompt contains PII patterns (email addresses, payment card numbers). Never blocks — exits 0. Opt-in and disabled by default.
+`haily-pii.cjs` warns when a prompt contains PII patterns (email addresses, payment card numbers). Never blocks — exits 0. Opt-in and disabled by default.
 
 ### Configuration
 
@@ -225,7 +225,7 @@ In your project's `.claude/haily.json`:
     "privacy-block": true,
     "read-scope-warn": false,
     "privacy-approval-flow": false,
-    "pii-guard": false
+    "haily-pii": false
   }
 }
 ```
@@ -236,7 +236,7 @@ In your project's `.claude/haily.json`:
 | `privacy-block` | `true` | Block hard-blocked files; warn on sensitive files |
 | `read-scope-warn` | `false` | Warn when Read/Glob/Grep accesses paths outside CWD |
 | `privacy-approval-flow` | `false` | Warn-tier files require explicit `AskUserQuestion` approval |
-| `pii-guard` | `false` | Warn when prompts contain email addresses or card numbers |
+| `haily-pii` | `false` | Warn when prompts contain email addresses or card numbers |
 
 Run `hailykit upgrade` to get the latest protection rules.
 
