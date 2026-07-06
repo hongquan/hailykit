@@ -5,10 +5,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.13.1] (2026-07-07)
+
 ### 🚀 Improvements
 
 - hc-review: add --quiz comprehension gate before commit
 - hc-cook: offer quiz in Ship after autonomous runs
+
+### 🐛 Fixes
+
+- readme: correct guard-rail hook names in security section
+
+---
 
 ## [1.13.0] (2026-07-07)
 
