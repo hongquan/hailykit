@@ -5,6 +5,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.14.0] (2026-07-08)
+
 ### 🚀 Improvements
 
 - depth-tier: standardize `--quick` / normal / `--deep` as the shared depth axis across eligible skills, with cost framing (cheapest / baseline / 3–5×) and a single `haily.json` `deep.auto` opt-in schema (`docs/engineering-standards.md` → Depth Tiers)
