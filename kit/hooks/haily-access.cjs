@@ -27,7 +27,7 @@ try {
   const path = require('node:path');
   const { isHookEnabled }                = require('./haily-lib/config.cjs');
   const { createHookTimer, logHookCrash } = require('./haily-lib/logger.cjs');
-  const { checkScoutBlock }               = require('./haily-lib/directory.cjs');
+  const { checkScoutBlock, checkLoopGuardTripwire } = require('./haily-lib/directory.cjs');
   const { checkPrivacy, APPROVAL_PREFIX } = require('./haily-lib/sensitive.cjs');
 
   // Early exit when both guards are disabled — avoid any subprocess overhead
@@ -55,6 +55,27 @@ try {
     const toolName = data.tool_name || '';
     const toolInput = data.tool_input || {};
     const cwd = data.cwd || process.cwd();
+
+    // ── Check 0: Loop-guard tripwire (env-gated, audit-only) ─────────────────
+    // SECONDARY enforcement (phase-04 req 2) — active only when HL_LOOP_GUARD_ACTIVE=1
+    // (set by hc-optimize/hc-goal around their loop). The marker is agent-writable,
+    // so this is a tripwire + audit log, not un-bypassable enforcement; the
+    // regression-gate test-name-set shrinkage check is the PRIMARY guard and
+    // catches the outcome (a removed test) regardless of this block.
+    if (guardDir) {
+      const tripwire = checkLoopGuardTripwire({ toolName, toolInput });
+      if (tripwire.blocked) {
+        process.stderr.write(
+          `\x1b[31m[LOOP-GUARD TRIPWIRE]\x1b[0m Blocked ${toolName} on ${tripwire.path} — HL_LOOP_GUARD_ACTIVE=1.\n` +
+          `Test/spec files and the regression-gate script are protected during an optimize/goal loop.\n` +
+          `This is an audited tripwire, not un-bypassable enforcement: the regression-gate\n` +
+          `test-name-set shrinkage check is the real backstop regardless of this block.\n` +
+          `If this edit is legitimate, unset HL_LOOP_GUARD_ACTIVE and record why in the loop ledger.\n`
+        );
+        timer.end({ status: 'block', exit: 2, check: 'loop-guard', tool: toolName, path: tripwire.path });
+        process.exit(2);
+      }
+    }
 
     // ── Check 1: Directory guard (scout-block) ───────────────────────────────
     if (guardDir) {

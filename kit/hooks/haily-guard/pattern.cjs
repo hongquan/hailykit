@@ -9,6 +9,26 @@
 const Ignore = require('./vendor/ignore.cjs');
 const path = require('path');
 
+// Test/spec paths + the regression-gate script — used ONLY by the loop-guard
+// tripwire (directory.cjs checkLoopGuardTripwire), gated on HL_LOOP_GUARD_ACTIVE.
+// Not part of the default scout-block set below. '**/' prefix matches at any
+// depth INCLUDING root per gitignore spec (see vendor/ignore.cjs:142-149).
+// NOTE: intentionally test-FILE patterns only (not directory-wide globs like
+// '**/tests/**') — blocking a whole tests/ dir would also catch fixtures,
+// helpers, and data files, false-blocking legitimate non-test edits during a
+// loop. Narrowed to file-name shapes so only actual test/spec files trip.
+const TEST_PATH_PATTERNS = [
+  '**/*.test.*',
+  '**/*.spec.*',
+  '**/*_test.*',
+  '**/test_*.*',
+  '**/*_test.go',
+  '**/test_*.py',
+  '**/*_test.py',
+  // the deterministic PRIMARY enforcement this tripwire backstops
+  'kit/skills/hc-goal/scripts/diff-tests.sh',
+];
+
 // Default patterns if haily.json doesn't exist or is empty
 // Only includes directories with HEAVY file counts (1000+ files typical)
 const DEFAULT_PATTERNS = [
@@ -121,6 +141,14 @@ function matchPath(matcher, testPath) {
     normalized = normalized.slice(2);
   }
 
+  // Strip Windows drive prefix (e.g. "D:") — Claude Code always sends absolute
+  // win32 paths like "D:/hailykit/src/foo.test.ts". Left un-stripped, the
+  // colon reaches the vendored 'ignore' lib's path assertion and throws
+  // RangeError, which the caller's try/catch (or lack thereof) turns into a
+  // silent fail-open on Windows for BOTH checkScoutBlock and the loop-guard
+  // tripwire. Must run before the leading-slash strip below.
+  normalized = normalized.replace(/^[a-zA-Z]:/, '');
+
   // Strip leading / for absolute paths (ignore lib requires relative paths)
   while (normalized.startsWith('/')) {
     normalized = normalized.slice(1);
@@ -186,5 +214,6 @@ module.exports = {
   createMatcher,
   matchPath,
   findMatchingPattern,
-  DEFAULT_PATTERNS
+  DEFAULT_PATTERNS,
+  TEST_PATH_PATTERNS
 };

@@ -131,7 +131,8 @@ function isPrivacyBlockDisabled() {
 
 /**
  * Extract candidate file paths from a tool's input object.
- * Handles Read/Edit/Write (file_path), Glob/Grep (pattern/path), Bash (command).
+ * Handles Read/Edit/Write (file_path), Glob/Grep (pattern/path), NotebookEdit
+ * (notebook_path), Bash (command).
  * @param {Object} input — tool_input from stdin
  * @param {string} toolName
  * @returns {string[]}
@@ -143,6 +144,10 @@ function extractPaths(input, toolName) {
   if (input.file_path) paths_.push(input.file_path);
   if (input.path && input.path !== input.file_path) paths_.push(input.path);
   if (input.pattern) paths_.push(input.pattern);
+  // NotebookEdit carries the target as `notebook_path`, not `file_path` — without
+  // this, privacy-block never sees .ipynb writes even though settings.json now
+  // fires this guard on NotebookEdit.
+  if (input.notebook_path) paths_.push(input.notebook_path);
 
   if (toolName === 'Bash' && input.command) {
     const cmd = input.command;

@@ -109,7 +109,7 @@
         ]
       },
       {
-        "matcher": "Bash|Glob|Grep|Read|Edit|Write",
+        "matcher": "Bash|Glob|Grep|Read|Edit|MultiEdit|Write|NotebookEdit",
         "hooks": [
           {
             "type": "command",
