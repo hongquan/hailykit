@@ -56,6 +56,8 @@ Append a `## Validation Log` section to `plan.md` with answers and any plan revi
 
 Update affected phase files based on interview answers. Only propagate decisions that directly change Implementation Steps, Success Criteria, or Risk Notes.
 
+When an interview answer rejects a previously planned approach in favor of another: append one line to `.agents/failure-history.jsonl` — `approach` = the rejected option, `rootCause` = the reason surfaced during interview, `verifierSignal` = the verification failure or evidence that grounded it, `module` = the affected phase's primary directory (`references/codebase-analysis.md` § Failure History Ledger Shape). Complements the `--resume`-only memory-bridge write (`references/memory-bridge.md` § WRITE Protocol) — the ledger applies on every validate run.
+
 ### Consistency Sweep
 
 After all edits from propagation, run a fast scan across the plan to catch stale references. Spend ≤5 minutes.

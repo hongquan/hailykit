@@ -105,6 +105,12 @@ Read the phase file's `## Assumptions` section (`{skill:hc-plan}` `references/ph
 
 **Output:** `✓ Assumption Verification: [N/3] verified — [pass | fail: reason]`
 
+#### Failure Read-Back
+
+Lighter version of `{skill:hc-plan}` `references/codebase-analysis.md` § Failure & Incident Read-Back, scoped to this phase only: grep `.agents/failure-history.jsonl` + `.agents/incidents/` for the modules this phase's file list touches (no separate keyword expansion — reuse the phase file list). Cap at top-3 by recency; flag entries >90 days old `(⚠ verify — N days old)`. Surface any match to the implementor before Build starts — `previously tried X → failed because Y`. No ledger file or no matches: skip, log one line, not an error.
+
+**Output:** `✓ Failure Read-Back: [N] prior failures surfaced | [K] flagged stale`
+
 ### Pre-Code Audit
 
 Before touching any file in a phase, the agent runs this gate:
