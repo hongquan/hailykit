@@ -44,7 +44,7 @@ Give it a goal; it plans, implements, reviews, and commits each phase until done
 
 > **Required — recon-first:** Scan the codebase before planning. Collect project type, framework, relevant modules, in-flight plans in `.agents/`. Report 3–6 findings.
 
-> **Required — no-new-failures:** Each phase must pass the baseline-relative regression gate (see `references/regression-gate.md`). A phase is not complete if it introduces new failing tests vs the Route baseline. Use `--strict` to restore full-suite-green gating when needed.
+> **Required — no-new-failures:** Each phase must pass the baseline-relative regression gate (see `references/regression-gate.md`). A phase is not complete if it introduces new failing tests vs the Route baseline, OR if it silently shrinks the baseline test-name set (deletion) — the gate's shrinkage check is the PRIMARY guard against this, backstopped by a SECONDARY edit-tripwire during Execute (see step 4). Use `--strict` to restore full-suite-green gating when needed.
 
 > **Required — ledger-compaction:** After each phase, record a compact result in the run ledger and discard the phase's working detail from orchestrator context. See `references/run-ledger.md`. Accumulating full phase transcripts is the behavior this skill exists to prevent.
 
@@ -64,7 +64,7 @@ Give it a goal; it plans, implements, reviews, and commits each phase until done
    - **Checkpoint (Plan exit):** present plan summary (phase count, parallel-eligible). User: Approve / Revise / Abort. [skip: `--auto`]
    - Log `✓ Plan: [N] phases, Stage Graph built`.
 
-4. **Execute** — loop over phases in Stage Graph order; run parallel when `dependencies` allow:
+4. **Execute** — set the loop-guard marker before entering the phase loop: append `export HL_LOOP_GUARD_ACTIVE=1` to `$CLAUDE_ENV_FILE`. While set, test/spec files and `diff-tests.sh` are tripwire-blocked + audit-logged for Edit/Write/MultiEdit/NotebookEdit (`kit/hooks/haily-lib/directory.cjs` `checkLoopGuardTripwire`) — a SECONDARY, agent-writable guard; the regression gate's test-name-set shrinkage check (`references/regression-gate.md`) is PRIMARY and catches a removed test regardless. Loop over phases in Stage Graph order; run parallel when `dependencies` allow:
    - Delegate `{skill:hc-cook} <phase-NN.md> --tier <phase.tier>` (adds `--auto` when in `--auto` mode; forwards `--deep` verbatim when set — budget-aware: deep multiplies per-phase token cost, pair with `--budget`).
    - After completion: update ledger row (compact result only); check composite budget; check divergence signals (see `references/run-ledger.md` § Divergence Handling). **Discard phase transcript from orchestrator context.**
    - On success → run regression gate; if gate passes → `haily-git-manager` commit; advance.
@@ -72,7 +72,7 @@ Give it a goal; it plans, implements, reviews, and commits each phase until done
    - Gate at stage boundaries in default mode (not every phase). Invoke supplementary skills as needed: `{skill:hc-scout}` before complex phases, `{skill:hl-brainstorm}` on ambiguous decisions, `{skill:hc-db}` on schema work, `{skill:hc-security}` on auth/payment surfaces.
    - Log `✓ Execute: [M/N] phases complete` after each successful phase.
 
-5. **Report** — spawn `haily-project-manager` to sync plan status. Emit completion summary: phases done, deferred phases with links, remaining blocked work, final ledger state.
+5. **Report** — unset the loop-guard marker: append `export HL_LOOP_GUARD_ACTIVE=0` to `$CLAUDE_ENV_FILE`. Spawn `haily-project-manager` to sync plan status. Emit completion summary: phases done, deferred phases with links, remaining blocked work, final ledger state.
 
 ## Retry Loop
 
@@ -84,6 +84,7 @@ When a phase fails (build error, test failure, review blocker, gate fail):
 4. After N attempts: write `deferred-<phase-slug>.md` to `.agents/<plan-dir>/reports/`.
    - **Interactive:** ask user — defer and continue / abort / apply manual fix.
    - **`--auto`:** defer automatically; continue unless all remaining phases are blocked.
+   - Append one line to `.agents/failure-history.jsonl` with the FULL field set the reader keyword-matches on — omitting `context`/`approach` silently degrades recall, since Precedent Mining greps those fields, not just `module`: `date` (today, ISO), `context` (the goal/phase/task being attempted), `approach` (the specific path tried before it failed), `rootCause` (from the debugger's final analysis, § Retry Loop step 2), `verifierSignal` (the last failing gate/test name), `module` (the phase's primary directory). Shape and field definitions: `{skill:hc-plan}` `references/codebase-analysis.md` § Failure History Ledger Shape.
 5. If all remaining phases have this deferred phase in their `dependencies` chain → terminate and print deferred report.
 
 ## --auto Mode
@@ -118,4 +119,4 @@ Judgment agents (`haily-planner`, `haily-implementor`, `haily-reviewer`, `haily-
 | File | Content |
 |------|---------|
 | `references/run-ledger.md` | Ledger schema, compaction protocol, composite proxy budget gate, economics |
-| `references/regression-gate.md` | Baseline-relative no-new-failures gate, runner detection, `--strict` escape hatch |
+| `references/regression-gate.md` | Baseline-relative no-new-failures gate, runner detection, `--strict` escape hatch, test-set shrinkage (deletion) check |

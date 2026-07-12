@@ -127,7 +127,7 @@ Which stages run per flag combination:
    - `--comment`: post accepted findings as inline comments via `gh pr review`
    - Interactive (default): present findings summary; `AskUserQuestion` for each Critical finding: Fix now / Defer / Reject
    - `--batch` active: after all targets complete, generate Team Health Report per `references/flow-batch.md` § Report Format; save to `.agents/reports/batch-review-<YYMMDD-HHMM>.md`; log `✓ Batch: [N] targets reviewed — [X critical, Y medium, Z low] total`
-   - **Findings flywheel** (`references/flywheel-distillation.md`) — for every ACCEPTED finding, append one line to `.agents/review-history.jsonl`; skip entirely when `.agents/` does not exist (bare repo). On the 3rd+ occurrence of the same `category`+`module` pair, PROPOSE a distillation target (standards / guard / lint / memory) via checkpoint — never silent — citing the prior instances. Log `✓ Flywheel: [N] appended, [M] recurrence proposals`
+   - **Findings flywheel** (`references/flywheel-distillation.md`) — for every ACCEPTED finding, append one line to `.agents/review-history.jsonl`; skip entirely when `.agents/` does not exist (bare repo). On the 3rd+ occurrence of the same `category`+`module` pair, PROPOSE a distillation target (standards / guard / lint / memory) via checkpoint — never silent — citing the prior instances. An approved distillation writes or updates the committed target's `playbook-id` anchor (`references/flywheel-distillation.md` § Distillation ID), never a bare prose append. Log `✓ Flywheel: [N] appended, [M] recurrence proposals`
    - Log `✓ Act: [N applied | N commented | N deferred]`
 
 ## --batch Mode

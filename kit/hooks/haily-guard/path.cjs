@@ -40,8 +40,8 @@ function extractFromToolInput(toolInput) {
     return paths;
   }
 
-  // Direct path params (Read, Edit, Write, Grep, Glob tools)
-  const directParams = ['file_path', 'path', 'pattern'];
+  // Direct path params (Read, Edit, Write, Grep, Glob, NotebookEdit tools)
+  const directParams = ['file_path', 'path', 'pattern', 'notebook_path'];
   for (const param of directParams) {
     if (toolInput[param] && typeof toolInput[param] === 'string') {
       const normalized = normalizeExtractedPath(toolInput[param]);

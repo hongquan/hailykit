@@ -12,6 +12,7 @@ One iteration of the Hill Climbing loop. Execute all stages in order.
 4. Dry-run the `Measure` command — must exit 0 and print a number within 30 seconds
 5. Dry-run the `Guard` command if configured — must exit 0
 6. Record baseline score as run 0 in `.agents/reports/optimize-YYMMDD-HHMM.tsv`
+7. Set the loop-guard marker: append `export HL_LOOP_GUARD_ACTIVE=1` to `$CLAUDE_ENV_FILE`. While set, Edit/Write/MultiEdit/NotebookEdit to test/spec files and the regression-gate script are tripwire-blocked + audit-logged (`kit/hooks/haily-lib/directory.cjs` `checkLoopGuardTripwire`, wired via `haily-access.cjs`). This is a SECONDARY, agent-writable guard — see `guard-and-noise.md` § Guard Recovery Flow for the honest framing and the primary enforcement it backstops.
 
 Abort with a clear error message if any check fails.
 
@@ -44,7 +45,7 @@ Pick **one** focused, atomic change. Atomicity rule: you must be able to describ
 ## Stage 3: Apply
 
 - Edit only files that match the `Scope` glob
-- Never modify files in the `Guard` command's scope — Guard must stay independent
+- Never modify files in the `Guard` command's scope — Guard must stay independent. Test/spec files and the regression-gate script are tripwire-enforced while `HL_LOOP_GUARD_ACTIVE=1` (Setup step 7), and any deletion is separately caught by the regression gate's test-name-set shrinkage check (`{skill:hc-goal}` `references/regression-gate.md`) regardless of the tripwire.
 - Verify syntax after editing (run typecheck or equivalent linter)
 
 ---
@@ -120,6 +121,8 @@ Continue if: run count < `Iterations` AND consecutive rejects < 8.
 |---|---|
 | 4 | Analyze `.agents/reports/optimize-YYMMDD-HHMM.tsv` → shift strategy (different scope area or approach) |
 | 8 | Stop — write findings summary, surface to user |
+
+On stop (either reason): append `export HL_LOOP_GUARD_ACTIVE=0` to `$CLAUDE_ENV_FILE` to clear the loop-guard marker set in Setup step 7.
 
 **Final output:**
 ```

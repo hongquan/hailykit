@@ -91,11 +91,24 @@ function findGitRoot(startDir) {
 // MAIN ENTRY
 // ═══════════════════════════════════════════════════════
 
-const { loadPatterns, createMatcher, matchPath } = require('../haily-guard/pattern.cjs');
+const { loadPatterns, createMatcher, matchPath, TEST_PATH_PATTERNS } = require('../haily-guard/pattern.cjs');
 const { extractFromToolInput } = require('../haily-guard/path.cjs');
 const { detectBroadPatternIssue, formatBroadPatternError } = require('../haily-guard/broad.cjs');
 const { formatBlockedError } = require('../haily-guard/error.cjs');
 const { loadConfig } = require('./config.cjs');
+
+// ═══════════════════════════════════════════════════════
+// LOOP-GUARD TRIPWIRE  (phase-04 req 2 — SECONDARY enforcement, audit-only)
+// ═══════════════════════════════════════════════════════
+// Set by hc-optimize (loop-protocol.md) / hc-goal (SKILL.md) around their
+// iteration/phase loop. HONEST LIMIT: the marker is agent-writable — a
+// determined agent can unset it before editing, so this is friction + an
+// audit trail, NOT un-bypassable permission control. The PRIMARY enforcement
+// is the regression-gate test-name-set shrinkage check (regression-gate.md),
+// which reads test RESULTS the agent does not author and catches the outcome
+// (a removed test) regardless of whether this tripwire fired.
+const LOOP_GUARD_ENV = 'HL_LOOP_GUARD_ACTIVE';
+const LOOP_GUARD_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
 
 /**
  * Check whether the tool call should be blocked.
@@ -145,10 +158,34 @@ function checkScoutBlock({ toolName, toolInput, options = {} }) {
   return { blocked: false, reason: null, pattern: null, message: null };
 }
 
+/**
+ * Loop-guard tripwire: while HL_LOOP_GUARD_ACTIVE=1, block Edit/Write/MultiEdit/
+ * NotebookEdit whose target path matches a test/spec file or the regression-gate
+ * script. See module header for the honest bypass framing — this is a tripwire
+ * + audit signal, not the load-bearing guard.
+ * @param {{ toolName: string, toolInput: Object }} param
+ * @returns {{ blocked: boolean, path: string|null }}
+ */
+function checkLoopGuardTripwire({ toolName, toolInput }) {
+  if (process.env[LOOP_GUARD_ENV] !== '1') return { blocked: false, path: null };
+  if (!LOOP_GUARD_TOOLS.has(toolName)) return { blocked: false, path: null };
+
+  // NotebookEdit carries `notebook_path`, not `file_path` — Edit/Write/MultiEdit
+  // all share `file_path`. Checked directly here rather than widening the
+  // shared extractFromToolInput() helper, which is out of scope for this tripwire.
+  const candidate = (toolInput && (toolInput.file_path || toolInput.notebook_path)) || null;
+  if (!candidate || typeof candidate !== 'string') return { blocked: false, path: null };
+
+  const matcher = createMatcher(TEST_PATH_PATTERNS);
+  const result = matchPath(matcher, candidate);
+  return result.blocked ? { blocked: true, path: candidate } : { blocked: false, path: null };
+}
+
 module.exports = {
-  checkScoutBlock, isBuildCommand, isVenvExecutable, isVenvCreationCommand,
+  checkScoutBlock, checkLoopGuardTripwire, isBuildCommand, isVenvExecutable, isVenvCreationCommand,
   isAllowedCommand, splitCompoundCommand, stripCommandPrefix,
   findGitRoot,
   BUILD_COMMAND_PATTERN, VENV_EXECUTABLE_PATTERN, VENV_CREATION_PATTERN,
   TOOL_COMMAND_PATTERN, INFRA_COMMAND_PATTERN,
+  LOOP_GUARD_ENV,
 };

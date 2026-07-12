@@ -74,6 +74,7 @@ Present adjudicated findings to user via `AskUserQuestion`:
 For each accepted finding:
 - Update the affected phase file (add/revise steps, success criteria, or risk notes)
 - Add a `## Red Team Review` section to `plan.md` summarising findings and resolutions
+- If the finding rejects a previously planned approach (not just adds an edge case), append one line to `.agents/failure-history.jsonl` — `approach` = what the plan proposed, `rootCause` = why the hostile lens showed it insufficient, `verifierSignal` = the finding's title, `module` = the affected phase's primary directory (`references/codebase-analysis.md` § Failure History Ledger Shape). Complements the `--resume`-only memory-bridge rejected-alternative write (`references/memory-bridge.md` § WRITE Protocol) — the ledger is the lightweight index available every run, not just `--resume`.
 
 ### Consistency Sweep
 

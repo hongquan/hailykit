@@ -44,6 +44,49 @@ Skip gracefully — log one line and continue — when there is no usable histor
 
 Record surviving precedents as a `### Precedents` subsection in `scout-report.md`; feed blind-spot candidates into the Blast Radius map below.
 
+### Failure History Ledger Shape
+
+`.agents/failure-history.jsonl` — repo root, sibling to `.agents/review-history.jsonl` (same gitignore + retention-exemption status: `kit/rules/haily-documentation.md` § Report Retention). Append-only, one JSON object per line:
+
+```json
+{"date":"2026-07-08","context":"add rate limiting to API endpoints","approach":"in-memory token bucket per process","rootCause":"token bucket state lives per Node process; horizontal scaling forks N processes with independent buckets, so the effective limit is N times looser than specified","verifierSignal":"load-test assertion 'requests/min <= 600' failed at 640/min with 4 workers (e2e/rate-limit.spec.ts:42)","module":"cli"}
+```
+
+Fields:
+- `date` — ISO date (`YYYY-MM-DD`)
+- `context` — what was being attempted (the goal, phase, or task)
+- `approach` — the specific path tried
+- `rootCause` — verifier-grounded reason it failed. Not a surface symptom.
+- `verifierSignal` — the concrete signal that proved the failure: failing test name, gate/build output line, or red-team/validate finding id
+- `module` — top-level directory of the affected code, for keyword matching
+
+**Worked example — symptom vs root cause, same failure:**
+
+Symptom line (do not write this shape):
+```json
+{"rootCause":"tests timed out","verifierSignal":"jest timeout after 5000ms"}
+```
+"Tests timed out" restates that the check failed, not why — a later session re-attempts the identical design and only rediscovers the same timeout.
+
+Root-cause line (write this shape):
+```json
+{"rootCause":"token bucket state lives per Node process; horizontal scaling forks N processes with independent buckets, so the limit is N times looser than specified and the load test correctly saturates it","verifierSignal":"load-test assertion 'requests/min <= 600' failed at 640/min with 4 workers (e2e/rate-limit.spec.ts:42)"}
+```
+This traces the failure to its mechanism (per-process state under horizontal scaling), so a later plan for the same module reaches for shared-state rate limiting (Redis, sticky routing) instead of re-trying the in-process design.
+
+Staleness: entries older than 90 days are still surfaced, never silently dropped — flag `(⚠ verify — N days old)`, mirroring `references/memory-bridge.md` § Staleness Handling.
+
+### Failure & Incident Read-Back
+
+Retrospective anti-repeat check, mirroring Precedent Mining's prospective blind-spot check: Precedent Mining asks "what worked before that this plan might be missing"; this asks "what was already tried for this module and failed, so the plan doesn't re-propose it."
+
+1. Reuse the keywords from Precedent Mining, plus the module list from Map Blast Radius below.
+2. Grep `.agents/failure-history.jsonl` for lines whose `module` matches a Blast Radius module, or whose `context`/`approach` contains a keyword (case-insensitive). Grep `.agents/incidents/*.md` filenames and content for the same keywords/modules — this is the ledger's only reader today.
+3. Cap at top-5, ranked by recency, then by exact module match over keyword-only match.
+4. Entries >90 days old are still included, flagged `(⚠ verify — N days old)` per the staleness rule above — never acted on blindly.
+5. Surface each match into planning context as `⚠ Prior failure: <approach> — failed because <rootCause> (<verifierSignal>, <date>)` for ledger hits, or `⚠ Prior incident: <file> — <one-line summary>` for incident hits.
+6. No file, or no matches: skip gracefully, log one line — `ℹ Failure read-back: skipped — [no ledger/incidents | no matches for "<keywords>"]`. This is the expected first-run/no-history path, not an error.
+
 ### Analyze Patterns
 
 From scout output, extract:
@@ -69,7 +112,8 @@ Brief written summary (≤150 lines) covering:
 1. Relevant files and their roles
 2. Patterns the implementation must follow
 3. Precedents: prior commits that did similar work (hash + subject) and any blind-spot candidates they surface
-4. Blast Radius: modules and contracts at risk
-5. Inconsistencies or technical debt the plan should note but not fix
+4. Prior failures: matching lines from `.agents/failure-history.jsonl` + `.agents/incidents/` (module/keyword match, capped, staleness-flagged)
+5. Blast Radius: modules and contracts at risk
+6. Inconsistencies or technical debt the plan should note but not fix
 
 Write this summary to `.agents/<plan-dir>/scout-report.md` before proceeding to Solution Design. Downstream skills (`{skill:hc-review}`, `{skill:hc-debug}`) read this file to skip re-scouting within the same working session.

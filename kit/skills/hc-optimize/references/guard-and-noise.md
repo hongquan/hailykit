@@ -29,7 +29,9 @@ Guard fails →
 
 **Rules:**
 - If guard cannot pass at baseline, fix the guard baseline before starting — never relax the guard mid-loop
-- Guard files are **READ-ONLY** — never modify test files, spec files, or guard scripts as part of an optimization attempt
+- Guard files are **tripwire-enforced + shrinkage-gated** — never modify test files, spec files, or guard scripts as part of an optimization attempt. Two layers, honestly distinct:
+  - **SECONDARY (tripwire + audit):** while `HL_LOOP_GUARD_ACTIVE=1` (set in `loop-protocol.md` Setup step 7), Edit/Write/MultiEdit/NotebookEdit to test/spec files and the regression-gate script are blocked and logged (`kit/hooks/haily-lib/directory.cjs` `checkLoopGuardTripwire`). The marker is agent-writable — a determined agent can unset it before editing — so this is friction + an audit trail, not un-bypassable enforcement.
+  - **PRIMARY (deterministic):** `{skill:hc-goal}` `references/regression-gate.md`'s test-name-set shrinkage check reads test *results*, not agent-authored state, and fails the gate if a baseline test name is deleted — catching the outcome regardless of whether the tripwire fired.
 - Guard failure means the optimization approach is wrong, not that the guard is wrong
 
 ### Common Guard Commands
