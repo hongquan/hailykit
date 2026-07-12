@@ -5,6 +5,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### 🚀 Improvements
+
+- hl-write: add academic writing playbooks — thesis/dissertation (Luận văn ThS / Luận án TS / international thesis) and literary criticism (close-reading essay / phê bình chân dung tác giả / review)
+- hl-write: add `citation-styles.md` reference — 6 styles (APA 7, MLA 9, Chicago Notes-Biblio, Chicago Author-Date, IEEE, Vancouver) with mechanically-checkable rules, check tiers, and Vietnamese/East-Asian name-order conventions
+- hl-write: IMRaD skeleton gains Abstract and Keywords sections
+- hl-write: extended copyedit/fact-check rubrics in `review-passes.md` (citation-format validation, verbatim-quote fixed-string checking, primary-text provenance exclusion)
+- haily-editor: streamlined manifest handling for references and playbooks
+- scripts: check-skill-cross-refs now validates file paths in SKILL.md References tables
+- hl-research: add `--type academic` (scholarly/literature-review research — meta-analysis-first credibility ladder, citation-walking, replication-aware refutation) and `--type market` (market/competitive research — filings-first ladder, press-release-as-low-tier, competitor matrix output)
+- hl-write: add six genre playbooks — research proposal (đề cương/thuyết minh NCKH/PhD application/international grant), VN administrative documents (công văn/tờ trình/báo cáo/quyết định per Nghị định 30/2020), marketing copy (press release/landing page/email sequence), speech (persuasive/informative/ceremonial/toast-eulogy), career documents (resume-CV/cover letter), and educational content (textbook-tutorial/lesson-plan); adds a routing table to `hl-write/SKILL.md` disambiguating 8 genre collisions
+- review-passes.md: add a severity carve-out letting a playbook designate load-bearing sourced-claim classes (this wave: legal citations in administrative documents, testimonials in marketing copy) as Critical, not Major, when unsourced
+
+### 🐛 Fixes
+
+- hc-db: correct stale path reference
+
 ## [1.14.0] (2026-07-08)
 
 ### 🚀 Improvements
