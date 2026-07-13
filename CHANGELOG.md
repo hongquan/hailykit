@@ -5,6 +5,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.14.1] (2026-07-13)
+
 ### 🚀 Improvements
 
 - session: `haily-session.cjs` emits a one-line `standards: <list>|none detected` visibility summary reflecting only standards that actually resolve to a shipped file, so a stack-detection miss is visible instead of silent; `context.cjs` `buildLangStandardsSection` emits a one-line "no standards file shipped" note when a language is detected but unmapped
@@ -19,11 +21,17 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - hl-research: add `--type academic` (scholarly/literature-review research — meta-analysis-first credibility ladder, citation-walking, replication-aware refutation) and `--type market` (market/competitive research — filings-first ladder, press-release-as-low-tier, competitor matrix output)
 - hl-write: add six genre playbooks — research proposal (đề cương/thuyết minh NCKH/PhD application/international grant), VN administrative documents (công văn/tờ trình/báo cáo/quyết định per Nghị định 30/2020), marketing copy (press release/landing page/email sequence), speech (persuasive/informative/ceremonial/toast-eulogy), career documents (resume-CV/cover letter), and educational content (textbook-tutorial/lesson-plan); adds a routing table to `hl-write/SKILL.md` disambiguating 8 genre collisions
 - review-passes.md: add a severity carve-out letting a playbook designate load-bearing sourced-claim classes (this wave: legal citations in administrative documents, testimonials in marketing copy) as Critical, not Major, when unsourced
+- hc-plan: add reversible/irreversible deviation-log examples and fact-vs-assumption exemplars to the phase template
+- hc-plan: add a three-option red-team adjudication exemplar (accept risk / mitigate in plan / escalate to user)
+- hc-goal: document the `--deep` cost model (3–5× baseline per phase, pair with `--budget`)
+- hl-write: document why no `--deep` flag exists — the per-unit editor pass already runs at maximum scrutiny
 
 ### 🐛 Fixes
 
 - haily-rules: fix a wiring bug (`buildReminderContext` called with a positional string instead of an options object) that made the `UserPromptSubmit` reminder hook write the literal string `[object Object]` to stdout on every prompt since v1.0.0 — rules, language/framework standards, contextual rules, paths, plan context, and naming injection are now real content again; wires up the previously-unused 5-minute TTL dedup helpers so the heavy block is capped per session+cwd scope while keyword/skill-triggered contextual rules still fire every matching prompt
 - hc-db: correct stale path reference
+- installer: uninstall now also removes `contextual/` and `templates/` directories, previously left orphaned
+- context: guard injected plan paths from double base-dir prefixing when a path is already absolute
 
 ## [1.14.0] (2026-07-08)
 
