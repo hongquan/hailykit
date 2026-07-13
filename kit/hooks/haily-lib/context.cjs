@@ -938,13 +938,17 @@ const CONTEXTUAL_TRIGGERS = [
  *
  * @param {string} prompt - User prompt text to scan for trigger keywords/skill slugs
  * @param {string} [configDirName='.claude'] - Config directory name
+ * @param {Array<{file: string, pattern: RegExp}>} [triggers=CONTEXTUAL_TRIGGERS] - Trigger
+ *   table to scan. Defaults to the real table; callers (tests) may pass a fixture table
+ *   to exercise the dedup Set without depending on CONTEXTUAL_TRIGGERS ever having two
+ *   entries for the same file.
  * @returns {string[]} Lines to inject (may be empty)
  */
-function buildContextualRulesSection(prompt, configDirName = '.claude') {
+function buildContextualRulesSection(prompt, configDirName = '.claude', triggers = CONTEXTUAL_TRIGGERS) {
   if (!prompt) return [];
   const sections = [];
   const injectedFiles = new Set();
-  for (const { file, pattern } of CONTEXTUAL_TRIGGERS) {
+  for (const { file, pattern } of triggers) {
     if (injectedFiles.has(file)) continue;
     if (!pattern.test(prompt)) continue;
     const resolvedPath = resolveContextualPath(file, configDirName);
@@ -1053,10 +1057,17 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
   const planCtx = buildPlanContext(sessionId, cfg);
 
   // Issue #327: Use baseDir for absolute path resolution (subdirectory workflow support)
-  // If baseDir provided, resolve paths as absolute; otherwise use relative paths
+  // If baseDir provided, resolve paths as absolute; otherwise use relative paths.
+  // planCtx.reportsPath is already absolute in both 'session' and 'branch' resolution
+  // cases (getReportsPath/resolvePlanPath build it from process.cwd() internally) —
+  // joining effectiveBaseDir onto it unconditionally double-prefixes the path (e.g.
+  // "D:\hailykit\D:\hailykit\.agents\...\reports"). Guard every join with
+  // path.isAbsolute so an already-absolute candidate is passed through untouched.
   const effectiveBaseDir = baseDir || null;
   const plansPathRel = normalizePath(cfg.paths?.plans) || '.agents';
   const docsPathRel = normalizePath(cfg.paths?.docs) || 'docs';
+  const joinIfRelative = (base, candidate) =>
+    (base && !path.isAbsolute(candidate)) ? path.join(base, candidate) : candidate;
 
   // Build all parameters with absolute paths if baseDir provided
   const params = {
@@ -1066,9 +1077,9 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
     responseLanguage: cfg.locale?.responseLanguage,
     devRulesPath,
     skillsVenv,
-    reportsPath: effectiveBaseDir ? path.join(effectiveBaseDir, planCtx.reportsPath) : planCtx.reportsPath,
-    plansPath: effectiveBaseDir ? path.join(effectiveBaseDir, plansPathRel) : plansPathRel,
-    docsPath: effectiveBaseDir ? path.join(effectiveBaseDir, docsPathRel) : docsPathRel,
+    reportsPath: joinIfRelative(effectiveBaseDir, planCtx.reportsPath),
+    plansPath: joinIfRelative(effectiveBaseDir, plansPathRel),
+    docsPath: joinIfRelative(effectiveBaseDir, docsPathRel),
     docsMaxLoc: Math.max(1, parseInt(cfg.docs?.maxLoc, 10) || 800),
     planLine: planCtx.planLine,
     gitBranch: planCtx.gitBranch,

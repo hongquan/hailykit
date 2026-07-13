@@ -12,16 +12,21 @@ import { execFileSync } from 'node:child_process';
 // so the feature injected nothing even after the injection-path repair in phase-01.
 // This suite verifies: (1) the ported files exist and are real content, (2) typing a
 // skill slug (e.g. "/hc-review") triggers the same injection as a keyword, (3) a
-// prompt matching two triggers for one file injects it once, (4) fail-open on
-// malformed input.
+// single trigger entry whose pattern matches twice in one prompt still injects its
+// file's content exactly once (no accidental duplicate push), (4) fail-open on
+// malformed input, (5) the actual dedup Set — using a fixture trigger table with
+// two distinct entries mapping to the same file, since the real CONTEXTUAL_TRIGGERS
+// table has one entry per file and so never exercises the Set on its own.
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const CONTEXT_LIB_PATH = path.join(REPO_ROOT, 'kit', 'hooks', 'haily-lib', 'context.cjs');
 const HOOK_PATH = path.join(REPO_ROOT, 'kit', 'hooks', 'haily-rules.cjs');
 const KIT_CONTEXTUAL_DIR = path.join(REPO_ROOT, 'kit', 'contextual');
 
+interface Trigger { file: string; pattern: RegExp }
+
 const { buildContextualRulesSection } = require(CONTEXT_LIB_PATH) as {
-  buildContextualRulesSection: (prompt: string, configDirName?: string) => string[];
+  buildContextualRulesSection: (prompt: string, configDirName?: string, triggers?: Trigger[]) => string[];
 };
 
 interface HookResult { status: number; stdout: string; stderr: string }
@@ -167,16 +172,20 @@ test('hook: unknown prompt injects no contextual content', () => {
   }
 });
 
-test('buildContextualRulesSection: dedup — a prompt matching two patterns for one file injects it once', () => {
-  // "review" (keyword) + "/hc-review" (slug) both map to review-audit-self-decision.md.
+// NOTE: "review" (keyword) + "/hc-review" (slug) both match inside the SAME
+// review-audit-self-decision.md entry's single alternated pattern, not two separate
+// CONTEXTUAL_TRIGGERS entries — the for-loop in buildContextualRulesSection visits
+// that entry once regardless, so this asserts single-entry behavior, not the
+// injectedFiles dedup Set (removing the Set would still pass this test).
+test('buildContextualRulesSection: single-entry pattern matching twice in one prompt injects its file once', () => {
   const lines = withCwd(tmpProjectDir, () => buildContextualRulesSection('review this code, also run /hc-review', '.claude'));
   const joined = lines.join('\n');
   const occurrences = joined.split('Verified Decisions Are Sticky').length - 1;
   assert.equal(occurrences, 1, 'review-audit content must appear exactly once');
 });
 
-test('hook: prompt matching two triggers for the same file injects content once (not duplicated)', () => {
-  const sessionId = uniqueSessionId('dedup');
+test('hook: prompt matching a single trigger entry twice injects content once (not the dedup Set)', () => {
+  const sessionId = uniqueSessionId('single-entry');
   cleanupSession(sessionId);
   try {
     const result = runHook(payload(sessionId, 'review this code, also run /hc-review'), tmpProjectDir);
@@ -186,6 +195,39 @@ test('hook: prompt matching two triggers for the same file injects content once 
   } finally {
     cleanupSession(sessionId);
   }
+});
+
+// Real dedup Set coverage: CONTEXTUAL_TRIGGERS has exactly one entry per file, so the
+// two tests above never exercise injectedFiles — the loop only visits each file once
+// regardless of the Set. buildContextualRulesSection's optional third param (triggers,
+// added as a backward-compatible seam) lets this test supply a fixture table with two
+// distinct entries pointing at the same file, so the Set is the only thing preventing
+// duplicate content when the prompt matches both entries.
+test('buildContextualRulesSection: dedup Set prevents duplicate injection across two distinct entries for one file', () => {
+  const fixtureTriggers: Trigger[] = [
+    { file: 'review-audit-self-decision.md', pattern: /\bfixture-trigger-one\b/i },
+    { file: 'review-audit-self-decision.md', pattern: /\bfixture-trigger-two\b/i },
+  ];
+  const lines = withCwd(tmpProjectDir, () =>
+    buildContextualRulesSection('fixture-trigger-one and fixture-trigger-two both fire', '.claude', fixtureTriggers));
+  const joined = lines.join('\n');
+  const occurrences = joined.split('Verified Decisions Are Sticky').length - 1;
+  assert.equal(occurrences, 1, 'dedup Set must prevent the same file injecting twice across two matching entries');
+});
+
+test('buildContextualRulesSection: without dedup Set protection, two matching entries for the same file would inject twice (control case proving the fixture is a real regression trap)', () => {
+  // Sanity check on the fixture itself: two entries for two DIFFERENT files both
+  // inject, proving the fixture format is sound and the Set only collapses same-file
+  // duplicates (not all injections).
+  const fixtureTriggers: Trigger[] = [
+    { file: 'review-audit-self-decision.md', pattern: /\bfixture-trigger-one\b/i },
+    { file: 'orchestration-protocol.md', pattern: /\bfixture-trigger-two\b/i },
+  ];
+  const lines = withCwd(tmpProjectDir, () =>
+    buildContextualRulesSection('fixture-trigger-one and fixture-trigger-two both fire', '.claude', fixtureTriggers));
+  const joined = lines.join('\n');
+  assert.match(joined, /Verified Decisions Are Sticky/);
+  assert.match(joined, /Delegation Context \(MANDATORY\)/);
 });
 
 test('hook: fails open on malformed stdin (no crash, no output)', () => {
