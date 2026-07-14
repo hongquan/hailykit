@@ -72,7 +72,7 @@ A one-time invocation that seeds `style.md` from existing prose. Two sources; bo
 
 **Source (a) — imported manuscript** (called at IMPORT Foundation reconstruction, after every chapter's Import Extraction is complete): read the full imported prose. This source bypasses Draft's normal seeding path entirely.
 
-**Source (b) — user samples in `research/style-samples/`** (called at Draft when `--style` samples are present; NEW mode only): read every `.md` file in `research/style-samples/` — the orchestrator has already copied, secret-scrubbed, and workspace-confined the samples before this invocation. Never fetch or read files outside the workspace.
+**Source (b) — user samples in `research/style-samples/`** (called at Draft whenever `research/style-samples/` is populated — samples are ingested only by a NEW run's `--style` flag, though the invocation may also fire on a RESUME completing an interrupted NEW draft): read every `.md` file in `research/style-samples/` — ingestion lands every accepted sample as `.md`, and the orchestrator has already copied, secret-scrubbed, and workspace-confined them before this invocation. Never fetch or read files outside the workspace.
 
 **Both sources return two blocks:**
 
