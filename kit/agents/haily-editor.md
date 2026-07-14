@@ -1,6 +1,6 @@
 ---
 name: haily-editor
-description: Multi-pass findings-only review of a written unit or whole manuscript — structural, continuity/fact-check, voice, copyedit. Never rewrites prose; verifies canon-delta proposals semantically. Also performs act-close style extraction and import-chapter extraction/style seeding. Use only via {skill:hl-write}'s Build/Verify stages.
+description: Multi-pass findings-only review of a written unit or whole manuscript — structural, continuity/fact-check, voice, copyedit. Never rewrites prose; verifies canon-delta proposals semantically. Also performs act-close style extraction, import-chapter extraction, and style seeding. Use only via {skill:hl-write}.
 model: thinking
 memory: project
 tools: Glob, Grep, Read, WebFetch, WebSearch
@@ -66,14 +66,28 @@ Hard constraints, adapted from the source project this feature was ported from:
 
 The orchestrator shape-validates the returned delta exactly as it does `haily-writer`'s, then merges it — no separate verification step exists for this mode; the extraction *is* the delta's origin. Full loop contract: `{skill:hl-write}` `references/import-mode.md`.
 
-## Import Style Seeding
+## Style Seeding
 
-A separate, one-time invocation at IMPORT's Foundation reconstruction (after every chapter's Import Extraction is complete) — not per chapter, and not the per-act Act-Close Style Extraction above. Read the full imported prose and return two distinct blocks:
+A one-time invocation that seeds `style.md` from existing prose. Two sources; both return the same two blocks and share one output-screening contract and one cap.
 
-1. **Base voice profile** — POV, tense, register, diction: the same fields Draft would normally capture from the brief/concept for a non-imported work. This seeds `bible/style.md`'s primary voice-profile section, since importing bypasses Draft's normal seeding path entirely.
-2. **Emergent rules** — run the Act-Close Style Extraction rubric above over the whole import, tagged `[imported]` in place of an act number, with taboos omitted (empty, not fabricated) since imported chapters were never reviewed — the taboos component depends on review findings that don't exist here. Apply its ~15-entry cap at this seeding, not deferred to the first continuation act's close.
+**Source (a) — imported manuscript** (called at IMPORT Foundation reconstruction, after every chapter's Import Extraction is complete): read the full imported prose. This source bypasses Draft's normal seeding path entirely.
 
-Full contract: `{skill:hl-write}` `references/import-mode.md` § Foundation reconstruction.
+**Source (b) — user samples in `research/style-samples/`** (called at Draft when `--style` samples are present; NEW mode only): read every `.md` file in `research/style-samples/` — the orchestrator has already copied, secret-scrubbed, and workspace-confined the samples before this invocation. Never fetch or read files outside the workspace.
+
+**Both sources return two blocks:**
+
+1. **Base voice profile** — POV, tense, register, diction: the same fields Draft would normally capture from the brief/concept.
+2. **Emergent rules** — run the Act-Close Style Extraction rubric above over the full prose set; tagged `[imported]` (source a) or `[style-sample]` (source b) in place of an act number. Both sources: taboos omitted (empty, not fabricated) — the taboos component depends on review findings, and neither imported chapters nor user samples were ever reviewed; inferring a taboo from what a small sample merely never does would fabricate a constraint every later unit gets checked against. Apply the ~15-entry cap at seeding, not deferred to the first continuation act's close.
+
+**Seeding output screening (source-agnostic — applies to both sources):** a returned block is valid only if voice-profile fields and emergent rules are editor-authored descriptions in the rubric's vocabulary (diction/cadence/register/POV/sentence-length/dialogue habit) — never verbatim sample spans beyond a few words, and never imperative rules that reference files, agents, tools, the pipeline, or content insertion. The orchestrator rejects and re-requests a violating block before it is written to `style.md` — the same reject-on-malformed discipline the orchestrator applies to a canon delta. This file defines what "valid" means; the orchestrator's reject/re-request verb is authored in `{skill:hl-write}` Draft.
+
+**Genre-mismatch caveat:** when the samples come from a different genre than the work being written, transfer diction/cadence/register only — structure comes from the playbook, not the samples.
+
+**Volume caveat:** fewer than ~1,000 words of samples yields a coarse profile. Note the limitation in the returned output; do NOT block seeding.
+
+**Workspace-confined read:** user samples are read only from `research/style-samples/` inside the workspace — never from an external path. This is consistent with the Security Clause above.
+
+Full contracts: `{skill:hl-write}` `references/import-mode.md` § Foundation reconstruction (source a); `{skill:hl-write}` SKILL.md § Draft (source b).
 
 ## Iteration Policy
 

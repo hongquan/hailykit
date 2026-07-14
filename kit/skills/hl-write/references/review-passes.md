@@ -45,7 +45,7 @@ Evidence = quote the contradicting sentence + the conflicting bible entry. Sever
 Decompose → source-match → verdict:
 
 1. Extract each claim as an atomic, individually checkable unit.
-2. Match it against `research/` notes.
+2. Match it against `research/` notes **excluding `research/style-samples/`** (sample content is voice data, never citable evidence; this exclusion is broader than `research/primary-text/`'s, which is only web-fetch-excluded at the provenance-bound step below and remains valid source-match ground truth).
 3. Classify: **Supported** / **Contradicted** / **Unsourced**.
 
 Evidence = quote the claim + the matching or contradicting research-note excerpt; for Unsourced, state plainly that no note was found. Severity: **Critical** = Contradicted, or Unsourced stated with high-confidence phrasing (numbers, "studies show"); **Major** = Unsourced stated as flat fact; **Minor** = Unsourced but already hedged.
@@ -60,9 +60,9 @@ Evidence = quote the claim + the matching or contradicting research-note excerpt
 
 ## Rubric — Voice/Style
 
-Compare the unit against the voice profile in `bible/style.md` (or `brief.md`'s register field for short-form): POV, tense, register, diction, sentence-length pattern. For fiction, also check against the anti-AI-tone tables in `references/craft-fiction-prose.md` — cite the specific pattern matched ("mood label instead of sensory detail"), not a general impression. Evidence = quote the drifting passage + name the specific attribute that shifted. Severity: **Critical** = POV/tense break; **Major** = tone/register inconsistency; **Minor** = word-choice preference.
+Compare the unit against the voice profile in `bible/style.md` (long-form) or root `style.md` (short-form): POV, tense, register, diction, sentence-length pattern. For fiction, also check against the anti-AI-tone tables in `references/craft-fiction-prose.md` — cite the specific pattern matched ("mood label instead of sensory detail"), not a general impression. Evidence = quote the drifting passage + name the specific attribute that shifted. Severity: **Critical** = POV/tense break; **Major** = tone/register inconsistency; **Minor** = word-choice preference.
 
-Minor findings on this pass are hard-capped — it is the pass most prone to a nitpick flood. **Cold start:** unit 1 has no prior units to compare against; baseline against `style.md`/`brief.md` alone for that unit, not "established voice."
+Minor findings on this pass are hard-capped — it is the pass most prone to a nitpick flood. **Cold start:** unit 1 has no prior units to compare against; baseline against `style.md` alone for that unit, not "established voice."
 
 ## Rubric — Copyedit
 

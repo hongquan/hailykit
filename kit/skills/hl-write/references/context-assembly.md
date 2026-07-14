@@ -1,6 +1,6 @@
 # Context Assembly
 
-The formula the orchestrator runs before every `haily-writer` invocation to build one unit's context package. Long-form only — short-form units are small enough to hand the writer `brief.md` + `outline.md` beat + `facts.md` + the previous-unit tail directly, no SELECT/overflow/rollup needed.
+The formula the orchestrator runs before every `haily-writer` invocation to build one unit's context package. Long-form only — short-form units are small enough to hand the writer `brief.md` + `outline.md` beat + `style.md` + `facts.md` + the previous-unit tail directly, no SELECT/overflow/rollup needed.
 
 ## SELECT
 
