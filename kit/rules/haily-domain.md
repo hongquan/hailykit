@@ -178,7 +178,7 @@ Sprint retrospective from git metrics   → {skill:hc-git} retro [timeframe]
 Impact analysis of recent changes       → {skill:hc-git} analyze [ref]
 Get top-tier advice on one prepared decision → /hl-advisor  (agent: Task(subagent_type="haily-advisor"))
 ```
-`/hl-advisor` = one-shot package-in, advice-out at top tier · haily-brainstormer / {skill:hl-brainstorm} = interactive multi-lens exploration at session tier · haily-judge = verdict on a candidate set, `--deep` only.
+`/hl-advisor` = one-shot package-in, advice-out at top tier · haily-brainstormer / {skill:hl-brainstorm} = interactive multi-lens exploration at session tier · haily-judge = verdict on a candidate set — `--deep` adjudication points, plus the tier-gated `--debate`/`--auto` points named in {skill:hl-brainstorm}/{skill:hc-cook}.
 
 ## Dependency Management
 

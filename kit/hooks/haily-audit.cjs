@@ -2,8 +2,8 @@
 /**
  * haily-audit.cjs — Tool-call activity log: best-effort, NOT tamper-evident,
  * no fsync, gitignored. Reconstructs agent/dev actions after an incident on a
- * best-effort basis only — plaintext, world-readable, rotated archives are
- * just as editable as the live file.
+ * best-effort basis only — plaintext, owner-only (chmod 0o600, best-effort on
+ * Windows); rotated archives are just as editable as the live file.
  *
  * Fires on PostToolUse (*) and SessionEnd; also subsumes the haily-usage quota
  * refresh duty on the PostToolUse hot path (single Node spawn per tool call) —
@@ -39,8 +39,11 @@ try {
   function logDir() { return path.join(process.cwd(), '.logs'); }
   function logPath() { return path.join(logDir(), 'audit.jsonl'); }
   function lockPath() { return logPath() + '.lock'; }
+  function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
   // Inline lock — logger.cjs's lock helpers are module-private, so a small duplicate lives here.
-  function acquireLock() {
+  // Async backoff, not a busy-spin: main() is already async, and a synchronous
+  // spin here would peg a CPU core on every contended tool call.
+  async function acquireLock() {
     const lp = lockPath();
     const deadline = Date.now() + LOCK_TIMEOUT_MS;
     while (Date.now() < deadline) {
@@ -52,8 +55,7 @@ try {
           const age = Date.now() - fs.statSync(lp).mtimeMs;
           if (age > LOCK_STALE_MS) fs.unlinkSync(lp);
         } catch { /* ignore */ }
-        const end = Date.now() + LOCK_RETRY_MS;
-        while (Date.now() < end) { /* spin */ }
+        await sleep(LOCK_RETRY_MS);
       }
     }
     return null; // timed out — caller drops the line (lossy-under-contention; see writeActivityLine)
@@ -76,11 +78,17 @@ try {
     [/\b[0-9a-fA-F]{32,}\b/g, '***'],                                     // long hex runs
     [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, '***'],                             // base64-looking runs
   ];
-  /** Redact secret-shaped substrings from a Bash command before it is logged. */
+  // Every target field is capped at the same length regardless of tool — an
+  // oversized path/pattern/subagent_type would otherwise bloat a single log
+  // line and spike memory on read-back.
+  function truncateTarget(s) {
+    return s.length > MAX_TARGET_LEN ? s.slice(0, MAX_TARGET_LEN) + '...(truncated)' : s;
+  }
+  /** Redact secret-shaped substrings from a Bash command (or Grep/Glob pattern) before it is logged. */
   function redactCommand(cmd) {
     let out = String(cmd);
     for (const [pattern, replacement] of REDACT_RULES) out = out.replace(pattern, replacement);
-    return out.length > MAX_TARGET_LEN ? out.slice(0, MAX_TARGET_LEN) + '...(truncated)' : out;
+    return truncateTarget(out);
   }
   // Never logs the full tool_input blob — only this single narrow field — so secrets in unrelated input fields can't leak through.
   const PATH_FIELD_TOOLS = new Set(['Read', 'Edit', 'Write', 'MultiEdit']);
@@ -91,11 +99,12 @@ try {
     } catch { return p; }
   }
   function extractTarget(toolName, input = {}) {
-    if (PATH_FIELD_TOOLS.has(toolName) && input.file_path) return maskIfSensitive(input.file_path);
-    if (toolName === 'NotebookEdit' && input.notebook_path) return maskIfSensitive(input.notebook_path);
+    if (PATH_FIELD_TOOLS.has(toolName) && input.file_path) return truncateTarget(maskIfSensitive(String(input.file_path)));
+    if (toolName === 'NotebookEdit' && input.notebook_path) return truncateTarget(maskIfSensitive(String(input.notebook_path)));
     if (toolName === 'Bash' && typeof input.command === 'string') return redactCommand(input.command);
-    if ((toolName === 'Task' || toolName === 'Agent') && input.subagent_type) return String(input.subagent_type);
-    if ((toolName === 'Grep' || toolName === 'Glob') && input.pattern) return String(input.pattern);
+    if ((toolName === 'Task' || toolName === 'Agent') && input.subagent_type) return truncateTarget(String(input.subagent_type));
+    // Grep/Glob patterns can carry the same secret shapes as shell commands (e.g. grepping for a live token) — redact identically to Bash.
+    if ((toolName === 'Grep' || toolName === 'Glob') && input.pattern) return redactCommand(String(input.pattern));
     return null;
   }
   function archiveIndexFor(dir, datePrefix) {
@@ -137,10 +146,10 @@ try {
   }
   // Lossy-under-contention: a lock timeout skips the line rather than blocking
   // the tool call — a "dropped" marker would itself need the same lock.
-  function writeActivityLine(entry) {
+  async function writeActivityLine(entry) {
     ensureGitignoreEntry(process.cwd());
     try { fs.mkdirSync(logDir(), { recursive: true }); } catch { /* ignore */ }
-    const lp = acquireLock();
+    const lp = await acquireLock();
     if (!lp) return;
     try {
       rotateIfNeeded(logPath());
@@ -163,7 +172,7 @@ try {
     const hookEvent = data.hook_event_name || '';
     if (hookEvent === 'SessionEnd') {
       if (isHookEnabled('audit-trail')) {
-        writeActivityLine({ ts: new Date().toISOString(), sessionId, event: 'session-end' });
+        await writeActivityLine({ ts: new Date().toISOString(), sessionId, event: 'session-end' });
       }
       timer.end({ status: 'ok', exit: 0, event: hookEvent });
       process.exit(0);
@@ -173,7 +182,7 @@ try {
     const agentType = process.env.HL_AGENT_TYPE || 'main';
     if (isHookEnabled('audit-trail')) {
       const target = extractTarget(toolName, data.tool_input || {});
-      writeActivityLine({ ts: new Date().toISOString(), sessionId, agentType, tool: toolName, target });
+      await writeActivityLine({ ts: new Date().toISOString(), sessionId, agentType, tool: toolName, target });
     }
     // Single-spawn subsumption: this hook is now the only PostToolUse spawn, so
     // the quota refresh haily-usage.cjs used to run here happens inline instead

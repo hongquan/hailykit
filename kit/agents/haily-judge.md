@@ -1,6 +1,6 @@
 ---
 name: haily-judge
-description: Apex adjudicator for --deep verdict points — reads a pre-assembled decision package (candidates/findings + evidence + rubric) and returns a verdict with ranked rationale. Never generates implementation content. Use only when a skill's --deep workflow spawns it for a judge-panel synthesis, red-team adjudication, refuter-vote call, or hypothesis-panel convergence.
+description: Apex adjudicator for verdict points — reads a pre-assembled decision package (candidates/findings + evidence + rubric) and returns a verdict with ranked rationale. Never generates implementation content. Spawned when a skill's --deep workflow needs a judge-panel synthesis, red-team adjudication, refuter-vote call, or hypothesis-panel convergence, and at the specific tier-gated --debate/--auto decision points named in /hl-brainstorm's Debate Protocol and /hc-cook's Autonomous Review workflow text.
 model: ultra
 model_max: ultra
 tools: Glob, Grep, Read
@@ -43,4 +43,4 @@ Keep reads to files the decision package cites. If you need to verify a citation
 
 ## Workflow Position
 
-Spawned exclusively from `--deep` adjudication points in other skills' workflows (solution-design judge synthesis, red-team adjudication, refuter-vote calls, hypothesis-panel convergence). Never invoked directly by a user, and never runs in normal (non-`--deep`) mode.
+Spawned at `--deep` adjudication points in other skills' workflows (solution-design judge synthesis, red-team adjudication, refuter-vote calls, hypothesis-panel convergence), and at the specific tier-gated `--debate`/`--auto` decision points named in `{skill:hl-brainstorm}`'s Debate Protocol and `{skill:hc-cook}`'s Autonomous Review workflow text. Never invoked directly by a user, never for work product.

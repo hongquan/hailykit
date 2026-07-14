@@ -282,7 +282,9 @@ export function migrateSettings(targetClaudeDir: string): number {
   // haily-audit.cjs replaces haily-usage.cjs as the PostToolUse "*" spawn (it
   // subsumes the quota-refresh duty inline) and gains a new SessionEnd group.
   // Fresh installs get both via settings.json copy; upgrades need explicit
-  // injection since settings.json is protected on upgrade.
+  // injection since settings.json is protected on upgrade. SessionEnd is
+  // appended-to (not just created-when-absent) so upgraders who already have
+  // any SessionEnd hook still receive the audit closure line.
   function injectAuditHook(hooksRoot: unknown): boolean {
     if (!hooksRoot || typeof hooksRoot !== 'object') return false;
     const hooks = hooksRoot as Record<string, unknown>;
@@ -323,9 +325,29 @@ export function migrateSettings(targetClaudeDir: string): number {
     }
 
     // SessionEnd closure line — mirrors the matcher-less Stop group shape.
+    // An upgrader may already have a populated SessionEnd array (their own
+    // hook, or one from another tool) — appending here (instead of skipping
+    // whenever the key isn't entirely absent) is required, or their
+    // session-end audit line silently never lands while `count` still
+    // reports success from the PostToolUse replacement alone.
     if (!Array.isArray(hooks['SessionEnd'])) {
       hooks['SessionEnd'] = [{ hooks: [{ type: 'command', command: AUDIT_CMD }] }];
       changed = true;
+    } else {
+      const sessionEndGroups = hooks['SessionEnd'] as unknown[];
+      const sessionEndAlreadyPresent = sessionEndGroups.some((g) => {
+        if (!g || typeof g !== 'object') return false;
+        const gr = g as Record<string, unknown>;
+        if (!Array.isArray(gr.hooks)) return false;
+        return (gr.hooks as unknown[]).some((h) => {
+          const he = h as Record<string, unknown> | null;
+          return !!he && typeof he.command === 'string' && he.command.includes('haily-audit.cjs');
+        });
+      });
+      if (!sessionEndAlreadyPresent) {
+        sessionEndGroups.push({ hooks: [{ type: 'command', command: AUDIT_CMD }] });
+        changed = true;
+      }
     }
 
     return changed;

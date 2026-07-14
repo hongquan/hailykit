@@ -90,3 +90,53 @@ test('migrateSettings: no-op and no duplicate when audit + SessionEnd already pr
   assert.equal(starGroup!.hooks.length, 1, 'no duplicate audit hook injected');
   assert.equal((s.hooks.SessionEnd as unknown[]).length, 1, 'no duplicate SessionEnd group injected');
 });
+
+// Regression coverage for the fix reversing an earlier "defer, marker-only"
+// decision: injectAuditHook previously created the SessionEnd group only when
+// the key was entirely absent, so any upgrader with a pre-existing SessionEnd
+// hook (their own, or from another tool) silently never received the audit
+// closure line — while migrateSettings still reported a non-zero count from
+// the PostToolUse replacement alone, masking the incomplete migration.
+
+test('migrateSettings: appends the audit SessionEnd group when SessionEnd already holds an unrelated entry', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify(preMigratedBase({
+    PostToolUse: [{ matcher: '*', hooks: [{ type: 'command', command: legacyCommand('haily-usage.cjs') }] }],
+    SessionEnd: [{ hooks: [{ type: 'command', command: legacyCommand('third-party-hook.cjs') }] }],
+  })));
+
+  const n = migrateSettings(dir);
+  assert.ok(n > 0, 'migration must report changes');
+
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  const sessionEndGroups = s.hooks.SessionEnd as Array<{ hooks: Array<{ command: string }> }>;
+  assert.equal(sessionEndGroups.length, 2, 'pre-existing group preserved, audit group appended alongside it');
+  assert.ok(
+    sessionEndGroups[0].hooks.some((h) => h.command.includes('third-party-hook.cjs')),
+    'pre-existing unrelated SessionEnd entry left untouched'
+  );
+  assert.ok(
+    sessionEndGroups.some((g) => g.hooks.some((h) => h.command.includes('haily-audit.cjs'))),
+    'audit SessionEnd group appended rather than silently skipped'
+  );
+});
+
+test('migrateSettings: no duplicate SessionEnd audit group when one is already present alongside another hook', () => {
+  const dir = tmp();
+  const p = path.join(dir, 'settings.json');
+  fs.writeFileSync(p, JSON.stringify(preMigratedBase({
+    PostToolUse: [{ matcher: '*', hooks: [{ type: 'command', command: legacyCommand('haily-audit.cjs') }] }],
+    SessionEnd: [
+      { hooks: [{ type: 'command', command: legacyCommand('third-party-hook.cjs') }] },
+      { hooks: [{ type: 'command', command: legacyCommand('haily-audit.cjs') }] },
+    ],
+  })));
+
+  const n = migrateSettings(dir);
+  assert.equal(n, 0, 'already fully migrated — no changes reported');
+
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  const sessionEndGroups = s.hooks.SessionEnd as Array<{ hooks: Array<{ command: string }> }>;
+  assert.equal(sessionEndGroups.length, 2, 'no duplicate audit group added; unrelated group preserved');
+});

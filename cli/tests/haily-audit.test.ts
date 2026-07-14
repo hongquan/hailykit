@@ -16,6 +16,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const HOOK_PATH = path.join(REPO_ROOT, 'kit', 'hooks', 'haily-audit.cjs');
 const ROTATE_BYTES = 5 * 1024 * 1024; // mirrors haily-audit.cjs's ROTATE_BYTES (not exported)
 const KEEP_ARCHIVES = 5; // mirrors haily-audit.cjs's KEEP_ARCHIVES (not exported)
+const MAX_TARGET_LEN = 500; // mirrors haily-audit.cjs's MAX_TARGET_LEN (not exported)
 
 interface HookResult { status: number; stdout: string; stderr: string }
 interface AuditEntry {
@@ -143,6 +144,26 @@ test('target extraction: Grep/Glob use pattern', (t) => {
   assert.equal(entry.target, 'TODO');
 });
 
+test('target extraction: Grep pattern carrying a secret-shaped token is redacted like a Bash command', (t) => {
+  const cwd = tmpCwd();
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  const secret = 'AKIAABCDEFGHIJKLMNOP';
+  const result = runHook(payload('Grep', { pattern: secret }), cwd);
+  assert.equal(result.status, 0);
+  const raw = fs.readFileSync(auditPath(cwd), 'utf8');
+  assert.ok(!raw.includes(secret), 'secret-shaped Grep pattern must not reach the log verbatim');
+  assert.ok(raw.includes('***'), 'redaction marker present for Grep pattern');
+});
+
+test('target extraction: benign Grep pattern passes through unmasked (no false-positive over-redaction)', (t) => {
+  const cwd = tmpCwd();
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  const result = runHook(payload('Grep', { pattern: 'function\\s+handleSubmit' }), cwd);
+  assert.equal(result.status, 0);
+  const [entry] = readAuditLines(cwd);
+  assert.equal(entry.target, 'function\\s+handleSubmit', 'benign pattern logged unchanged');
+});
+
 test('sessionId: payload session_id is short-attributed onto the log line', (t) => {
   const cwd = tmpCwd();
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
@@ -238,6 +259,36 @@ for (const { label, command, secret } of REDACTION_CASES) {
     assert.ok(raw.includes('***'), `redaction marker must be present: ${label}`);
   });
 }
+
+// ── Length cap (all target fields, not just Bash) ─────────────────────────
+
+test('length cap: oversized file_path is truncated in the logged line', (t) => {
+  const cwd = tmpCwd();
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  const oversizedPath = 'a/'.repeat(300) + 'file.ts'; // well over MAX_TARGET_LEN
+  const result = runHook(payload('Read', { file_path: oversizedPath }), cwd);
+  assert.equal(result.status, 0);
+  const [entry] = readAuditLines(cwd);
+  assert.ok(typeof entry.target === 'string', 'target is a string');
+  const target = entry.target as string;
+  assert.ok(target.length < oversizedPath.length, 'oversized file_path is shortened');
+  assert.ok(target.endsWith('...(truncated)'), 'truncation marker present');
+  assert.ok(target.length <= MAX_TARGET_LEN + '...(truncated)'.length, 'truncated target respects the cap plus marker');
+});
+
+test('length cap: oversized Grep pattern is truncated in the logged line', (t) => {
+  const cwd = tmpCwd();
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  // Hyphen-separated segments (not a contiguous secret-shaped run) so this
+  // exercises only the length cap, not the redaction rules.
+  const oversizedPattern = 'abc-'.repeat(Math.ceil((MAX_TARGET_LEN + 200) / 4));
+  const result = runHook(payload('Grep', { pattern: oversizedPattern }), cwd);
+  assert.equal(result.status, 0);
+  const [entry] = readAuditLines(cwd);
+  const target = entry.target as string;
+  assert.ok(target.length < oversizedPattern.length, 'oversized pattern is shortened');
+  assert.ok(target.endsWith('...(truncated)'), 'truncation marker present');
+});
 
 // ── Serialization (anti-forging) ──────────────────────────────────────────
 
