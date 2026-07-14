@@ -62,7 +62,7 @@ Which stages are active per flag combination:
 | `--spec --auto` | ✅ | skip | Auto | Auto | Auto | Auto + execution evidence | Full |
 | `--tdd` | ✅ | ✅ | User approval | — | TDD sub-phases | Full + execution evidence | Full |
 
-Ship is **never skipped** in any mode — `haily-project-manager`, `docs-manager`, and `haily-git-manager` always run.
+Ship is **never skipped** in any mode — `haily-project-manager`, `haily-docs-writer`, and `haily-git-manager` always run.
 
 **Input Detection** (priority order, full logic in `references/input-detect.md`):
 
@@ -115,7 +115,7 @@ Stored in `context-snippets.json`: task, acceptanceCriteria, touchpoints, blastR
 
 6. **Ship** — spawn via Task tool in sequence. **Never skip.** A workflow with zero Task calls is incomplete.
    - `haily-project-manager` → sync plan across all `phase-XX-*.md`; populate Evidence; update `plan.md` status
-   - `docs-manager` → update `./docs/` if changes warrant it
+   - `haily-docs-writer` → update `./docs/` if changes warrant it
    - `TaskUpdate` → mark Claude Tasks complete (fallback: `TodoWrite`)
    - When the run used `--auto` (the developer reviewed little of the diff) or `haily.json` has `quiz.auto: true`, offer the comprehension quiz before the commit question — protocol in `{skill:hc-review}` `references/flow-quiz.md`; record the outcome in the plan
    - `AskUserQuestion` to commit → spawn `haily-git-manager` if yes

@@ -11,6 +11,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - hl-brainstorm: --debate verdict adjudicated by haily-judge when session tier ranks below ultra — tier-gated, once per debate, session-model fallback
 - hc-cook: --auto remediation selection adjudicated by haily-judge when session tier ranks below ultra — tier-gated, max twice per run, verdict logged for post-run audit; hard blocks still terminate with incident report
 - hc-goal: --auto ambiguous-direction decisions consult haily-advisor when session tier ranks below ultra — tier-gated, once per run, recommendation logged in run ledger; critical blockers still escalate to user
+- hooks: add tool-call activity log with rotation
+- hooks: attribute hook-log lines with session id
+- installer: migrate settings for activity-log hook
+
+### 🐛 Fixes
+
+- docs-pipeline: fix broken agent refs and gate
 
 ## [1.14.2] (2026-07-13)
 

@@ -32,7 +32,7 @@ Only document what you can verify exists:
 
 When uncertain → describe high-level intent only. Never invent API signatures, params, return types, env vars, or endpoints. **Red flags (stop & verify):** writing `fn()` you haven't seen · documenting a response shape without reading the code · linking unconfirmed files.
 
-After updates, run: `node .claude/scripts/validate-docs.cjs docs/` and fix warnings before reporting done.
+After updates, re-run the Accuracy Protocol grep checks above against every symbol/path just documented; fix or remove anything that no longer resolves before reporting done.
 
 ## Size Management
 

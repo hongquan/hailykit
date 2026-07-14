@@ -77,7 +77,11 @@ const DEFAULT_CONFIG = {
     'haily-optimize': false,
     'haily-pii': false,
     'haily-usage': true,
-    'model-tracer': true
+    'model-tracer': true,
+    // Default ON (unlike haily-usage's opt-in): the audit log is local,
+    // gitignored, and makes no network call — opt-in parity with hooks that
+    // do network I/O is not required. Off-switch: "audit-trail": false.
+    'audit-trail': true
   },
   codingLevel: 5,
   workflowArtifactGate: {

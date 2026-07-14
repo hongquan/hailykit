@@ -49,10 +49,10 @@ After haily-docs-writer completes:
 
 ## Phase 4: Documentation Validation (Post-Update)
 
-Run validation to detect potential hallucinations:
-1. Run: `node .claude/scripts/validate-docs.cjs docs/`
-2. Display validation report (warnings only, non-blocking)
-3. Checks: code references, internal links, config keys
+Grep-verify to detect potential hallucinations (non-blocking):
+1. Re-run the Accuracy Protocol grep checks (code references, internal links, config keys) against every symbol/path just documented
+2. Display findings as a report
+3. Fix or remove anything that no longer resolves
 
 ## Important
 - Use `docs/` directory as the source of truth.

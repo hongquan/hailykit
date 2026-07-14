@@ -84,7 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-usage.cjs; [ -f \"$h\" ] || { h=\"$HOME/$h\"; s=\"$HOME/$s\"; }; bash \"$h\" \"$s\"'"
+            "command": "bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-audit.cjs; [ -f \"$h\" ] || { h=\"$HOME/$h\"; s=\"$HOME/$s\"; }; bash \"$h\" \"$s\"'"
           }
         ]
       },
@@ -133,6 +133,16 @@
           {
             "type": "command",
             "command": "bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-state.cjs; [ -f \"$h\" ] || { h=\"$HOME/$h\"; s=\"$HOME/$s\"; }; bash \"$h\" \"$s\"'"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-audit.cjs; [ -f \"$h\" ] || { h=\"$HOME/$h\"; s=\"$HOME/$s\"; }; bash \"$h\" \"$s\"'"
           }
         ]
       }

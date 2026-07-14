@@ -25,7 +25,7 @@
 ## 4. Integration
 
 - Follow the `haily-planner` plan. Integrate cleanly, honor API contracts, maintain backward compatibility, document breaking changes.
-- Delegate to the `docs-manager` agent to update `./docs` if warranted.
+- Delegate to the `haily-docs-writer` agent to update `./docs` if warranted.
 
 ## 5. Debugging
 

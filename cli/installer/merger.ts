@@ -116,7 +116,9 @@ export function applyDeletions(targetClaudeDir: string, deletions: string[] = []
  *   Migration 2: [directory-access-guard.cjs, sensitive-file-blocker.cjs] → [haily-access.cjs]
  *   Migration 3: inject haily-pii.cjs into UserPromptSubmit (added alongside sensitive-file-blocker removal)
  *   Migration 4: inject haily-tracer.cjs into PreToolUse[Agent] (per-task model visibility)
- *   Migration 5: inject statusLine command when the user has none configured
+ *   Migration 5: inject haily-audit.cjs into PostToolUse["*"] (replacing haily-usage.cjs)
+ *               + a new SessionEnd group (tool-call activity log + closure line)
+ *   Migration 6: inject statusLine command when the user has none configured
  *
  * @param targetClaudeDir - Absolute path to the user's .claude/ directory.
  * @returns Number of hook commands migrated.
@@ -137,7 +139,12 @@ export function migrateSettings(targetClaudeDir: string): number {
   // Inject the statusline whenever the hook script isn't referenced — actual
   // injection still defers to any user-configured statusLine (checked below).
   const needsStatuslineInjection = !raw.includes('haily-statusline.cjs');
-  if (!needsBarePathMigration && !needsConsolidation && !needsTracerInjection && !needsStatuslineInjection) return 0;
+  // Inject haily-audit whenever absent — it subsumes the PostToolUse "*"
+  // haily-usage spawn (single-spawn invariant) and adds the SessionEnd
+  // closure hook. Upgrades keep protected settings.json, so without this
+  // injection an upgraded user never receives the audit-trail hook at all.
+  const needsAuditInjection = !raw.includes('haily-audit.cjs');
+  if (!needsBarePathMigration && !needsConsolidation && !needsTracerInjection && !needsStatuslineInjection && !needsAuditInjection) return 0;
 
   let settings: unknown;
   try { settings = JSON.parse(stripJsonComments(raw)); } catch { return 0; }
@@ -271,7 +278,60 @@ export function migrateSettings(targetClaudeDir: string): number {
     return true;
   }
 
-  // ── Migration 5: inject statusLine when the user has none ───────────────────
+  // ── Migration 5: inject haily-audit + SessionEnd closure hook ────────────────
+  // haily-audit.cjs replaces haily-usage.cjs as the PostToolUse "*" spawn (it
+  // subsumes the quota-refresh duty inline) and gains a new SessionEnd group.
+  // Fresh installs get both via settings.json copy; upgrades need explicit
+  // injection since settings.json is protected on upgrade.
+  function injectAuditHook(hooksRoot: unknown): boolean {
+    if (!hooksRoot || typeof hooksRoot !== 'object') return false;
+    const hooks = hooksRoot as Record<string, unknown>;
+    const AUDIT_CMD = `bash -c 'h=.claude/hooks/haily-node.sh; s=.claude/hooks/haily-audit.cjs; [ -f "$h" ] || { h="$HOME/$h"; s="$HOME/$s"; }; bash "$h" "$s"'`;
+    let changed = false;
+
+    if (!Array.isArray(hooks['PostToolUse'])) hooks['PostToolUse'] = [];
+    const postGroups = hooks['PostToolUse'] as unknown[];
+    let starGroup = postGroups.find((g: unknown) => {
+      return !!g && typeof g === 'object' && (g as Record<string, unknown>).matcher === '*';
+    }) as Record<string, unknown> | undefined;
+    if (!starGroup) {
+      starGroup = { matcher: '*', hooks: [] };
+      postGroups.push(starGroup);
+    }
+    if (!Array.isArray(starGroup.hooks)) starGroup.hooks = [];
+    const starHooks = starGroup.hooks as unknown[];
+
+    // Replace haily-usage.cjs with haily-audit.cjs so the single-spawn
+    // invariant holds post-upgrade (audit subsumes the usage refresh here).
+    let replaced = false;
+    for (const h of starHooks) {
+      if (!h || typeof h !== 'object') continue;
+      const he = h as Record<string, unknown>;
+      if (typeof he.command === 'string' && he.command.includes('haily-usage.cjs')) {
+        he.command = AUDIT_CMD;
+        replaced = true;
+        changed = true;
+      }
+    }
+    const alreadyPresent = starHooks.some((h) => {
+      const he = h as Record<string, unknown> | null;
+      return !!he && typeof he.command === 'string' && he.command.includes('haily-audit.cjs');
+    });
+    if (!replaced && !alreadyPresent) {
+      starHooks.push({ type: 'command', command: AUDIT_CMD });
+      changed = true;
+    }
+
+    // SessionEnd closure line — mirrors the matcher-less Stop group shape.
+    if (!Array.isArray(hooks['SessionEnd'])) {
+      hooks['SessionEnd'] = [{ hooks: [{ type: 'command', command: AUDIT_CMD }] }];
+      changed = true;
+    }
+
+    return changed;
+  }
+
+  // ── Migration 6: inject statusLine when the user has none ───────────────────
   // The statusline carries the live session summary (model · duration · quota)
   // because Stop-hook systemMessage output is not rendered by Claude Code
   // (anthropics/claude-code#50542). Never overrides a user-configured statusLine.
@@ -290,6 +350,9 @@ export function migrateSettings(targetClaudeDir: string): number {
   }
   if (needsTracerInjection && s.hooks) {
     if (injectTracerHook(s.hooks)) count++;
+  }
+  if (needsAuditInjection && s.hooks) {
+    if (injectAuditHook(s.hooks)) count++;
   }
   if (needsStatuslineInjection && !s.statusLine) {
     s.statusLine = { type: 'command', command: STATUSLINE_CMD, padding: 0 };

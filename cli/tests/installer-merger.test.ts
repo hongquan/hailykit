@@ -245,13 +245,20 @@ test('migrateSettings: deduplicates if haily-access already present', () => {
 test('migrateSettings: no-op when old hooks not present', () => {
   const dir = tmp();
   const p = path.join(dir, 'settings.json');
-  // Represents a fully-migrated settings.json: no old bare-path hooks, tracer and statusline already present.
+  // Represents a fully-migrated settings.json: no old bare-path hooks, tracer,
+  // statusline, and the audit-trail hook (PostToolUse "*" + SessionEnd) already present.
   const original = JSON.stringify({
     statusLine: { type: 'command', command: makeOldHookCommand('haily-statusline.cjs') },
     hooks: {
       PreToolUse: [
         { hooks: [{ type: 'command', command: makeOldHookCommand('haily-rules.cjs') }] },
         { matcher: 'Agent', hooks: [{ type: 'command', command: makeOldHookCommand('haily-tracer.cjs') }] },
+      ],
+      PostToolUse: [
+        { matcher: '*', hooks: [{ type: 'command', command: makeOldHookCommand('haily-audit.cjs') }] },
+      ],
+      SessionEnd: [
+        { hooks: [{ type: 'command', command: makeOldHookCommand('haily-audit.cjs') }] },
       ],
     },
   });

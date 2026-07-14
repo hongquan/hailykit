@@ -116,8 +116,8 @@ The `kit/` directory is a distributable snapshot of the skill catalog, versioned
   - Auto-injected by the session-init hook when the project stack is detected
   - Covers: languages (TypeScript, Python, Go, Rust, etc.), frameworks (Next.js, FastAPI, Django, NestJS, etc.), and integrations (Stripe, Prisma, etc.)
 
-- **`hooks/`** — 9 production hooks (.cjs, Node CommonJS) + helper subdirs
-  - `haily-session.cjs` (project detection + session bootstrap), `haily-rules.cjs` (rules injector), `haily-subagent.cjs` (subagent context), `haily-state.cjs` (session state), `haily-usage.cjs` (usage limits), `haily-artifact.cjs` (artifact verification), `haily-pii.cjs` (sensitive file blocker), `haily-access.cjs` (directory access guard), `haily-optimize.cjs` (optimization gate)
+- **`hooks/`** — 12 production hooks (.cjs, Node CommonJS) + helper subdirs
+  - `haily-session.cjs` (project detection + session bootstrap), `haily-rules.cjs` (rules injector), `haily-subagent.cjs` (subagent context), `haily-state.cjs` (session state), `haily-usage.cjs` (usage limits), `haily-artifact.cjs` (artifact verification), `haily-pii.cjs` (sensitive file blocker), `haily-access.cjs` (directory access guard), `haily-optimize.cjs` (optimization gate), `haily-audit.cjs` (tool-call activity log + quota refresh), `haily-tracer.cjs` (model announcement), `haily-statusline.cjs` (live session summary)
   - Helper subdirs: `haily-artifact/`, `haily-guard/`, `haily-lib/` with modular component files
   - All hooks have canonical header with event type, exit codes, crash wrapper (never block Claude Code on error)
   - All hook and lib files: zero npm dependencies (only Node built-ins and relative requires)

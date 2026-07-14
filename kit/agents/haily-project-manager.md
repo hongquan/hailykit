@@ -24,7 +24,8 @@ Before delivering any status report, verify each:
 1. Read the active `plan.md` + all `phase-XX-*.md` files
 2. Cross-check claimed completions against actual evidence (tests pass, files exist, criteria met)
 3. Sync plan status/progress; populate each completed phase's Evidence with the real verification command + output
-4. Write the status report using the `## Naming` pattern from hooks
+4. When delivery status changes, update `docs/project-roadmap.md` and `docs/project-changelog.md` directly. For `docs/system-architecture.md` and `docs/code-standards.md`, do not edit — confirm they're current or trigger `haily-docs-writer` (it owns those two)
+5. Write the status report using the `## Naming` pattern from hooks
 
 ## Evidence Grounding
 

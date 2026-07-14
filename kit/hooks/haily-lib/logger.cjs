@@ -72,6 +72,20 @@ function _rotateIfNeeded(logPath) {
   } catch { /* no-op if file missing */ }
 }
 
+/**
+ * Short session-id attribution for every hook-log line. Reads
+ * `HL_SESSION_ID`, written by haily-session.cjs via `CLAUDE_ENV_FILE` — that
+ * env file is only sourced on Claude Code (`haily-node.sh` execs node
+ * directly without sourcing an env file on other providers), so this field
+ * populates on Claude only and is simply absent elsewhere. Wrapped in
+ * try/catch since `process.env` access must never throw the caller's
+ * fail-open logging path.
+ * @returns {string} 8-char session id, or '' when unset/unavailable.
+ */
+function _sessionIdShort() {
+  try { return (process.env.HL_SESSION_ID || '').slice(0, 8); } catch { return ''; }
+}
+
 // ═══════════════════════════════════════════════════════
 // PUBLIC API
 // ═══════════════════════════════════════════════════════
@@ -85,10 +99,12 @@ function _rotateIfNeeded(logPath) {
 function logHook(hookName, data) {
   try {
     _ensureDir();
+    const sessionId = _sessionIdShort();
     const entry = JSON.stringify({
       ts: new Date().toISOString(),
       hook: hookName,
       pid: process.pid,
+      ...(sessionId ? { sessionId } : {}),
       ...data
     });
     const lp = _acquireLock();
