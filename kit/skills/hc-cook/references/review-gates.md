@@ -98,6 +98,8 @@ REPEAT:
 
 Score is never sufficient for approval. `score >= 9.5` is only a confidence signal.
 
+**Apex remediation verdict (tier-gated):** when `HL_MODEL_TIER` ranks below `ultra`, the `select lowest-risk remediation` step hands the choice to the `haily-judge` agent as a decision package — the blocker evidence, the candidate remediations (undo the affected slice / patch forward / propagate the new contract / compatibility adapter), and a Blast-Radius + Reversibility rubric — at most twice per run. At an `ultra` session, skip the extra spawn: the session already judges at the top tier. If the `ultra` spawn is unavailable or errors, fall back to the session's own selection with the notice `⚠ apex judge unavailable — verdict by session model`. The judge picks among technical remediations only — it never accepts risk on the user's behalf: a hard block (data loss, security hole, broken public contract) still terminates with the incident report exactly as above. Record the verdict as one line in the incident report or the phase's Deviation Log so the run can be audited after the fact.
+
 ## Adversarial Challenge Prompt
 
 ```

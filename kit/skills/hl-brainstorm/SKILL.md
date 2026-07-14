@@ -147,6 +147,8 @@ All 9 personas analyze the proposal independently. No edge sweep unless `--edges
 
 **STOP triggers (any one):** auth bypass · fundamental design incompatibility · unacceptable query explosion · false assumption invalidating the approach · no viable rollback · untestable hypothesis · systemic adoption blocker.
 
+**Apex verdict (tier-gated):** when `HL_MODEL_TIER` ranks below `ultra`, hand step 4 to the `haily-judge` agent as a decision package — the nine persona analyses as candidates, the agreements/conflicts from step 2, and the STOP triggers as the rubric — at most once per debate. At an `ultra` session the debate already runs on the top tier, so skip the extra spawn. If the `ultra` spawn is unavailable or errors, fall back to the session model with the notice `⚠ apex judge unavailable — verdict by session model`.
+
 ### Debate Output
 
 ```
