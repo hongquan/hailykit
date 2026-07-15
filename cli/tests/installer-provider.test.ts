@@ -852,12 +852,21 @@ test('GeminiProvider.installAgents no-ops when agents dir is absent', () => {
 // CrushProvider
 // ---------------------------------------------------------------------------
 
-test('toCrushMd produces Agent Skills frontmatter without user-invocable', () => {
-  const md = toCrushMd('hc-plan', 'Plan things', 'Do planning.');
+test('toCrushMd produces Agent Skills frontmatter without user-invocable when false', () => {
+  const md = toCrushMd('hc-plan', 'Plan things', false, 'Do planning.');
   assert.match(md, /^---\n/);
   assert.match(md, /name: hc-plan/);
   assert.match(md, /description: "Plan things"/);
   assert.ok(!md.includes('user-invocable'), 'user-invocable is not part of the Agent Skills spec');
+  assert.match(md, /Do planning\./);
+});
+
+test('toCrushMd emits user-invocable: true when requested', () => {
+  const md = toCrushMd('hc-plan', 'Plan things', true, 'Do planning.');
+  assert.match(md, /^---\n/);
+  assert.match(md, /name: hc-plan/);
+  assert.match(md, /description: "Plan things"/);
+  assert.match(md, /user-invocable: true/);
   assert.match(md, /Do planning\./);
 });
 
@@ -868,7 +877,7 @@ test('CrushProvider.installSkills converts SKILL.md to Agent Skills format', () 
   fs.mkdirSync(skillDir, { recursive: true });
   fs.writeFileSync(
     path.join(skillDir, 'SKILL.md'),
-    '---\nname: hc-plan\ndescription: Plan stuff\n---\n\nDo planning.',
+    '---\nname: hc-plan\ndescription: Plan stuff\nuser-invocable: true\n---\n\nDo planning.',
   );
 
   const target = path.join(root, 'out');
@@ -877,8 +886,51 @@ test('CrushProvider.installSkills converts SKILL.md to Agent Skills format', () 
 
   const md = fs.readFileSync(path.join(target, 'skills', 'hc-plan', 'SKILL.md'), 'utf8');
   assert.match(md, /name: hc-plan/);
-  assert.ok(!md.includes('user-invocable'), 'user-invocable must not appear in Agent Skills output');
+  assert.match(md, /user-invocable: true/);
   assert.match(md, /Do planning\./);
+});
+
+test('CrushProvider.installSkills copies references/ and scripts/ into skill directory', () => {
+  const root = tmp();
+  const kit = path.join(root, 'kit');
+  const skillDir = path.join(kit, 'skills', 'hc-plan');
+  const refDir = path.join(skillDir, 'references');
+  const scriptsDir = path.join(skillDir, 'scripts');
+  fs.mkdirSync(refDir, { recursive: true });
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    '---\nname: hc-plan\ndescription: Plan stuff\n---\n\nDo planning.',
+  );
+  fs.writeFileSync(path.join(refDir, 'detail.md'), 'Detailed reference.');
+  fs.mkdirSync(path.join(refDir, 'nested'), { recursive: true });
+  fs.writeFileSync(path.join(refDir, 'nested', 'more.md'), 'Nested reference.');
+  fs.writeFileSync(path.join(refDir, 'notes.txt'), 'Non-markdown asset.');
+  fs.writeFileSync(path.join(scriptsDir, 'run.py'), 'print("ok")');
+  fs.mkdirSync(path.join(scriptsDir, 'lib'), { recursive: true });
+  fs.writeFileSync(path.join(scriptsDir, 'lib', 'util.py'), 'def util(): pass');
+
+  const target = path.join(root, 'out');
+  const count = new CrushProvider().installSkills(kit, target);
+  assert.equal(count, 1);
+
+  assert.ok(fs.existsSync(path.join(target, 'skills', 'hc-plan', 'references', 'detail.md')));
+  assert.equal(
+    fs.readFileSync(path.join(target, 'skills', 'hc-plan', 'references', 'detail.md'), 'utf8'),
+    'Detailed reference.',
+  );
+  assert.ok(fs.existsSync(path.join(target, 'skills', 'hc-plan', 'references', 'nested', 'more.md')));
+  assert.ok(
+    !fs.existsSync(path.join(target, 'skills', 'hc-plan', 'references', 'notes.txt')),
+    'non-markdown reference assets should not be copied',
+  );
+
+  assert.ok(fs.existsSync(path.join(target, 'skills', 'hc-plan', 'scripts', 'run.py')));
+  assert.equal(
+    fs.readFileSync(path.join(target, 'skills', 'hc-plan', 'scripts', 'run.py'), 'utf8'),
+    'print("ok")',
+  );
+  assert.ok(fs.existsSync(path.join(target, 'skills', 'hc-plan', 'scripts', 'lib', 'util.py')));
 });
 
 test('CrushProvider.installRules writes CRUSH.md context file', () => {

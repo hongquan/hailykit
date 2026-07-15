@@ -224,10 +224,11 @@ export abstract class BaseProvider implements Provider {
   protected _parseSkill(
     content: string,
     internalName: string,
-  ): { cmdName: string; description: string; body: string } {
+  ): { cmdName: string; description: string; userInvocable: boolean; body: string } {
     const { frontmatter, body } = parseFrontmatter(content);
     const cmdName = toCommandName(frontmatter, internalName);
     const description = frontmatter.description || '';
+    const userInvocable = /true|yes|1/i.test(frontmatter['user-invocable'] || '');
     const resolvedBody = resolveModelRefs(
       resolveSkillRefs(
         resolveAgentRefs(body, (t, r) => this.agentRef(t, r)),
@@ -235,6 +236,6 @@ export abstract class BaseProvider implements Provider {
       ),
       this.name,
     );
-    return { cmdName, description, body: resolvedBody };
+    return { cmdName, description, userInvocable, body: resolvedBody };
   }
 }
