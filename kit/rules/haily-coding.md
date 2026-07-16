@@ -23,7 +23,9 @@
 - Lint before commit; run tests before push — never ignore failing tests to make the build/CI green.
 - Keep commits focused on actual change.
 - **NEVER** commit secrets (`.env`, API keys, DB credentials).
-- Conventional commit format; clean professional messages, no AI references.
+- Scan the commit messages from the recent commits to learn the message style.
+  It can be "conventional commit" format or natural sentences with high-school spelling rules (no conventional prefixes).
+- Clean professional messages, no AI references.
 
 ## Code Implementation
 
