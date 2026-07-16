@@ -395,9 +395,10 @@ export function toOpenCodeMd(description: string, body: string): string {
  * @param description - Skill description shown in the slash-command picker.
  * @param body        - Skill body text (the instruction content).
  */
-export function toCrushMd(name: string, description: string, body: string): string {
+export function toCrushMd(name: string, description: string, userInvocable: boolean, body: string): string {
   const desc = JSON.stringify(description || '');
-  return `---\nname: ${name}\ndescription: ${desc}\n---\n\n${body}\n`;
+  const invocableLine = userInvocable ? 'user-invocable: true\n' : '';
+  return `---\nname: ${name}\ndescription: ${desc}\n${invocableLine}---\n\n${body}\n`;
 }
 
 /**

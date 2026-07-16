@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { BaseProvider, type ConvertedSkill } from './base.js';
-import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs } from '../converter.js';
+import { toCrushMd, resolveSkillRefs, resolveAgentRefs, resolveModel, resolveModelRefs, parseFrontmatter, isProviderAllowed } from '../converter.js';
 
 /**
  * Crush provider (https://github.com/charmbracelet/crush).
@@ -38,8 +38,70 @@ export class CrushProvider extends BaseProvider {
   hooksSupported(): boolean { return false; }
 
   convertSkill(content: string, internalName: string): ConvertedSkill {
-    const { cmdName, description, body } = this._parseSkill(content, internalName);
-    return { filename: `${cmdName}/SKILL.md`, content: toCrushMd(cmdName, description, body) };
+    const { cmdName, description, userInvocable, body } = this._parseSkill(content, internalName);
+    return { filename: `${cmdName}/SKILL.md`, content: toCrushMd(cmdName, description, userInvocable, body) };
+  }
+
+  installSkills(extractedClaudeDir: string, targetProviderDir: string): number {
+    const count = super.installSkills(extractedClaudeDir, targetProviderDir);
+    if (count === 0) return 0;
+
+    const skillsDir = path.join(extractedClaudeDir, 'skills');
+    const outDir = path.join(targetProviderDir, this.commandsSubDir());
+    for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+
+      const skillMd = path.join(skillsDir, entry.name, 'SKILL.md');
+      if (!fs.existsSync(skillMd)) continue;
+      const content = fs.readFileSync(skillMd, 'utf8');
+      const parsed = parseFrontmatter(content);
+      if (!isProviderAllowed(parsed, this.name)) continue;
+
+      const { cmdName } = this._parseSkill(content, entry.name);
+
+      const srcRefDir = path.join(skillsDir, entry.name, 'references');
+      if (fs.existsSync(srcRefDir)) {
+        const destRefDir = path.join(outDir, cmdName, 'references');
+        fs.mkdirSync(destRefDir, { recursive: true });
+        this._copyRefDir(srcRefDir, destRefDir);
+      }
+
+      const srcScriptsDir = path.join(skillsDir, entry.name, 'scripts');
+      if (fs.existsSync(srcScriptsDir)) {
+        const destScriptsDir = path.join(outDir, cmdName, 'scripts');
+        fs.mkdirSync(destScriptsDir, { recursive: true });
+        this._copySkillSubDir(srcScriptsDir, destScriptsDir);
+      }
+    }
+    return count;
+  }
+
+  /** Recursively copy markdown reference files into the installed skill directory. */
+  private _copyRefDir(src: string, dest: string): void {
+    for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
+      const srcPath = path.join(src, ent.name);
+      const destPath = path.join(dest, ent.name);
+      if (ent.isDirectory()) {
+        fs.mkdirSync(destPath, { recursive: true });
+        this._copyRefDir(srcPath, destPath);
+      } else if (ent.name.endsWith('.md')) {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  }
+
+  /** Recursively copy all files in a skill sub-directory (references/, scripts/, etc.). */
+  private _copySkillSubDir(src: string, dest: string): void {
+    for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
+      const srcPath = path.join(src, ent.name);
+      const destPath = path.join(dest, ent.name);
+      if (ent.isDirectory()) {
+        fs.mkdirSync(destPath, { recursive: true });
+        this._copySkillSubDir(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
   }
 
   installRules(extractedClaudeDir: string, targetProviderDir: string): void {
