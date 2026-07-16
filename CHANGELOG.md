@@ -5,15 +5,37 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.14.4] (2026-07-16)
+
 ### 🚀 Improvements
 
-- kit-wide recon dedup wave 3: hc-fix, hc-cook, hc-docs, hc-debug, hc-spec, hl-write gain reuse-first recon (session recon → scout-report.md → targeted spawn); hc-cook exemplar pull no longer re-spawns scout per phase and scout `ext` demoted to 500+ file escalation; hc-docs update flow drops the parallel doc-reader fan-out (docs-writer reads directly) and honors `should_scan_codebase`; hc-test UI discovery uses `hc-scout --quick`; hc-security runs dependency audit and secret detection in one batch; hc-optimize dry-runs `Measure` before the iteration loop; haily-reviewer and haily-brainstormer agents reuse caller-provided recon instead of re-scouting with machinery they cannot spawn
-- hc-ship: remove auto-created issues from the ship steps reference — contradicted the SKILL contract ("skip silently if none")
-- kit: replace ~90 legacy colon skill refs (`hc:scout`, `hl:design`, `hd:ui-ux`, …) with canonical `{skill:...}` form; `hd:*` refs mapped to current successors (hl-design, imagemagick/ffmpeg CLI, hc-lookup); dead `hd-ui-ux`/`hd-ai-generation` script paths repointed to `hl-design/scripts/`
-- ci: check-skill-cross-refs.js flags ALL colon-form skill refs — the `{skill:xx:yy}` wrapper shape and bare legacy tokens (`hc:scout` in headers/frontmatter/prose/JSON examples) — previously invisible to the registry check and shipped as dead pointers; 22 remaining bare instances fixed and the stale `hc:cook`/`hc:fix` wording in haily-artifact.cjs gate messages corrected
-- hc-plan: Codebase Analysis reuses session recon and runs scout once with all aspects in one prompt — per-aspect full-scout invocations (overlapping repo-wide sweeps) removed; narrow follow-ups use `hc-scout --quick`
-- hl-brainstorm: recon-first constraint resolves reuse-first (session recon → scout-report.md → `hc-scout --quick`) — full-mode scout no longer spawned for a 3–6 bullet orientation
-- hc-review: cut wall-clock and duplicate work — Scout resolves reuse-first (session recon → scout-report.md → inline trace for small diffs → `hc-scout --quick`; full-mode scout no longer spawned for diff reviews), Quality and Stress Probe reviewers spawn in parallel after the Spec gate, YAGNI taxonomy rides the Quality prompt instead of a third reviewer spawn, `--quick` skips Scout, batch mode reuses scout findings across targets, and the duplicate pre-dispatch scout instruction in process-requesting.md is removed
+- installer: copy crush skill assets with user-invocable frontmatter
+- hc-review: run quality and stress probe reviewers in parallel
+- hc-review: resolve scout reuse-first before spawning
+- hc-review: fold YAGNI taxonomy into quality reviewer prompt
+- hc-review: skip scout under quick mode
+- hc-review: reuse scout findings across batch targets
+- hc-plan: run scout once with all aspects
+- hc-plan: reuse session recon in codebase analysis
+- hl-brainstorm: resolve recon reuse-first with quick scout
+- hc-fix, hc-debug, hc-spec, hl-write: add reuse-first recon ladders
+- hc-cook: stop per-phase scout re-spawn in exemplar pull
+- hc-cook: demote scout ext to large-codebase escalation
+- hc-docs: drop parallel doc-reader fan-out
+- hc-docs: honor should_scan_codebase flag in summarize
+- hc-test: use quick scout for UI discovery
+- hc-security: batch dependency audit with secret detection
+- hc-optimize: dry-run Measure command before iteration loop
+- agents: reuse caller recon in reviewer and brainstormer
+
+### 🐛 Fixes
+
+- hc-ship: drop auto-created issues from ship steps
+- kit: replace 112 legacy colon refs with canonical form
+- kit: repoint dead hd script paths to hl-design
+- ci: flag colon-form skill refs in cross-ref check
+- hooks: point artifact gate message to current skill names
+- changelog: restore released 1.14.2 section erased locally
 
 ## [1.14.3] (2026-07-14)
 
