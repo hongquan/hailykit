@@ -13,7 +13,7 @@ Delete all `[bracketed placeholders]` and comment lines before saving.
 
 ```yaml
 ---
-name: [hl|hc|hd]:[kebab-name]
+name: [hl|hc|hd|hs]-[kebab-name]
 description: "[Capability-led. Start with verb or noun — NOT 'Use this to…'.
   Include 3–5 trigger keywords. Max 512 chars.]"
 when_to_use: "[One imperative sentence: 'Invoke when …']"
@@ -57,7 +57,7 @@ DO NOT use "brutal honesty" or "elite expert" language.]
 ## Usage
 
 ```
-{skill:[prefix]:[name]} <required-arg> [--flag]
+{skill:[prefix]-[name]} <required-arg> [--flag]
 ```
 
 [Flag table — only include if the skill has 2+ distinct modes. Omit if single mode.]
@@ -141,9 +141,9 @@ Depth Tiers. Omit this section for skills with no tier-sensitive agent delegatio
 
 ## Workflow Position
 
-**Follows:** `{skill:xx:yyy}` — [one-clause reason, or omit the clause if self-evident]
-**Precedes:** `{skill:xx:yyy}` — [one-clause reason]
-**Related:** `{skill:xx:yyy}`
+**Follows:** `{skill:xx-yyy}` — [one-clause reason, or omit the clause if self-evident]
+**Precedes:** `{skill:xx-yyy}` — [one-clause reason]
+**Related:** `{skill:xx-yyy}`
 
 [Use "Follows/Precedes" — NOT "Typically follows/precedes".
 Use "Auto-invoked by" when another skill calls this one programmatically.
@@ -251,7 +251,7 @@ Structural patterns to avoid in SKILL.md:
 | `## Hard Gates` / `## HARD-GATEs` section name | Rename to `## Constraints` |
 | Roleplay opener ("You are a…", "As an expert…") | Delete. Start with what the skill does. |
 | `/hc-plan` in body text | Use `` `{skill:hc-plan}` `` (slash form is terminal-only) |
-| `**Follows:** {skill:xx:yyy}` without backticks | Wrap skill refs in backticks |
+| `**Follows:** {skill:xx-yyy}` without backticks | Wrap skill refs in backticks |
 | `## Typically follows:` label | Use `**Follows:**` (no "Typically") |
 | `## Communication Style` section | Delete; coding-level guidelines inject this |
 | `## Anti-Rationalization` table | Remove; context is provided by the rules layer |
