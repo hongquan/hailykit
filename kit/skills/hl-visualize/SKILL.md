@@ -9,7 +9,7 @@ metadata:
   keywords: [visualize, diagram, architecture, slides, HTML, explain, excel, xlsx, pdf, report, presentation]
 ---
 
-# hl:visualize — Presentation & Visual Generator
+# hl-visualize — Presentation & Visual Generator
 
 Universal output generator. View files and directories, or produce any presentation-ready format: diagrams, slides, HTML pages, Excel reports, or PDFs.
 

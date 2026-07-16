@@ -55,4 +55,4 @@ Read(file_path="document.pdf", pages="1-10")
 Read(file_path="image.png")
 ```
 
-Use `hc:docs extract <file>` to extract any document format to structured markdown.
+Use `{skill:hc-docs} extract <file>` to extract any document format to structured markdown.

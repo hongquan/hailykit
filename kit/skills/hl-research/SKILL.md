@@ -9,7 +9,7 @@ metadata:
   keywords: [research, evaluation, analysis, solutions, security, migration, architecture, academic, scholarly, literature-review, market, competitor]
 ---
 
-# hl:research — Technical Intelligence
+# hl-research — Technical Intelligence
 
 Multi-source research from scope definition to actionable report. **YAGNI · KISS · DRY.**
 

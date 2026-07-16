@@ -59,14 +59,14 @@ try {
     const { artifactDir } = resolveArtifactDir({ artifactDir: artifactDirFlag, env: process.env });
 
     // NOTE: Absence of an artifact directory in hook mode means the user has not run
-    // hc:cook or hc:fix for this change. Presence of a pointer file is the opt-in
+    // /hc-cook or /hc-fix for this change. Presence of a pointer file is the opt-in
     // signal — without it, enforcing the gate would block users who never adopted the
     // pipeline workflow. Manual mode (--stage) always validates.
     // When enforceOnMissing is true the project explicitly requires the pipeline for
     // every push/ship regardless of whether a pointer exists.
     if (!manualMode && !artifactDir) {
       if (gateConfig.enforceOnMissing === true) {
-        const reason = 'No review artifacts found. Run hc:cook or hc:fix before shipping. (workflow-artifact-gate.enforceOnMissing=true)';
+        const reason = 'No review artifacts found. Run /hc-cook or /hc-fix before shipping. (workflow-artifact-gate.enforceOnMissing=true)';
         process.stdout.write(JSON.stringify({ continue: false, decision: 'block', reason }) + '\n');
         process.stderr.write(`[haily-artifact] BLOCKED (${stage}): enforceOnMissing — no artifact pointer found\n`);
         timer.end({ status: 'block', exit: 2, stage });

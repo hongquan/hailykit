@@ -14,7 +14,7 @@ The pointer stores only metadata:
 {
   "artifactDir": ".agents/example/reports/harness",
   "planPath": ".agents/example",
-  "skill": "hc:fix",
+  "skill": "hc-fix",
   "mode": "auto",
   "updatedAt": "2026-05-26T00:00:00.000Z"
 }
@@ -30,7 +30,7 @@ Do not commit generated pointer files or artifact contents unless a plan explici
 
 ```json
 {
-  "skill": "hc:fix",
+  "skill": "hc-fix",
   "mode": "auto",
   "task": "Fix null check in auth.ts",
   "acceptanceCriteria": ["login succeeds with valid token", "401 returned for missing token"],

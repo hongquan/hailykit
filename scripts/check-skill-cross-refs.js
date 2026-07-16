@@ -172,13 +172,20 @@ function collectCkReferences() {
   return refs;
 }
 
-// Malformed skill refs: a colon inside the name ({skill:hd:ai-generation}) comes from the
-// pre-2026-06 colon convention. HL_REF_RE requires a hyphen after the prefix, so these
-// would otherwise pass the registry check silently as dead pointers.
+// Malformed skill refs from the pre-2026-06 colon convention. HL_REF_RE requires a
+// hyphen after the prefix, so both shapes would otherwise pass the registry check
+// silently as dead pointers:
+//   {skill:hd:ai-generation}  — colon name inside the canonical wrapper
+//   hc:scout / `hl:design`    — bare colon token in headers, frontmatter, prose, JSON examples
+// The bare pattern requires a non-word/non-path char (or line start) before the prefix so
+// file paths and hyphenated names (haily-x:) never match; ha/hm/hi are removed prefixes.
 const MALFORMED_SKILL_REF_RE = /\{skill:[a-z]+:[a-z0-9-]+\}/g;
+const LEGACY_COLON_REF_RE = /(?:^|[^a-zA-Z0-9_/{:-])((?:hl|hc|hd|hs|ha|hm|hi):[a-z][a-z0-9-]*)/g;
 
 /**
- * Scans all .md files under kit/ for malformed {skill:...} refs (colon-form names).
+ * Scans all .md files under kit/ for colon-form skill refs — the {skill:xx:yy}
+ * wrapper shape and bare legacy tokens. Lines using the documented bad-example
+ * convention ("→ no match") are skipped, same as HL_REF_RE handling.
  * Returns Array<{ ref, file, line }>.
  */
 function collectMalformedSkillRefs() {
@@ -193,10 +200,14 @@ function collectMalformedSkillRefs() {
       continue;
     }
     content.split('\n').forEach((line, idx) => {
-      MALFORMED_SKILL_REF_RE.lastIndex = 0;
-      let match;
-      while ((match = MALFORMED_SKILL_REF_RE.exec(line)) !== null) {
-        malformed.push({ ref: match[0], file: path.relative(repoRoot, filePath), line: idx + 1 });
+      if (/→\s*\*?\*?no match/.test(line)) return;
+      const file = path.relative(repoRoot, filePath);
+      for (const re of [MALFORMED_SKILL_REF_RE, LEGACY_COLON_REF_RE]) {
+        re.lastIndex = 0;
+        let match;
+        while ((match = re.exec(line)) !== null) {
+          malformed.push({ ref: match[1] ?? match[0], file, line: idx + 1 });
+        }
       }
     });
   }

@@ -10,7 +10,7 @@ metadata:
   keywords: [release, deploy, PR, ship, publish, version]
 ---
 
-# hc:ship — Release Pipeline
+# hc-ship — Release Pipeline
 
 Runs the full path from a working branch to a merged PR: pre-flight, tests, review, changelog, commit, push, PR, and CI. By default, changes accumulate under `[Unreleased]` in the changelog — no version bump, no tag. Add `--release` to promote `[Unreleased]` → `[X.Y.Z]`, bump the version, and publish a GitHub release. Auto-detects branch mode; stops only when the pipeline cannot safely continue.
 

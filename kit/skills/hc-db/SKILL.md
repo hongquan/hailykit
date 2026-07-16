@@ -1,7 +1,7 @@
 ---
 name: hc-db
 description: "Database expert: schema design, queries, migrations, ORM selection for PostgreSQL, MongoDB, MySQL, SQLite, Redis, Neo4j, Supabase."
-when_to_use: "Invoke when designing schemas, writing queries, selecting a database, or planning migrations. Auto-invoked by hc:plan, hc:cook, hc:review when database work is detected."
+when_to_use: "Invoke when designing schemas, writing queries, selecting a database, or planning migrations. Auto-invoked by {skill:hc-plan}, {skill:hc-cook}, {skill:hc-review} when database work is detected."
 user-invocable: true
 argument-hint: "[database task or question]"
 metadata:

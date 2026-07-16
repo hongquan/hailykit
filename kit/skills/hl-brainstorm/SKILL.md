@@ -10,7 +10,7 @@ metadata:
   keywords: [ideation, tradeoffs, debate, decisions, personas, scenario, edge-cases]
 ---
 
-# hl:brainstorm — Solution Design
+# hl-brainstorm — Solution Design
 
 Default: analyze problem → auto-select persona + edge dimensions → targeted answer. Explicit flags override auto-selection. **Principles:** YAGNI · KISS · DRY.
 
@@ -87,7 +87,7 @@ flowchart TD
     F --> G{User approves?}
     G -->|No — revise| F
     G -->|Yes| H[Write design doc → .agents/brainstorms/]
-    H --> I[Plan handoff: hc:plan]
+    H --> I[Plan handoff: hc-plan]
 ```
 
 **Mandatory items to capture before proposing:**

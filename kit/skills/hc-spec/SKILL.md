@@ -9,7 +9,7 @@ metadata:
   keywords: [spec, requirements, EARS, acceptance-criteria, design-first]
 ---
 
-# hc:spec — Spec-Driven Requirements
+# hc-spec — Spec-Driven Requirements
 
 Drafts a formal specification from a task or plan, presents it for approval, and saves the approved doc as the acceptance contract for implementation. The Build stage in `{skill:hc-cook}` will not begin until the spec is approved.
 

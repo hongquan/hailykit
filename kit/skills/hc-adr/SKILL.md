@@ -9,7 +9,7 @@ metadata:
   keywords: [adr, architecture, decisions, documentation, scan, technical-debt]
 ---
 
-# hc:adr — Architecture Decision Records
+# hc-adr — Architecture Decision Records
 
 Captures the *why* behind architectural decisions as permanent records. Default mode guides writing a single ADR for a known decision. `scan` mode auto-discovers implicit decisions already encoded in the codebase but never formally documented.
 

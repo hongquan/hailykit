@@ -1,6 +1,6 @@
 # Research Protocol
 
-Query construction, source credibility, and search angle guidance for hl:research.
+Query construction, source credibility, and search angle guidance for hl-research.
 
 ---
 

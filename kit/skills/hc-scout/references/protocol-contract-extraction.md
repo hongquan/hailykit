@@ -1,6 +1,6 @@
 # Contract Extraction Protocol
 
-Extract the public API surface of a module or scope. Used by `hc:scout --contracts` to answer: "what must I not break in this refactor?"
+Extract the public API surface of a module or scope. Used by `{skill:hc-scout} --contracts` to answer: "what must I not break in this refactor?"
 
 ---
 

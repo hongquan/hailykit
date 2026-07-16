@@ -9,7 +9,7 @@ metadata:
   keywords: [codebase, scouting, file-discovery, parallel, repomix, knowledge-graph]
 ---
 
-# hc:scout — Parallel Codebase Discovery
+# hc-scout — Parallel Codebase Discovery
 
 Splits the codebase into non-overlapping segments and launches one Explore subagent per segment in parallel. Results merge into a single structured report within 3 minutes.
 

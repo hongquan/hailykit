@@ -1,7 +1,7 @@
 ---
 name: hc-deploy
 description: "First-time platform deployment with auto-detection and cost-optimized recommendations."
-when_to_use: "Invoke for first-time platform setup or deploying personal projects, MVPs, and early-stage apps to Vercel, Netlify, Railway, Fly.io, etc. NOT for enterprise CI/CD pipelines — use hc:devops for those."
+when_to_use: "Invoke for first-time platform setup or deploying personal projects, MVPs, and early-stage apps to Vercel, Netlify, Railway, Fly.io, etc. NOT for enterprise CI/CD pipelines — use {skill:hc-devops} for those."
 user-invocable: true
 argument-hint: "[platform] [environment]"
 metadata:
@@ -149,7 +149,7 @@ Load ONLY the platform reference needed:
 
 Stop and activate `{skill:hc-devops}` when any of these apply:
 
-| Trigger | Why hc:deploy can't handle it |
+| Trigger | Why hc-deploy can't handle it |
 |---|---|
 | Need a CI/CD pipeline (GitHub Actions, GitLab CI, CircleCI) | Pipeline config and secrets management is infrastructure work |
 | Need Docker + custom networking or multi-container orchestration | Container architecture goes beyond platform push |

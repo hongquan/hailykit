@@ -9,7 +9,7 @@ metadata:
   keywords: [worktree, parallel, monorepo, submodule, isolation, branch]
 ---
 
-# hc:worktree — Parallel Branch Environments
+# hc-worktree — Parallel Branch Environments
 
 Each worktree is one branch checked out in its own folder. All worktrees share one `.git/` — no clone, no duplication. Switch-free parallel development.
 

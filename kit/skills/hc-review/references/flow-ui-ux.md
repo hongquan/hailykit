@@ -1,4 +1,4 @@
-# UI/UX Review Checklist — hc:review --ui
+# UI/UX Review Checklist — hc-review --ui
 
 ## Audit Process
 

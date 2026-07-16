@@ -1,7 +1,7 @@
 ---
 name: hc-devops
 description: "Cloud infrastructure provisioning, CI/CD pipeline setup, Docker containerization, Kubernetes cluster management, GitOps, and advanced deployments beyond simple platform hosting."
-when_to_use: "Invoke for infrastructure provisioning, CI/CD pipeline setup, Docker/Kubernetes, GitOps, DNS, SSL, or any deployment that goes beyond simple platform hosting. For quick platform deploys (Vercel/Railway/Fly.io), use hc:deploy first."
+when_to_use: "Invoke for infrastructure provisioning, CI/CD pipeline setup, Docker/Kubernetes, GitOps, DNS, SSL, or any deployment that goes beyond simple platform hosting. For quick platform deploys (Vercel/Railway/Fly.io), use {skill:hc-deploy} first."
 user-invocable: true
 argument-hint: "[platform] [task]"
 metadata:

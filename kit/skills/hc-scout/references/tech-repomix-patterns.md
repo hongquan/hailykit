@@ -1,6 +1,6 @@
 # Repomix Usage Patterns
 
-Practical workflows for using Repomix (`hc:scout --pack`) in different scenarios.
+Practical workflows for using Repomix (`{skill:hc-scout} --pack`) in different scenarios.
 
 ## AI Analysis Workflows
 
