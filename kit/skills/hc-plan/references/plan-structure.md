@@ -88,8 +88,15 @@ Missing references warn and show `not found` — they do not block plan creation
 - Test scenario matrix (critical, high, medium paths)
 - Phase dependency map calling out cross-phase links
 
-**`--tdd`:** Add to each phase file:
-- **Tests Before** — regression stubs written before any code changes
-- **Refactor** — protected implementation changes
-- **Tests After** — new behavior tests
-- Regression gate: compile+test command that must pass before proceeding
+**`--tdd`:** Add to each phase file — which section applies depends on whether the phase introduces new behavior or refactors existing behavior (`{skill:hc-cook}` `references/process-steps.md` § --tdd Flag Behavior):
+
+- **New behavior → Red-Green:**
+  - **Failing Tests** — test(s) for the new behavior, written from this phase's spec/acceptance criteria; run and capture the failing output (red proof) before any implementation edit
+  - **Test-only commit** — committed before implementation starts; the implementor may not edit these files
+  - **Implementation** — code to green against the committed tests
+  - **Refactor** — cleanup once green
+- **Refactor/legacy → Snapshot:**
+  - **Tests Before** — regression stubs written before any code changes
+  - **Refactor** — protected implementation changes
+  - **Tests After** — new behavior tests, if any incidental new behavior surfaces
+- Regression gate: compile+test command that must pass before proceeding (both cycles)

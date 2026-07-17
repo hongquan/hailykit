@@ -86,7 +86,7 @@ Invalid: raw command logs, missing command summaries, or failed commands without
   "decision": "PASS",
   "score": 9.4,
   "criticalCount": 0,
-  "acceptanceCoverage": ["all acceptance criteria mapped to tests or manual proof"],
+  "acceptanceCoverage": ["AC-1 → tests/auth/login.test.ts:12 ✓", "AC-2 → manual: curl evidence ref ✓"],
   "regressionProof": ["npm test passed", "existing routes still return 200"],
   "contractStatus": "OK",
   "blockingReasons": []
@@ -94,6 +94,8 @@ Invalid: raw command logs, missing command summaries, or failed commands without
 ```
 
 Valid decisions: `PASS`, `PASS_WITH_RISK`, `BLOCKED`. Any critical issue, blocking reason, or `BLOCKED` decision blocks hard stages.
+
+`acceptanceCoverage` entries carry the spec's `AC-N` id (`{skill:hc-spec}`) as a prefix — `"AC-N → test/evidence ref"` — so coverage is checkable against the approved spec's ids. The array shape stays backward-compatible with `kit/hooks/haily-artifact/schema.cjs` `validateReviewDecision`, which requires `Array.isArray(acceptanceCoverage)`; ids ride inside each string rather than as object keys. Every AC-id in the approved spec must have a matching entry — a spec AC-id with no coverage entry blocks hard stages (`{skill:hc-review}` `references/review-spec.md`). Specs without AC-ids, or no spec at all, keep plain descriptive strings (`"all acceptance criteria mapped to tests or manual proof"`) — fully backward compatible.
 
 ### `adversarial-validation.json`
 
@@ -119,10 +121,12 @@ Required only when the Scope Contract set the `evidence` marker on `context-snip
 {
   "phase": "phase-02-login-flow",
   "criteria": [
-    { "criterion": "login succeeds with valid token", "command": "curl -s localhost:3000/api/login -d @creds.json", "evidenceRef": "200 OK, {\"token\":\"<redacted>\"}", "pass": true }
+    { "criterion": "login succeeds with valid token", "criterionId": "AC-1", "command": "curl -s localhost:3000/api/login -d @creds.json", "evidenceRef": "200 OK, {\"token\":\"<redacted>\"}", "pass": true }
   ]
 }
 ```
+
+`criterionId` carries the spec's `AC-N` id (from `{skill:hc-spec}`, tagged onto the acceptance test per the EARS → given-when-then bridge in `references/process-steps.md`) when `--spec` is active. Omit it for phases with no spec or no AC-ids — `kit/hooks/haily-artifact/schema.cjs` `validateExecutionEvidence` only checks `criterion`, `command`/`source`, `evidenceRef`, and `pass`, so the added field needs no validator change and stays backward-compatible with legacy evidence files.
 
 For phases with no runtime surface (docs, pure refactor), state it explicitly instead of listing criteria:
 

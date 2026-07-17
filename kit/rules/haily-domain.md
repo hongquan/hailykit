@@ -54,12 +54,13 @@ Disambiguate: authored deliverable user will read as prose (report, essay, story
 
 ```
 Write EARS-notation spec before coding       → {skill:hc-spec} "feature description"
+Lightweight spec for a small task            → {skill:hc-spec} --quick "feature description"
 Gate hc-cook with spec approval              → {skill:hc-cook} --spec "task"
 Capture agreed architectural decision (ADR)  → {skill:hc-adr} "context or decision"
 Auto-discover undocumented decisions         → {skill:hc-adr} scan
 Scope scan to a subtree                      → {skill:hc-adr} scan --dir src/auth
 ```
-Disambiguate: need formal acceptance criteria before coding → `{skill:hc-spec}` · decision already made, need to record it → `{skill:hc-adr}` · no prior documentation of decisions exists → `{skill:hc-adr} scan`.
+Disambiguate: need formal acceptance criteria before coding → `{skill:hc-spec}` (full EARS spec) · task touches ≤2 files with no new public interface → `{skill:hc-spec} --quick` (also auto-selected by `{skill:hc-cook} --spec` for tiny tasks) · decision already made, need to record it → `{skill:hc-adr}` · no prior documentation of decisions exists → `{skill:hc-adr} scan`.
 
 ## Project Initialization
 
@@ -127,6 +128,7 @@ Discover/manage/execute MCP tools                → Claude Code /mcp  (built-in
 ```
 Run tests, coverage, TDD              → {skill:hc-test}
 Web testing (Playwright, k6, a11y)    → {skill:hc-test} --web
+Mutation testing (test-quality audit) → {skill:hc-test} --mutation
 Puppeteer debug (console/net/perf)    → {skill:hc-debug} (auto-routes to Puppeteer for frontend)
 AI-driven browser, Browserbase cloud  → {skill:hc-browser}
 Design test strategy before coding    → Task(subagent_type="haily-test-architect")

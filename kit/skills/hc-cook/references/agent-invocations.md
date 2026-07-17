@@ -58,6 +58,24 @@ Target: 100 % green. Any red triggers the haily-debugger (see below).
 
 {agent-result:haily-tester}
 
+## Test-Writer Context Split (`--tdd`)
+
+Under `--tdd`'s Red-Green cycle (`references/process-steps.md` § --tdd Flag Behavior), test authoring and implementation run in separate contexts — a single context that reasons about both contaminates tests with implementation knowledge, or implementation with test-shape knowledge.
+
+{agent:haily-test-architect}
+
+Design the test strategy from the phase file's spec/acceptance criteria alone — no implementation approach in context. When `--spec` is also active, translate each `AC-N` criterion into a given-when-then acceptance test tagged with its `AC-N` id.
+
+{agent-result:haily-test-architect}
+
+A test-writing step turns the strategy into concrete failing test files, runs them, and captures the red proof (`kit/agents/haily-tester.md` § Red Proof) — still without implementation-reasoning context. Only after the test-only commit exists does the implementor receive the committed tests, not the test-writing rationale.
+
+{agent:haily-implementor}
+
+Implement to green against the committed tests below. Do not edit the committed test files — any diff to them during this step is a tamper flag.
+
+{agent-result:haily-implementor}
+
 ## Failure Diagnosis
 
 {agent:haily-debugger}

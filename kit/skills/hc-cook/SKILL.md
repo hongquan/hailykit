@@ -25,7 +25,7 @@ Full pipeline from task to committed code. Classifies input automatically, deleg
 | `--quick` | Skip Recon + Scope Contract. Go straight to Draft → Build → Verify → Ship. Use when you already understand the codebase — small fixes, known refactors, follow-on tasks. |
 | `--deep` | Verify review runs `{skill:hc-review}` `--deep` semantics (refuter votes on Critical findings) and always spawns the domain-risk second-pass reviewer, not just when a risk domain is touched. The cross-model leg never auto-activates from `--deep` alone — still requires `--cross` or `haily.json crossReview.auto`; when it does run, `--deep` upgrades its findings from advisory to confidence-raising. Mutually exclusive with `--quick` — `--deep` wins if both given. Repo opt-in: `haily.json` `deep.auto` (see `docs/engineering-standards.md` § Depth Tiers); an explicit `--quick` always overrides it. |
 | `--auto` | Autonomous — resolves Checkpoints without pausing; applies Auto-Resolve Ladder on regressions. Run `{skill:hc-plan} validate` first for a clean run. |
-| `--tdd` | Behavioral modifier — write tests before each plan phase, verify after |
+| `--tdd` | Behavioral modifier — per phase, Red-Green for new behavior (test committed failing, then implemented to green) or Snapshot for refactor/legacy (lock behavior into tests, transform, re-verify); see `references/process-steps.md` § --tdd Flag Behavior |
 | `--spec` | Insert a Spec checkpoint between Draft and Build: draft EARS-notation acceptance criteria via `{skill:hc-spec}` and pause for user approval before implementation begins. In `--auto` mode the spec is drafted and auto-approved. |
 | `--tier fast\|medium\|thinking` | Model tier hint — forwarded to Build and Verify agents (see `references/agent-invocations.md` § Tier Routing). Passed automatically by `{skill:hc-goal}` per phase; absent = session model (backward compatible) |
 | `--strict` | Require the full test suite to be green (restores original zero-regress behavior; overrides default no-new-failures gate) |
@@ -60,7 +60,7 @@ Which stages are active per flag combination:
 | `--spec` | ✅ | ✅ | User approval | User approval | User approval | Full + execution evidence | Full |
 | `--auto` | ✅ | skip | Auto | — | Auto | Auto (artifact-gated) + execution evidence | Full |
 | `--spec --auto` | ✅ | skip | Auto | Auto | Auto | Auto + execution evidence | Full |
-| `--tdd` | ✅ | ✅ | User approval | — | TDD sub-phases | Full + execution evidence | Full |
+| `--tdd` | ✅ | ✅ | User approval | — | Red-Green or Snapshot sub-phases | Full + execution evidence | Full |
 
 Ship is **never skipped** in any mode — `haily-project-manager`, `haily-docs-writer`, and `haily-git-manager` always run.
 

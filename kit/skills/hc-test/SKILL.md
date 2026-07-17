@@ -3,10 +3,10 @@ name: hc-test
 description: "Run unit/integration/e2e tests with coverage analysis and build verification. Supports JS/TS, Python, Go, Rust, Flutter. --web activates Playwright, k6, a11y, visual regression, and Core Web Vitals testing."
 when_to_use: "Invoke when running test suites, measuring coverage, or writing new tests."
 user-invocable: true
-argument-hint: "[scope] [--web]"
+argument-hint: "[scope] [--web] [--mutation]"
 metadata:
   category: workflow
-  keywords: [test, unit, integration, e2e, coverage, playwright, k6, a11y, visual-regression]
+  keywords: [test, unit, integration, e2e, coverage, playwright, k6, a11y, visual-regression, mutation]
 ---
 
 # Test — Test Suite Execution Pipeline
@@ -16,22 +16,24 @@ Runs the full validation pipeline: typecheck → tests → coverage → build ve
 ## Usage
 
 ```
-{skill:hc-test} [scope] [--web]
+{skill:hc-test} [scope] [--web] [--mutation]
 ```
 
 | Flag | Behavior |
 |------|----------|
 | *(none)* | Run project test suite: typecheck → tests → coverage → build |
 | `--web` | Web-specific testing: load Playwright, k6, a11y, visual regression, CWV references |
+| `--mutation` | Run mutation testing (Stryker/mutmut) scoped to critical-path modules — nightly/pre-merge tier, not the inner loop |
 
 ```
 {skill:hc-test}                   # full suite
 {skill:hc-test} src/auth/         # scoped to auth module
 {skill:hc-test} --web             # full web test suite
 {skill:hc-test} --web src/checkout # web tests scoped to checkout flow
+{skill:hc-test} src/auth --mutation # mutation score for the auth module
 ```
 
-No arguments: run the full project test suite. Add `--web` for web-specific testing.
+No arguments: run the full project test suite. Add `--web` for web-specific testing. Add `--mutation` for a periodic mutation-score audit on critical-path modules.
 
 ## Constraints
 
@@ -71,6 +73,10 @@ Activated by `--web`. Load these references and run suites in the order that app
 
 Use `{skill:hc-browser}` for interactive browser sessions and screenshot analysis. Use `gemini` CLI for describing UI issues from screenshots.
 
+## --mutation Mode
+
+Activated by `--mutation`. Load `references/tech-mutation.md`, detect the project's mutation tool (Stryker for JS/TS, mutmut for Python), scope the run to critical-path modules (policy/validation, orchestrators, auth, payment) or the given scope arg, and run it. Report mutation score plus surviving mutants as findings — weak or assertion-free tests to strengthen, never auto-fixed. This is a nightly/pre-merge/critical-path audit, explicitly not part of the standard typecheck→tests→coverage→build pipeline and never a per-commit gate.
+
 ## When NOT to Use
 
 - Tests failing due to a code bug → `{skill:hc-debug}` to investigate, then `{skill:hc-fix}` to fix
@@ -85,12 +91,15 @@ Use `{skill:hc-browser}` for interactive browser sessions and screenshot analysi
 **Precedes:** `{skill:hc-optimize}` — when coverage or performance falls short of target
 **Related:** `{skill:hc-cook}`, `{skill:hc-fix}`
 
+`--mutation` runs as an optional periodic quality audit after the standard suite passes — nightly, pre-merge, or on explicit request, never bundled into the pipeline above.
+
 ## References
 
 | File | Content |
 |------|---------|
 | `references/flow-execution.md` | Test execution per framework, coverage analysis, build verification |
 | `references/quality-report.md` | QA report template and formatting guidelines |
+| `references/tech-mutation.md` | Mutation testing — Stryker/mutmut/cargo-mutants detection, critical-path scoping, score interpretation |
 | `references/tech-playwright.md` | Playwright e2e testing — selectors, fixtures, parallel, sharding |
 | `references/tech-k6.md` | k6 load testing — scripts, thresholds, stress tests |
 | `references/tech-a11y.md` | Accessibility testing — axe-core, WCAG, manual checks |

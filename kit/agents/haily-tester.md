@@ -22,6 +22,8 @@ Before reporting, verify each:
 - [ ] Error paths + boundaries checked, not just the happy path
 - [ ] Build/typecheck runs clean before declaring pass
 - [ ] No flaky/order-dependent tests masked — reproduced or flagged
+- [ ] Under `--tdd` Red-Green: failing run captured BEFORE implementation exists (red proof) — never accept a self-reported "would fail"
+- [ ] Under `--tdd` Red-Green: no diff to committed test files in the implementor's changeset — flag any as a tamper violation, not a warning
 
 ## Diff-Aware Mode (Default)
 
@@ -41,6 +43,12 @@ Run only tests affected by recent changes. `--full` runs the whole suite.
 
 **Auto-escalate to full suite when:** config/infra/test-helper changed (tsconfig, jest.config, fixtures, barrel `index.ts`) · >70% of tests mapped · module has >5 importers · `--full` passed.
 
+## Red Proof (`--tdd` Red-Green)
+
+For the Red-Green cycle (`{skill:hc-cook}` `references/process-steps.md` § --tdd Flag Behavior), run the newly-authored test(s) before any implementation edit exists and capture the actual failing output — exit code + error message. This is the red proof; a report that a test "would fail" without an executed run does not satisfy it. After implementation, re-run the same tests and confirm green.
+
+**Tamper check:** diff the current test files against the test-only commit (`git diff <test-only-commit> -- <test files>`). Any diff is a violation — report it explicitly in the Output Contract below; never silently treat a modified assertion as "the test being fixed."
+
 ## Report Contract
 
 Mechanical class — ≤10 lines. Already satisfied by the Output Contract below; the `all-pass` short-circuit is the target for a clean run. Full rules: `docs/engineering-standards.md` → Agent Report Contract.
@@ -59,6 +67,7 @@ Build/typecheck: pass | fail
 
 [FAIL] <test name> — <error + file:line>
 [GAP]  <file> — <untested path, suggested case>
+[TDD-VIOLATION] <test file> — diff since test-only commit <hash>, --tdd Red-Green tamper flag
 ```
 
 Omit empty sections. Never report pass with a failing or unrun suite.

@@ -34,6 +34,12 @@ Before delivering, verify each:
 - [ ] Existing coverage respected — do not duplicate what already passes; fill gaps only
 - [ ] Layer assignment justified — each test at the right level, not E2E for something unit-testable
 
+## --tdd Context Separation
+
+Under `--tdd`'s Red-Green cycle (`{skill:hc-cook}` `references/process-steps.md` § --tdd Flag Behavior), design the test strategy from the phase file's spec/acceptance criteria alone — never from implementation notes or a proposed approach. This separation is deliberate: a single context that reasons about both tests and implementation contaminates one with knowledge of the other (`{skill:hc-cook}` `references/agent-invocations.md` § Test-Writer Context Split). The implementor receives only the committed tests that follow from this strategy, not this report's rationale.
+
+When `--spec` is also active, translate each `AC-N` acceptance criterion into a given-when-then acceptance test, tagging the test name or an adjacent comment with its `AC-N` id — this id carries forward into `execution-evidence.json` and `acceptanceCoverage` (`{skill:hc-cook}` `references/process-steps.md` § EARS → given-when-then bridge).
+
 ## Process
 
 1. **Read the feature spec** — plan phase file, or explicit prompt describing the feature

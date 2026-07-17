@@ -131,7 +131,28 @@ After saving each file, run three micro-gates:
 
 ### `--tdd` Flag Behavior
 
-When `--tdd` is active, each phase cycles through three stages:
+`--tdd` activates one of two cycles per phase — chosen by spec stability, not task size. See § When --tdd helps below for the full tiering guidance, including when to skip `--tdd` entirely.
+
+**Decision:** new, well-specified deterministic behavior (a function, an API, a bug fix with a reproducing case) → **Red-Green** below. Refactor or legacy work where the phase changes structure but not observable behavior → **Snapshot** below.
+
+#### Red-Green (new behavior)
+
+```
+(a) Test author writes failing test(s) from the phase's spec/acceptance criteria
+(b) Run the test(s); capture the failing output — this is the red proof
+(c) Commit test-only (`test:` commit) — no implementation edit until this commit exists
+(d) Implementor implements to green — may not edit the committed test files
+(e) Refactor with tests green
+```
+
+- **Red proof is an executed run, never a self-report.** Step (b) requires actual command output (exit code, failure message) captured before step (c)'s commit — a claim that a test "would fail" does not satisfy this. `haily-tester` owns running and capturing it (`kit/agents/haily-tester.md` § Red Proof).
+- **Immutability gate:** before any implementation edit in step (d), `git log` must show a test-only commit for the current unit. `haily-implementor` treats a missing test-only commit as a blocker — return to steps (a)-(c) instead of implementing.
+- **Tamper flag:** a `git diff` on the committed test files during steps (d)-(e) is a violation, not a self-fix. `haily-tester`'s diff-aware run (Step 4) reports any such diff explicitly; it carries into Step 5's review brief as a one-line TDD flag — no new artifact field.
+- **Context separation:** the test author for step (a) runs in a context separate from the implementor of step (d) — see `references/agent-invocations.md` § Test-Writer Context Split.
+
+#### Snapshot (refactor / legacy)
+
+A refactor-safety pattern, not TDD for new behavior — unchanged from prior behavior:
 
 ```
 Phase 3a — Snapshot:   lock current behavior into tests (baseline safety net)
@@ -142,6 +163,16 @@ Phase 3c — Verify:     re-run snapshot tests + build gates — any failure = r
 The snapshot tests from Phase 3a serve as a behavioral contract. If any turn
 red after Phase 3b, the transformation introduced a regression and must be
 reverted or fixed before the workflow advances.
+
+#### When --tdd helps
+
+- **Use Red-Green** for deterministic, well-specified logic: pure functions, API contracts, bug fixes with a reproducing test. The spec is stable enough that a test written first won't need rewriting as the design churns.
+- **Skip Red-Green** for exploratory or UI/visual work where "correct" isn't known yet — writing tests first against a shape that will still change wastes turns. Use Layout Mode's screenshot-diff (`references/layout/`) instead: implement, screenshot, diff against the reference, fix. Retrofit Red-Green once the shape stabilizes, if the underlying logic still warrants it.
+- **Snapshot** always applies to refactor/legacy work regardless of this tiering — it protects existing behavior rather than gating new behavior.
+
+#### EARS → given-when-then bridge (`--spec --tdd` only)
+
+When `--spec` is also active, each `AC-N` acceptance criterion from `{skill:hc-spec}` becomes one given-when-then acceptance test in Red-Green step (a), tagged with its `AC-N` id in the test name or an adjacent comment. `haily-test-architect` drafts this translation before the implementor sees the phase — same context-separation rule as above. The `AC-N` tag carries forward into `execution-evidence.json` (`criterionId`) and `review-decision.json`'s `acceptanceCoverage` (`AC-N →` entry prefix) — see § Verify-by-Execution.
 
 **All input types:**
 - Use `TaskUpdate` to mark tasks `in_progress` immediately
@@ -223,7 +254,9 @@ Audit this changeset across five axes:
 - CONSISTENCY — confirm new code follows patterns identified during scout
 - HYGIENE — assert zero new lint, type, or build errors repo-wide
 
-Include scout summary and acceptance criteria as context. Return: verdict (pass/conditional/block), severity-ranked findings, side-effect flags.
+Include scout summary and acceptance criteria as context. Under `--tdd`, also forward any `[TDD-VIOLATION]` line from Step 4's tester report verbatim — it is a blocking finding, not context: committed test files edited after the red commit invalidate the ACCEPTANCE axis (a green suite proves nothing), so the verdict cannot be pass while the flag stands. This blocks `--auto` finalize through the existing `review-decision.json` PASS requirement — no new artifact field.
+
+Return: verdict (pass/conditional/block), severity-ranked findings, side-effect flags.
 
 The agent must **never** perform the review itself — always delegate.
 
@@ -242,8 +275,10 @@ For each acceptance criterion captured in the Scope Contract, drive the actual a
 Evidence shape — write this object to `execution-evidence.json` in the artifact directory (`references/review-artifacts.md`); mirrored in `kit/hooks/haily-artifact/schema.cjs` `validateExecutionEvidence`:
 
 ```
-{ phase, criteria: [{ criterion, command|source, evidenceRef, pass }], noRuntimeSurface? }
+{ phase, criteria: [{ criterion, criterionId?, command|source, evidenceRef, pass }], noRuntimeSurface? }
 ```
+
+`criterionId` (optional) carries the spec's `AC-N` id when `--spec` is active — it ties this evidence entry to `review-decision.json`'s `acceptanceCoverage` entry and to Step 6's spec-conformance sub-step. Omit it for phases with no spec or no AC-ids.
 
 `noRuntimeSurface` present and non-empty satisfies the gate on its own — no per-criterion entries required for that phase.
 
@@ -302,7 +337,9 @@ only change the Status column cell, preserve table structure.
    - Return unresolved mappings if any completed task cannot be matched to a phase file.
 3. Use `TaskUpdate` to mark Claude Tasks complete after sync-back confirmation.
 4. Onboarding check (API keys, env vars)
-5. **MUST** spawn git subagent: {agent:haily-git-manager} — stage and commit all changes.
+5. **Spec conformance** (only when the plan/task carries a spec with `AC-N` ids — `{skill:hc-spec}`): diff the final implementation against every approved `AC-N` id. Each id must resolve to a `review-decision.json` `acceptanceCoverage` entry; each unmatched AC-id (no coverage) or new public behavior with no AC-id (drift) must be recorded in the Deviation Log or trigger a `--update` re-approval (`{skill:hc-spec}` re-approval rule). **Interactive:** halt and surface the gap for user resolution. **`--auto`:** apply the Auto-Resolve Ladder (`references/review-gates.md`) — log and continue on a reversible gap (missing test, doc-only drift), escalate/terminate on contract-breaking drift (public surface with no AC-id and no re-approval). No spec / no AC-ids in scope: skip, log `n/a (no spec)`.
+   Log: `✓ Spec conformance: [N/N] AC-ids covered — [K] deviations logged`
+6. **MUST** spawn git subagent: {agent:haily-git-manager} — stage and commit all changes.
 
 **CRITICAL:** Step 6 is INCOMPLETE without spawning all 3 subagents. DO NOT skip subagent delegation.
 
