@@ -5,6 +5,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.14.9] (2026-07-20)
+
+### 🚀 Improvements
+
+- installer: add flat_inline frontmatter for flat bundle embedding
+- hl-write: inline anti-AI rubric on flat providers
+- ci: validate flat_inline paths resolve
+
 ## [1.14.8] (2026-07-20)
 
 ### 🚀 Improvements
