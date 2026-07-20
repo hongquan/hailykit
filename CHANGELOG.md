@@ -5,6 +5,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.14.8] (2026-07-20)
+
+### 🚀 Improvements
+
+- hl-write: add single-agent host fallback section
+- hl-write: move style seeding contract to skill reference
+- hl-write: declare review rubrics role-neutral
+- hl-write: repoint agent-file references to skill sources
+
 ## [1.14.7] (2026-07-20)
 
 ### 🚀 Improvements
